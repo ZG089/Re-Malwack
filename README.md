@@ -10,6 +10,15 @@ Say goodbye to the headaches of malware, spyware, and intrusive ads on your root
 - ⚙️ **Effortless Performance**: Enjoy seamless device performance with Malwack's lightweight and efficient design tailored for Magisk.
 - 🌐 **Universal Compatibility**: Whether you're on your rooted phone or tablet, Malwack guards them all within the Magisk ecosystem.
 
+## How does it work?
+
+**Where is the file?**
+- Your ``hosts`` file located in ``/system/etc``. It "acts" like your school blocking service that blocks you from going to websites. However, this (the ``Hosts`` file) is done locally on your phone's root system. 
+
+**How does the host's file block websites and what modifications were made?**
+- How does it block websites: The host file blocks websites and malware by denying access for your phone to connect to it at all. It will just return a blank page. ``0.0.0.0 www.the-website-that-is-blocked.com``.
+- Modifications that were made to the host file. The hosts file was used from [Hosts file provider](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/tree/master/hosts) There were 4 files, I've merged all of them together to make one giant file that will block all spyware, malware, ads. This has over 500,000+ websites blocked that are harmful and annoying (ads). 
+
 ## Get Started
 
 Protect your rooted digital realm today with Malwack Magisk Module! Follow these simple steps:
