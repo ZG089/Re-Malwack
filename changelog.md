@@ -1,2 +1,3 @@
-Fixed Install.zip
-Added Links for updating via magisk app
+## v1.2
+- Updated hosts file
+- Added more info to ``README.md``
