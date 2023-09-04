@@ -11,7 +11,7 @@ Say goodbye to the headaches of malware, spyware, and intrusive ads on your root
 - 🌐 **Universal Compatibility**: Whether you're on your rooted phone or tablet, Malwack guards them all within the Magisk ecosystem.
 
 ## Total Blocked
-- 636216 Malware, Ads, Spyware
+- 856371 Malware, Ads, Spyware
 
 ## How does it work?
 
@@ -35,7 +35,8 @@ For any inquiries or assistance, reach out to me at root@person0z.me.
 # The awesome people who made this work
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - Magisk Template Creator
-- [Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file
+- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file
+- [@StevenBlack](https://github.com/StevenBlack/hosts) /system/etc/hosts file
 
 ---
 © 2023 Malwack Technologies. All rights reserved.
