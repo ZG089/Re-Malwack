@@ -11,7 +11,7 @@ Say goodbye to the headaches of malware, spyware, and intrusive ads on your root
 - 🌐 **Universal Compatibility**: Whether you're on your rooted phone or tablet, Malwack guards them all within the Magisk ecosystem.
 
 ## Total Blocked
-- 856371 Malware, Ads, Spyware
+- 850,000+ Malware, Ads, Spyware
 
 ## How does it work?
 
