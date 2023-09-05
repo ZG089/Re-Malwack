@@ -10,6 +10,17 @@ Say goodbye to the headaches of malware, spyware, and intrusive ads on your root
 - ⚙️ **Effortless Performance**: Enjoy seamless device performance with Malwack's lightweight and efficient design tailored for Magisk.
 - 🌐 **Universal Compatibility**: Whether you're on your rooted phone or tablet, Malwack guards them all within the Magisk ecosystem.
 
+## Command Usage
+[Termux](https://f-droid.org/en/packages/com.termux/) or any sort of terminal emulator is required to use, you can also use ADB if you know how to.
+
+```
+    "Usage: malwack [--restore[-original | -default] | --blockporn | --help]"
+    "--restore-default: Restore the hosts file to the modules default state & updates it."
+    "--restore-original: Restore the hosts file to its original state. (No blocking)"
+    "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    "--help: Display this help message."
+```
+
 ## Total Blocked
 - 850,000+ Malware, Ads, Spyware
 

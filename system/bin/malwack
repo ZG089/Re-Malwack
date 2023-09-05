@@ -1,0 +1,113 @@
+#!/system/bin/sh
+
+# Define the path to the hosts file
+hosts_file="/etc/hosts"
+
+if [ $# -eq 0 ]; then
+    echo "Usage: malwack [--restore[-original | -default] | --blockporn | --help]"
+    echo "--restore-default: Restore the hosts file to the modules default state & updates it."
+    echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
+    echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    echo "--help: Display this help message."
+else
+    case "$1" in
+        --restore-original)
+            # Remove the current hosts file if it exists
+
+            chmod 644 "$hosts_file"
+            echo "Restored permissions for $hosts_file"
+
+            if [ -f "$hosts_file" ]; then
+                rm -f "$hosts_file"
+                echo "Removed $hosts_file"
+            fi
+
+            # Create a new hosts file with default localhost entries
+            echo "127.0.0.1 localhost" > "$hosts_file"
+            echo "::1 localhost" >> "$hosts_file"
+
+            # Restore the original permissions
+            chmod 644 "$hosts_file"
+            echo "Restored permissions for $hosts_file"
+
+            # Notify completion
+            echo "Restored $hosts_file to its original state"
+            ;;
+        --blockporn)
+            host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
+
+            # Download the hosts file with curl renaming it to hosts.txt
+            if curl -o hosts.txt "$host"; then
+                # Check if the file was downloaded successfully
+
+                # Check if the hosts.txt file exists
+                if [ -f "hosts.txt" ]; then
+                    # Append the downloaded hosts.txt to the current hosts file
+                    cat hosts.txt >> "$hosts_file"
+
+                    # Remove the downloaded hosts.txt file
+                    rm hosts.txt
+
+                    # Echo that the entry has been added
+                    echo "Entry for $host added to $hosts_file"
+                else
+                    echo "Error: Downloaded file hosts.txt does not exist."
+                fi
+            else
+                echo "Error: Failed to download the hosts file."
+            fi
+            ;;
+        --restore-default)
+            host="https://raw.githubusercontent.com/Magisk-Modules-Alt-Repo/Malwack/main/system/etc/hosts"
+
+            # Set a timeout value in seconds
+            timeout_seconds=60
+            chmod 644 "$hosts_file"
+
+            # Download the hosts file with curl renaming it to hosts.txt
+            if timeout $timeout_seconds curl -o hosts.txt "$host"; then
+                # Check if the file was downloaded successfully
+
+                # Check if the hosts.txt file exists
+                if [ -f "hosts.txt" ]; then
+
+                    # Remove the current hosts file if it exists
+                    if [ -f "$hosts_file" ]; then
+                        rm -f "$hosts_file"
+                        echo "Removed $hosts_file"
+                    fi
+
+                    # Append the downloaded hosts.txt to the current hosts file
+                    touch "$hosts_file"
+                    echo "Created $hosts_file"
+                    chmod 644 "$hosts_file"
+                    echo "Restored permissions for $hosts_file"
+                    cat hosts.txt >> "$hosts_file"
+                    echo "Added entries from hosts.txt to $hosts_file"
+
+                    # Remove the downloaded hosts.txt file
+                    rm hosts.txt
+                    echo "Removed hosts.txt"
+
+                    # Echo that the entry has been added
+                    echo "Entry for $host added to $hosts_file"
+                else
+                    echo "Error: Downloaded file hosts.txt does not exist."
+                fi
+            else
+                echo "Error: Download failed. This is either an issue on your network or GitHub's backend."
+                exit 1
+            fi
+            ;;
+        --help)
+            echo "Usage: malwack [--restore[-original | -default] | --blockporn | --help]"
+            echo "--restore-default: Restore the hosts file to the modules default state & updates it."
+            echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
+            echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+            echo "--help: Display this help message."
+            ;;
+        *)
+            echo "Invalid option. Use 'malwack --help' for usage information."
+            ;;
+    esac
+fi

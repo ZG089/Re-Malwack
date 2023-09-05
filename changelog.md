@@ -1,3 +1,9 @@
+## v2.0 - Major Update
+- Added terminal commands
+- use ``malwack --help`` for all available commands
+- Updated README.md
+- Updated hosts life
+---
 ## v1.4
 - Updated hosts file
 - added custom header to hosts file 
