@@ -1,3 +1,6 @@
+## v2.1
+- update hosts file
+---
 ## v2.0 - Major Update
 - Added terminal commands
 - use ``malwack --help`` for all available commands
