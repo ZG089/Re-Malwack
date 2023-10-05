@@ -1,3 +1,6 @@
+## v2.5
+- Update Hosts file
+---
 ## v2.4
 - Update Hosts File
 ---
