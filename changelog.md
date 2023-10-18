@@ -1,3 +1,7 @@
+## v3.0
+- Added curl command as some users do not have it installed on their phones
+- Fixed the malwack command to get hosts file and to block porn as curl was not working for some users.
+- Updated Hosts file
 ## v2.6
 - Update Hosts file
 ## v2.5

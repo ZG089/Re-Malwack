@@ -45,6 +45,7 @@ set_permissions() {
   :
   set_perm_recursive $MODPATH/system/etc/hosts 0 0 0644 0755
   set_perm  $MODPATH/system/bin/malwack  0  0  0777
+  set_perm  $MODPATH/system/bin/curl  0  0  0777
 }
 
 ##########################################################################################
