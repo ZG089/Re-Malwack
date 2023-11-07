@@ -14,12 +14,12 @@ Say goodbye to the headaches of malware, spyware, and intrusive ads on your root
 [Termux](https://f-droid.org/en/packages/com.termux/) or any sort of terminal emulator is required to use, you can also use ADB if you know how to.
 
 ```
-     "Usage: malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-     "--restore-default: Restore the hosts file to the modules default state & updates it."
-     "--restore-original: Restore the hosts file to its original state. (No blocking)"
-     "--blockporn: Block pornographic websites by adding entries to the hosts file."
-     "--whitelist <domain>: Remove the specified domain from the hosts file."
-     "--help: Display this help message."
+"Usage: malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
+"--restore-default: Restore the hosts file to the modules default state & updates it."
+"--restore-original: Restore the hosts file to its original state. (No blocking)"
+"--blockporn: Block pornographic websites by adding entries to the hosts file."
+"--whitelist <domain>: Remove the specified domain from the hosts file."
+"--help: Display this help message."
 ```
 
 ## Total Blocked
