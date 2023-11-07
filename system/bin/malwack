@@ -2,12 +2,14 @@
 
 # Define the path to the hosts file
 hosts_file="/etc/hosts"
+temp="/etc/hosts.tmp/hosts.txt"
 
 if [ $# -eq 0 ]; then
-    echo "Usage: malwack [--restore[-original | -default] | --blockporn | --help]"
+    echo "Usage: malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
     echo "--restore-default: Restore the hosts file to the modules default state & updates it."
     echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
 else
     case "$1" in
@@ -55,6 +57,25 @@ else
                 fi
             else
                 echo "Error: Failed to download the hosts file."
+            fi
+            ;;
+        --whitelist)
+            # Check if the second argument (the domain) is provided
+            if [ -z "$2" ]; then
+                echo "Error: Please provide a domain to whitelist."
+            else
+                domain="$2"
+                temp=$(mktemp)  # Create a temporary file
+                if sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
+                    if mv "$temp" "$hosts_file"; then
+                        echo "Whitelisted $domain in $hosts_file"
+                    else
+                        echo "Error: Failed to replace $hosts_file with the modified content."
+                    fi
+                else
+                    echo "Error: Failed to remove $domain from $hosts_file."
+                fi
+                echo "Done"
             fi
             ;;
         --restore-default)

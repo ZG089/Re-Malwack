@@ -1,3 +1,8 @@
+## v4.0
+- Updated Hosts file
+- Updated readme.md
+- Added Sed and MV commands with rw perms
+- Added a new command that allows users to whitelist domains.
 ## v3.0
 - Added curl command as some users do not have it installed on their phones
 - Fixed the malwack command to get hosts file and to block porn as curl was not working for some users.
