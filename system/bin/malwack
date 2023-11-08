@@ -121,10 +121,11 @@ else
             fi
             ;;
         --help)
-            echo "Usage: malwack [--restore[-original | -default] | --blockporn | --help]"
+            echo "Usage: malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
             echo "--restore-default: Restore the hosts file to the modules default state & updates it."
             echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
             echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+            echo "--whitelist <domain>: Remove the specified domain from the hosts file."
             echo "--help: Display this help message."
             ;;
         *)
