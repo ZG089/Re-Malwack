@@ -47,8 +47,9 @@ For any inquiries or assistance, reach out to me at root@person0z.me.
 # The awesome people who made this work
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - Magisk Template Creator
-- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file
+- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
 - [@StevenBlack](https://github.com/StevenBlack/hosts) /system/etc/hosts file
+- [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
 
 ---
 © 2023 Malwack Technologies. All rights reserved.

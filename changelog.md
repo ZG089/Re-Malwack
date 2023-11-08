@@ -1,3 +1,5 @@
+## v4.2
+- Updated Hosts file and added a new hosts link
 ## v4.1
 - Update Hosts File
 - Fixed changelog
