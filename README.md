@@ -28,19 +28,16 @@ Same as Malwack + regularly updated :)
 
 **How does the host's file block websites and what modifications were made?**
 - How does it block websites: The host file blocks websites and malware by denying access for your phone to connect to it at all. It will just return a blank page. ``0.0.0.0 www.the-website-that-is-blocked.com``.
-- Modifications that were made to the host file. The hosts file was used from [Hosts file provider](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/tree/master/hosts) There were 4 files, I've merged all of them together to make one giant file that will block all spyware, malware, ads. This has over 500,000+ websites blocked that are harmful and annoying (ads). 
 
 ## Get Started
 
-Protect your rooted digital realm today with re-Malwack Magisk Module! Follow these simple steps:
-
-1. **Download & Install**: Open Magisk Manager, go to Modules section, click on the '+' icon, then select the Re-Malwack Module zip file to install.
+1. **Download & Install**: Open Magisk, go to Modules section, click on the '+' icon, then select the Re-Malwack Module zip file to install.
 2. **Reboot**: Reboot your device to activate the Malwack Module's protective features.
-3. **Enjoy**: Experience a cleaner, safer digital experience on your rooted device with Malwack.
+3. **Enjoy**: Experience a cleaner, safer digital experience on your rooted device with Re-Malwack!
 
 For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](t.me/zgx_dev) 
 
-If you want to reach out to @person0z, contact him using his email: root@person0z.me.
+If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 # The awesome people who made this work
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
@@ -51,5 +48,4 @@ If you want to reach out to @person0z, contact him using his email: root@person0
 
 ---
 
-All Credits Goes to : @person0z for his great work.
-© 2023 Malwack Technologies. All rights reserved.
+All Credits Goes to : [@person0z](https://github.com/Person0z) for his great work.
