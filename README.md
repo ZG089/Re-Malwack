@@ -39,7 +39,8 @@ For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/
 
 If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
-# The awesome people who made this work
+# Credits
+- [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - Magisk Template Creator
 - [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
@@ -48,4 +49,3 @@ If you want to reach out to [@person0z](https://github.com/Person0z), contact hi
 
 ---
 
-All Credits Goes to : [@person0z](https://github.com/Person0z) for his great work.
