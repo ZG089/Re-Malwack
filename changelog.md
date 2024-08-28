@@ -1,3 +1,6 @@
+## v5.2.0
+- Initial Revival of Malwack (existence of Re-Malwack)
+---
 ## v4.2.1
 - Fixed the help command adding the ``whitelist`` command on it.
 ## v4.2
