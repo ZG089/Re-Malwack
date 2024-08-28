@@ -1,6 +1,11 @@
-# Re-Malwack Magisk Module - An Unofficial Re-Awakening of Malwack Magisk Module !
+<div align="center">
+  
+<a href="https://ibb.co/GM9dgWs"><img src="https://i.ibb.co/GM9dgWs/20240828-173916-0000.png" alt="20240828-173916-0000" border="0" ></a>
+  <h1 align="center">Re-Malwack</h1>
+  <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
 
-Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the **Re-Malwack Magisk Module**! This powerful module is your virtual shield, keeping your digital space clean and secure.
+<h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your digital space clean and secure. </h3>
+</div>
 
 ## Features
 
