@@ -3,7 +3,6 @@
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
   <h1 align="center">Re-Malwack</h1>
   <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
-  <a href="https://img.shields.io/badge/Buy%20Me%20a%20coffee-black?style=for-the-badge&logo=buymeacoffee&logoColor=%2300000&logoSize=auto&label=Support%20development&labelColor=%2300000&color=%23FFDD00&cacheSeconds=2&link=buymeacoffee.com%2Fzg089&link=buymeacoffee.com%2Fzg089"><img src="https://img.shields.io/badge/Buy%20Me%20a%20coffee-black?style=for-the-badge&logo=buymeacoffee&logoColor=%2300000&logoSize=auto&label=Support%20development&labelColor=%2300000&color=%23FFDD00&cacheSeconds=2&link=buymeacoffee.com%2Fzg089&link=buymeacoffee.com%2Fzg089 alt="buymeacoffee"></a>
 
 <h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your digital space clean and secure. </h3>
 </div>
