@@ -1,6 +1,6 @@
 <div align="center">
   
-<a href="https://ibb.co/GM9dgWs"><img src="https://i.ibb.co/GM9dgWs/20240828-173916-0000.png" alt="20240828-173916-0000" border="0" ></a>
+<a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
   <h1 align="center">Re-Malwack</h1>
   <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
 
