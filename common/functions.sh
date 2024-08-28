@@ -105,16 +105,27 @@ prop_process() {
   done < $1
 }
 
-# Credits in acsii for "Malwack"
+# Credits in acsii for "Re-Malwack" + Intro
 ui_print " 
 
-                    lll                           kk     
-mm mm mmmm    aa aa lll ww      ww   aa aa   cccc kk  kk 
-mmm  mm  mm  aa aaa lll ww      ww  aa aaa cc     kkkkk  
-mmm  mm  mm aa  aaa lll  ww ww ww  aa  aaa cc     kk kk  
-mmm  mm  mm  aaa aa lll   ww  ww    aaa aa  ccccc kk  kk 
+
+
+
+
+   ___ ___    __  __   _   _ __      ___   ___ _  __
+  | _ \ __|__|  \/  | /_\ | |\ \    / /_\ / __| |/ /
+  |   / _|___| |\/| |/ _ \| |_\ \/\/ / _ \ (__| ' < 
+  |_|_\___|  |_|  |_/_/ \_\____\_/\_/_/ \_\___|_|\_\
+
                                                  
 "
+sleep 1.0
+ui_print "      Welcome to Re-Malwack installation wizard!"
+ui_print " "
+sleep 1.5
+ui_print "     Installation will take less than 2 seconds ⚡"
+sleep 1.5
+ui_print ""
 
 # Check for min/max api version
 [ -z $MINAPI ] || { [ $API -lt $MINAPI ] && abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!"; }
@@ -187,11 +198,8 @@ if [ -f $INFO ]; then
 fi
 
 ### Install
-ui_print "- Installing......"
-
 [ -f "$MODPATH/common/install.sh" ] && . $MODPATH/common/install.sh
-
-ui_print "   Installing for $ARCH SDK $API device..."
+ui_print "- Installing for $ARCH SDK $API device..."
 # Remove comments from files and place them, add blank line to end if not already present
 for i in $(find $MODPATH -type f -name "*.sh" -o -name "*.prop" -o -name "*.rule"); do
   [ -f $i ] && { sed -i -e "/^#/d" -e "/^ *$/d" $i; [ "$(tail -1 $i)" ] && echo "" >> $i; } || continue
