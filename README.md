@@ -1,11 +1,14 @@
 <div align="center">
   
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
+</div>
   <h1 align="center">Re-Malwack</h1>
-  <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
+[CENTER]An Unofficial Re-Awakening of Malwack Magisk Module ![CENTER]
+  
+![Static Badge](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)
+
 
 <h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your digital space clean and secure. </h3>
-</div>
 
 ## Features
 
@@ -51,6 +54,6 @@ If you want to reach out to [@person0z](https://github.com/Person0z), contact hi
 - [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
 - [@StevenBlack](https://github.com/StevenBlack/hosts) /system/etc/hosts file
 - [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
+- And Finally, YOU! For using my module :)
 
 ---
-
