@@ -19,6 +19,10 @@
 
 Same as Malwack + Enhanced and regularly updated :)
 
+## Download Module
+
+Download ``install.zip`` from the repo or get it directly from [here](https://github.com/ZG089/Re-Malwack/raw/main/install.zip)
+
 ## Command Usage
 [Termux](https://f-droid.org/en/packages/com.termux/) or any sort of terminal emulator is required to use, you can also use ADB if you know how to.
 
