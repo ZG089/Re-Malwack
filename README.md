@@ -5,18 +5,19 @@
   <h1 align="center">Re-Malwack</h1>
 <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
 
-![Built By Developers](https://forthebadge.com/images/badges/built-by-developers.png?)
-![Static Badge](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)
-![WITH LOVE](https://forthebadge.com/images/badges/built-with-love.png)
-![GitHub repo size](https://img.shields.io/github/repo-size/ZG089/Re-Malwack?style=for-the-badge)
+![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
+![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
+![Built with](https://img.shields.io/badge/Built_with-Love-red)
+![GitHub repo size](https://img.shields.io/github/repo-size/ZG089/Re-Malwack)
+[![Channel](https://img.shields.io/badge/Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
+[![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 
 
-
-<h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your digital space clean and secure. </h3>
+<h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your device clean, secure and ads-free ! </h3>
 
 ## Features
 
-Same as Malwack + regularly updated :)
+Same as Malwack + Enhanced and regularly updated :)
 
 ## Command Usage
 [Termux](https://f-droid.org/en/packages/com.termux/) or any sort of terminal emulator is required to use, you can also use ADB if you know how to.
@@ -60,4 +61,8 @@ If you want to reach out to [@person0z](https://github.com/Person0z), contact hi
 - [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
 - And Finally, YOU! For using my module :)
 
----
+# Donations
+
+As a 10th-grade student who have to study almost all the time, and at the same time passionate about this project, your support would mean the world to me. If you find this app useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
+
+[![Donation](https://img.shields.io/badge/BUY_ME_A_COFFEpE-black?&logo=buymeacoffee&logoColor=black&style=for-the-badge&logoSize=50&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
