@@ -3,7 +3,7 @@
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
 </div>
   <h1 align="center">Re-Malwack</h1>
-[CENTER]An Unofficial Re-Awakening of Malwack Magisk Module ![CENTER]
+<h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
   
 ![Static Badge](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)
 
