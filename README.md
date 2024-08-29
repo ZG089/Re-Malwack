@@ -4,8 +4,12 @@
 </div>
   <h1 align="center">Re-Malwack</h1>
 <h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
-  
+
+![Built By Developers](https://forthebadge.com/images/badges/built-by-developers.png?)
 ![Static Badge](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)
+![WITH LOVE](https://forthebadge.com/images/badges/built-with-love.png)
+![GitHub repo size](https://img.shields.io/github/repo-size/ZG089/Re-Malwack?style=for-the-badge)
+
 
 
 <h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your digital space clean and secure. </h3>
