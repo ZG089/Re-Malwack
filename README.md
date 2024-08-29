@@ -17,7 +17,7 @@
 
 ## Features
 
-Same as Malwack + Enhanced and regularly updated :)
+Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) + Enhanced and regularly updated :)
 
 ## Download Module
 
