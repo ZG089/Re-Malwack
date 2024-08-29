@@ -13,7 +13,7 @@
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 
 
-<h3 align="center"> Say goodbye to the headaches of malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your device clean, secure and ads-free ! </h3>
+<h3 align="center"> Say goodbye to malware, spyware, and intrusive ads on your rooted device with the Re-Malwack Magisk Module! This powerful module is your virtual shield, keeping your device clean, secure and ads-free ! </h3>
 
 ## Features
 
