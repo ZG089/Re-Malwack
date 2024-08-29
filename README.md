@@ -65,4 +65,4 @@ If you want to reach out to [@person0z](https://github.com/Person0z), contact hi
 
 As a 10th-grade student who have to study almost all the time, and at the same time passionate about this project, your support would mean the world to me. If you find this app useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
 
-[![Donation](https://img.shields.io/badge/BUY_ME_A_COFFEpE-black?&logo=buymeacoffee&logoColor=black&style=for-the-badge&logoSize=50&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
+[![Donation](https://img.shields.io/badge/BUY_ME_A_COFFEE-black?&logo=buymeacoffee&logoColor=black&style=for-the-badge&logoSize=50&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
