@@ -52,7 +52,7 @@ Download ``install.zip`` from the repo or get it directly from [here](https://gi
 2. **Reboot**: Reboot your device to activate the Malwack Module's protective features.
 3. **Enjoy**: Experience a cleaner, safer digital experience on your rooted device with Re-Malwack!
 
-For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](t.me/zgx_dev) 
+For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev) 
 
 If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
