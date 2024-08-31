@@ -7,7 +7,7 @@
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
-![Built with](https://img.shields.io/badge/Built_with-Love-red)
+![Built with](https://img.shields.io/badge/Made_with-Love-red)
 ![GitHub repo size](https://img.shields.io/github/repo-size/ZG089/Re-Malwack)
 [![Channel](https://img.shields.io/badge/Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?color=blue&logo=telegram)](https://t.me/zgx_dev)
