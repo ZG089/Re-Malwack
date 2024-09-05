@@ -3,7 +3,7 @@
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
 </div>
 <h1 align="center">Re-Malwack</h1>
-<h2 align="center"> An Unofficial Re-Awakening of Malwack Magisk Module !</h2>
+<h2 align="center"> An Re-Awakening of Malwack Magisk Module !</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
