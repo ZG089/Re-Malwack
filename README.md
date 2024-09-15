@@ -29,11 +29,11 @@ Download ``install.zip`` from the repo or get it directly from [here](https://gi
 
 ```
 "Usage: re-malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-"--restore-default: Restore the hosts file to the modules default state & updates it."
-"--restore-original: Restore the hosts file to its original state. (No blocking)"
-"--blockporn: Block pornographic websites by adding entries to the hosts file."
-"--whitelist <domain>: Remove the specified domain from the hosts file."
-"--help: Display this help message."
+    "--restore-default: Updates the hosts file."
+    "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
+    "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    "--whitelist <domain>: Remove the specified domain from the hosts file."
+    "--help: Display this help message."
 ```
 
 ## Total Blocked
