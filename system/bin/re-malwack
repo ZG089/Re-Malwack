@@ -6,8 +6,8 @@ temp="/etc/hosts.tmp/hosts.txt"
 
 if [ $# -eq 0 ]; then
     echo "Usage: re-malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-    echo "--restore-default: Restore the hosts file to the modules default state & updates it."
-    echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
+    echo "--restore-default: Updates the hosts file."
+    echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
@@ -79,7 +79,7 @@ else
             fi
             ;;
         --restore-default)
-            host="https://raw.githubusercontent.com/ZG089/Re-Malwack/main/system/etc/hosts"
+            host="https://hosts.ubuntu101.co.za/hosts"
 
             # Set a timeout value in seconds
             timeout_seconds=60
@@ -122,8 +122,8 @@ else
             ;;
         --help)
             echo "Usage: re-malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-            echo "--restore-default: Restore the hosts file to the modules default state & updates it."
-            echo "--restore-original: Restore the hosts file to its original state. (No blocking)"
+            echo "--restore-default: Updates the hosts file."
+            echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
             echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
             echo "--whitelist <domain>: Remove the specified domain from the hosts file."
             echo "--help: Display this help message."
