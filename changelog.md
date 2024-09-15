@@ -1,4 +1,8 @@
-## v5.2.0
+## v5.0.1
+- First update
+- Update hosts dl link
+- Fixed an issue where the updated hosts file cannot replace the current hosts file.
+## v5.0.0
 - Initial Revival of Malwack (existence of Re-Malwack)
 ---
 ## v4.2.1
