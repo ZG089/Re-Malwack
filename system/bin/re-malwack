@@ -69,7 +69,7 @@ else
                 domain="$2"
                 temp=$(mktemp)  # Create a temporary file
                 if sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
-                    if su -c data/data/com.termux/files/usr/bin/mv "$temp" "$hosts_file"; then
+                    if su -c /data/data/com.termux/files/usr/bin/mv "$temp" "$hosts_file"; then
                         echo "Whitelisted $domain in $hosts_file"
                     else
                         echo "Error: Failed to replace $hosts_file with the modified content."
@@ -106,7 +106,7 @@ else
                 if [ -f "$hosts_file" ]; then
                     mkdir /data/adb/modules_update
                     cp -r /data/adb/modules/Re-Malwack /data/adb/modules_update
-                    su -c data/data/com.termux/files/usr/bin/mv hosts /data/adb/modules_update/Re-Malwack/system/etc
+                    su -c /data/data/com.termux/files/usr/bin/mv hosts /data/adb/modules_update/Re-Malwack/system/etc
                     chmod 0644 /data/adb/modules_update/Re-Malwack/system/etc/hosts
                     sleep 1
                     echo ""
