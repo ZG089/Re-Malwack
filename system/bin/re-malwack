@@ -103,7 +103,7 @@ else
             chmod 644 "$hosts_file"
 
             # Download the hosts file with curl renaming it to hosts.txt
-            if timeout $timeout_seconds curl -o hosts.txt "$host"; then
+            if timeout $timeout_seconds sh /data/data/com.termux/files/usr/bin/curl -o hosts.txt "$host"; then
                 # Check if the file was downloaded successfully
 
                 # Check if the hosts.txt file exists
