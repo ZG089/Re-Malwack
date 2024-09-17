@@ -4,7 +4,6 @@
 </div>
 <h1 align="center">Re-Malwack</h1>
 <h2 align="center">Re-Awakening of Malwack Magisk Module !</h2>
-<h3 align="center">This is were I implement & test new features."
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
@@ -15,6 +14,8 @@
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/m/zg_dev.11432109/)
 [![XDA Support thread](https://img.shields.io/badge/Support_thread-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
+
+<h3 align="center">This is the test branch were I implement & test new features.</h3>
 
 
 ## Features
