@@ -5,8 +5,8 @@ hosts_file="/etc/hosts"
 temp="/etc/hosts.tmp/hosts.txt"
 
 if [ $# -eq 0 ]; then
-    echo "Usage: re-malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-    echo "--restore-default: Updates the hosts file."
+    echo "Usage: re-malwack [--restore[-original] | --blockporn | --whitelist <domain> | --hosts-update | --help]"
+    echo "--update-hosts: Updates the hosts file."
     echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
@@ -20,6 +20,10 @@ else
             echo "Restored permissions for $hosts_file"
 
             if [ -f "$hosts_file" ]; then
+                mount -o rw,remount /system/etc
+                mount -o rw,remount /system
+                mount -o rw,remount /etc
+
                 rm -f "$hosts_file"
                 echo "Removed $hosts_file"
             fi
@@ -34,6 +38,7 @@ else
 
             # Notify completion
             echo "Restored $hosts_file to its original state"
+            umount /system/etc/hosts
             ;;
         --blockporn)
             host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
@@ -78,7 +83,19 @@ else
                 echo "Done"
             fi
             ;;
-        --restore-default)
+        --black-list)
+        # Currently working on it.
+        if [ -z "$3" ]; then
+            echo "Error: Please provide a domain to block."
+        else
+            mount -o rw,remount /system/etc
+            mount -o rw,remount /system
+            mount -o rw,remount /etc
+            echo "0.0.0.0 $3" >> /etc/hosts
+            echo "Done!"
+
+        ;;    
+        --update-hosts)
             host="https://hosts.ubuntu101.co.za/hosts"
 
             # Set a timeout value in seconds
@@ -94,8 +111,11 @@ else
 
                     # Remove the current hosts file if it exists
                     if [ -f "$hosts_file" ]; then
-                        rm -f "$hosts_file"
-                        echo "Removed $hosts_file"
+                       mount -o rw,remount /system/etc
+                       mount -o rw,remount /system
+                       mount -o rw,remount /etc
+                       rm -f "$hosts_file"
+                       echo "Removed $hosts_file"
                     fi
 
                     # Append the downloaded hosts.txt to the current hosts file
@@ -121,8 +141,8 @@ else
             fi
             ;;
         --help)
-            echo "Usage: re-malwack [--restore[-original | -default] | --blockporn | --whitelist <domain> | --help]"
-            echo "--restore-default: Updates the hosts file."
+            echo "Usage: re-malwack [--restore[-original] | --blockporn |--update-hosts| --whitelist <domain> | --help]"
+            echo "--update-hosts: Updates the hosts file."
             echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
             echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
             echo "--whitelist <domain>: Remove the specified domain from the hosts file."
