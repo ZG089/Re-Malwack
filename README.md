@@ -32,12 +32,12 @@ Download ``install.zip`` from the repo or get it directly from [here](https://gi
     "--restore-default: Updates the hosts file."
     "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
     "--blockporn: Block pornographic websites by adding entries to the hosts file."
-    "--whitelist <domain>: Remove the specified domain from the hosts file."
+    "--whitelist <domain> : Remove domain from the hosts file."
     "--help: Display this help message."
 ```
 
 ## Total Blocked
-- 900,000+ Malware, Ads, Spyware
+- 902,100+ Malware, Ads, Spyware
 
 ## How does it work?
 

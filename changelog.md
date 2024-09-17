@@ -2,6 +2,7 @@
 - First update
 - Update hosts dl link
 - Fixed an issue where the updated hosts file cannot replace the current hosts file.
+- Added "Blacklist" Feature
 ## v5.0.0
 - Initial Revival of Malwack (existence of Re-Malwack)
 ---
