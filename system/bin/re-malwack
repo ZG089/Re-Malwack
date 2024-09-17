@@ -85,15 +85,15 @@ else
             ;;
         --black-list)
         # Currently working on it.
-        if [ -z "$3" ]; then
+        if [ -z "$1" ]; then
             echo "Error: Please provide a domain to block."
         else
             mount -o rw,remount /system/etc
             mount -o rw,remount /system
             mount -o rw,remount /etc
-            echo "0.0.0.0 $3" >> /etc/hosts
+            echo "0.0.0.0 $1" >> /etc/hosts
             echo "Done!"
-
+            fi
         ;;    
         --update-hosts)
             host="https://hosts.ubuntu101.co.za/hosts"
