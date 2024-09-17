@@ -4,6 +4,7 @@
 </div>
 <h1 align="center">Re-Malwack</h1>
 <h2 align="center">Re-Awakening of Malwack Magisk Module !</h2>
+<h3 align="center">This is were I implement & test new features."
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
