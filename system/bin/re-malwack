@@ -2,7 +2,7 @@
 
 # Define the path to the hosts file
 hosts_file="/etc/hosts"
-temp="/etc/hosts.tmp/hosts.txt"
+temp="/etc/hosts.tmp/hosts"
 
 if [ $# -eq 0 ]; then
     echo "Usage: re-malwack [--restore[-original] | --blockporn | --whitelist <domain> | --hosts-update | --help]"
@@ -20,12 +20,9 @@ else
             echo "Restored permissions for $hosts_file"
 
             if [ -f "$hosts_file" ]; then
-                mount -o rw,remount /system/etc
-                mount -o rw,remount /system
-                mount -o rw,remount /etc
-
                 rm -f "$hosts_file"
                 echo "Removed $hosts_file"
+
             fi
 
             # Create a new hosts file with default localhost entries
@@ -43,22 +40,22 @@ else
         --blockporn)
             host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
 
-            # Download the hosts file with curl renaming it to hosts.txt
-            if curl -o hosts.txt "$host"; then
+            # Download the hosts file with curl renaming it to hosts
+            if curl -o hosts "$host"; then
                 # Check if the file was downloaded successfully
 
-                # Check if the hosts.txt file exists
-                if [ -f "hosts.txt" ]; then
-                    # Append the downloaded hosts.txt to the current hosts file
-                    cat hosts.txt >> "$hosts_file"
+                # Check if the hosts file exists
+                if [ -f "hosts" ]; then
+                    # Append the downloaded hosts to the current hosts file
+                    cat hosts >> "$hosts_file"
 
-                    # Remove the downloaded hosts.txt file
-                    rm hosts.txt
+                    # Remove the downloaded hosts file
+                    rm hosts
 
                     # Echo that the entry has been added
                     echo "Entry for $host added to $hosts_file"
                 else
-                    echo "Error: Downloaded file hosts.txt does not exist."
+                    echo "Error: Downloaded file hosts does not exist."
                 fi
             else
                 echo "Error: Failed to download the hosts file."
@@ -101,38 +98,29 @@ else
             # Set a timeout value in seconds
             chmod 644 "$hosts_file"
 
-            # Download the hosts file with curl renaming it to hosts.txt
-            su -c /data/data/com.termux/files/usr/bin/curl -o hosts.txt "$host";
+            # Download the hosts file with curl renaming it to hosts
+            su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
                 # Check if the file was downloaded successfully
 
-                # Check if the hosts.txt file exists
-            if [ -f "hosts.txt" ]; then
+                # Check if the hosts file exists
+            if [ -f "hosts" ]; then
 
-                    # Remove the current hosts file if it exists
+                    #
                 if [ -f "$hosts_file" ]; then
-                       mount -o rw,remount /system/etc
-                       mount -o rw,remount /system
-                       mount -o rw,remount /etc
-                       rm -f "$hosts_file"
-                       echo "Removed $hosts_file"
+                    mkdir /data/adb/modules_update
+                    cp -r /data/adb/modules/Re-Malwack /data/adb/modules_update
+                    mv hosts /data/adb/modules_update/Re-Malwack/system/etc
+                    chmod 0644 /data/adb/modules_update/Re-Malwack/system/etc/hosts
+                    sleep 1
+                    echo ""
+                    echo "Done! Reboot to apply the update."
                 fi
 
-                    # Append the downloaded hosts.txt to the current hosts file
-                    touch "$hosts_file"
-                    echo "Created $hosts_file"
-                    chmod 644 "$hosts_file"
-                    echo "Restored permissions for $hosts_file"
-                    cat hosts.txt >> "$hosts_file"
-                    echo "Added entries from hosts.txt to $hosts_file"
-
-                    # Remove the downloaded hosts.txt file
-                    rm hosts.txt
-                    echo "Removed hosts.txt"
-
+                    
                     # Echo that the entry has been added
                     echo "Entry for $host added to $hosts_file"
             else
-                    echo "Error: Downloaded file hosts.txt does not exist."
+                    echo "Error: Downloaded file hosts does not exist."
             fi
                 echo "Error: Download failed. This is either an issue on your network or GitHub's backend."
                 exit 1
