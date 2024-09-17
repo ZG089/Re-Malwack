@@ -1,8 +1,9 @@
-## v5.0.1
+## v5.1.0
 - First update
-- Update hosts dl link
-- Fixed an issue where the updated hosts file cannot replace the current hosts file.
-- Added "Blacklist" Feature
+- Updated hosts download link.
+- Fixed an issue where the updated hosts file cannot replace the current hosts file by applying a new mechanism.
+- Added "Blacklist" Feature.
+- Rename "--restore-default" argument to "uptate-hosts" and changed description. 
 ## v5.0.0
 - Initial Revival of Malwack (existence of Re-Malwack)
 ---

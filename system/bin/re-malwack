@@ -9,7 +9,7 @@ if [ $# -eq 0 ]; then
     echo "--update-hosts: Updates the hosts file."
     echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
-    echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
+    echo "--blacklist <domain>: Adds domain to the hosts file to be blocked"
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
 else
@@ -43,7 +43,6 @@ else
 
             # Download the hosts file with curl renaming it to hosts
             if su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host"; then
-                # Check if the file was downloaded successfully
 
                 # Check if the hosts file exists
                 if [ -f "hosts" ]; then
@@ -82,18 +81,18 @@ else
             fi
             ;;
         --blacklist)
-        if [ -z "$3" ]; then
+        if [ -z "$2" ]; then
                 echo "Error: Please provide a domain to be added in the blacklist."
         else
-            domain="$3"
-            echo "0.0.0.0 $3" >> /etc/hosts
-            echo "Done!"
+            domain="$2"
+            echo "0.0.0.0 $2" >> /etc/hosts
+            echo "Done added your domain to the blacklist"
         fi
         ;;    
         --update-hosts)
             host="https://hosts.ubuntu101.co.za/hosts"
 
-            # Set a timeout value in seconds
+            # Set perms
             chmod 644 "$hosts_file"
 
             # Download the hosts file with curl renaming it to hosts
@@ -103,13 +102,13 @@ else
                 # Check if the hosts file exists
             if [ -f "hosts" ]; then
 
-                    #
+            # a mechanism to apply the new hosts file after a reboot
+
                 if [ -f "$hosts_file" ]; then
                     mkdir /data/adb/modules_update
                     cp -r /data/adb/modules/Re-Malwack /data/adb/modules_update
                     su -c /data/data/com.termux/files/usr/bin/mv hosts /data/adb/modules_update/Re-Malwack/system/etc
                     chmod 0644 /data/adb/modules_update/Re-Malwack/system/etc/hosts
-                    sleep 1
                     echo ""
                     echo "Done! Reboot to apply the update."
                 fi                    
