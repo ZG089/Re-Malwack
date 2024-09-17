@@ -99,24 +99,23 @@ else
             host="https://hosts.ubuntu101.co.za/hosts"
 
             # Set a timeout value in seconds
-            timeout_seconds=60
             chmod 644 "$hosts_file"
 
             # Download the hosts file with curl renaming it to hosts.txt
-            if timeout $timeout_seconds sh /data/data/com.termux/files/usr/bin/curl -o hosts.txt "$host"; then
+            su -c /data/data/com.termux/files/usr/bin/curl -o hosts.txt "$host";
                 # Check if the file was downloaded successfully
 
                 # Check if the hosts.txt file exists
-                if [ -f "hosts.txt" ]; then
+            if [ -f "hosts.txt" ]; then
 
                     # Remove the current hosts file if it exists
-                    if [ -f "$hosts_file" ]; then
+                if [ -f "$hosts_file" ]; then
                        mount -o rw,remount /system/etc
                        mount -o rw,remount /system
                        mount -o rw,remount /etc
                        rm -f "$hosts_file"
                        echo "Removed $hosts_file"
-                    fi
+                fi
 
                     # Append the downloaded hosts.txt to the current hosts file
                     touch "$hosts_file"
@@ -132,14 +131,12 @@ else
 
                     # Echo that the entry has been added
                     echo "Entry for $host added to $hosts_file"
-                else
-                    echo "Error: Downloaded file hosts.txt does not exist."
-                fi
             else
+                    echo "Error: Downloaded file hosts.txt does not exist."
+            fi
                 echo "Error: Download failed. This is either an issue on your network or GitHub's backend."
                 exit 1
-            fi
-            ;;
+        ;;
         --help)
             echo "Usage: re-malwack [--restore[-original] | --blockporn |--update-hosts| --whitelist <domain> | --help]"
             echo "--update-hosts: Updates the hosts file."
