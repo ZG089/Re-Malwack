@@ -83,7 +83,7 @@ else
                 echo "Done"
             fi
             ;;
-        --black-list)
+        --blacklist)
         # Currently working on it.
         if [ -z "$1" ]; then
             echo "Error: Please provide a domain to block."
