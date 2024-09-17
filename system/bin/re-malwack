@@ -15,18 +15,11 @@ if [ $# -eq 0 ]; then
 else
     case "$1" in
         --restore-original)
-            # Remove the current hosts file if it exists
 
             chmod 644 "$hosts_file"
             echo "Restored permissions for $hosts_file"
 
-            if [ -f "$hosts_file" ]; then
-                rm -f "$hosts_file"
-                echo "Removed $hosts_file"
-
-            fi
-
-            # Create a new hosts file with default localhost entries
+            # Reset Hosts file
             echo "127.0.0.1 localhost" > "$hosts_file"
             echo "::1 localhost" >> "$hosts_file"
 
@@ -36,7 +29,6 @@ else
 
             # Notify completion
             echo "Restored $hosts_file to its original state"
-            umount /system/etc/hosts
             ;;
         --blockporn)
             host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
@@ -68,7 +60,7 @@ else
             else
                 domain="$2"
                 temp=$(mktemp)  # Create a temporary file
-                if sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
+                if su -c /data/data/com.termux/files/usr/bin/sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
                     if su -c /data/data/com.termux/files/usr/bin/mv "$temp" "$hosts_file"; then
                         echo "Whitelisted $domain in $hosts_file"
                     else
