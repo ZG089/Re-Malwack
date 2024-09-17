@@ -5,10 +5,11 @@ hosts_file="/etc/hosts"
 temp="/etc/hosts.tmp/hosts"
 
 if [ $# -eq 0 ]; then
-    echo "Usage: re-malwack [--restore[-original] | --blockporn | --whitelist <domain> | --hosts-update | --help]"
+    echo "Usage: re-malwack [--restore[-original] | --blockporn | --whitelist <domain> |--blacklist <domain>| --hosts-update | --help]"
     echo "--update-hosts: Updates the hosts file."
     echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
 else
@@ -81,13 +82,13 @@ else
             fi
             ;;
         --blacklist)
-        # Currently working on it.
-        if [ -z "$1" ]; then
-            echo "Error: Please provide a domain to block."
+        if [ -z "$3" ]; then
+                echo "Error: Please provide a domain to be added in the blacklist."
         else
-            echo "0.0.0.0 $1" >> /etc/hosts
+            domain="$3"
+            echo "0.0.0.0 $3" >> /etc/hosts
             echo "Done!"
-            fi
+        fi
         ;;    
         --update-hosts)
             host="https://hosts.ubuntu101.co.za/hosts"
@@ -111,22 +112,20 @@ else
                     sleep 1
                     echo ""
                     echo "Done! Reboot to apply the update."
-                fi
-
-                    
+                fi                    
                     # Echo that the entry has been added
                     echo "Entry for $host added to $hosts_file"
             else
                     echo "Error: Downloaded file hosts does not exist."
             fi
-                echo "Error: Download failed. This is either an issue on your network or GitHub's backend."
                 exit 1
         ;;
         --help)
-            echo "Usage: re-malwack [--restore[-original] | --blockporn |--update-hosts| --whitelist <domain> | --help]"
+            echo "Usage: re-malwack [--restore[-original] | --blockporn |--update-hosts|--blacklist| --whitelist <domain> | --help]"
             echo "--update-hosts: Updates the hosts file."
             echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
             echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+            echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
             echo "--whitelist <domain>: Remove the specified domain from the hosts file."
             echo "--help: Display this help message."
             ;;
