@@ -1,7 +1,8 @@
 ## v5.1.0
 - ✨ First update for Re-Malwack.
+- Added support for KernelSU (Requires overlayfs module if updating hosts doesn't work)
 - 🔧 Updated main hosts file download link.
-- 🛠️ Fixed an issue where the updated hosts file cannot replace the current hosts file or even change its perms, all of that by applying a new mechanism for hosts update installation.
+- 🛠️ Fixed an issue where the updated hosts file cannot replace the current hosts file or even change its perms, all of that by applying a new mechanism for hosts update.
 - 🚫 Added "Blacklist" Feature.
 - 🛠️ Fixed "Whitelist" feature.
 - 🔄 Renamed "--restore-default" argument to "--update-hosts" 
