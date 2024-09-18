@@ -1,12 +1,16 @@
 ## v5.1.0
-- First update
-- Updated hosts download link.
-- Fixed an issue where the updated hosts file cannot replace the current hosts file or even change its perms, all of that by applying a new mechanism for hosts update installation.
-- Added "Blacklist" Feature.
-- Fixed "Whitelist" feature.
-- Rename "--restore-default" argument to "update-hosts" and changed description. 
-- Removed built-in sed binary, curl binary and mv binary, The module now requires Termux app in order to work properly. Dependency on termux may be changed in the future updates.
--  Removed unimportant code and fixed bugs
+- ✨ First update for Re-Malwack.
+- 🔧 Updated main hosts file download link.
+- 🛠️ Fixed an issue where the updated hosts file cannot replace the current hosts file or even change its perms, all of that by applying a new mechanism for hosts update installation.
+- 🚫 Added "Blacklist" Feature.
+- 🛠️ Fixed "Whitelist" feature.
+- 🔄 Renamed "--restore-default" argument to "--update-hosts" 
+- 🔄 Renamed "--restore-original" argument to "--reset"
+- ⚙️ Changed descriptions of some arguments.
+- 🗑️ Removed built-in sed binary, curl binary and mv binary, The module now requires Termux app in order to work properly. Dependency on termux may be changed in the future updates.
+- ↩️ Added Ability to reset hosts file after uninstallation.
+- ⚙️ Removed optimized code and fixed other bugs.
+---
 ## v5.0.0
 - Initial Revival of Malwack (existence of Re-Malwack)
 ---
