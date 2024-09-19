@@ -34,7 +34,7 @@
 
 ## Download Module
 
-You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest)
+You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 ## Get started
 
