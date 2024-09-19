@@ -5,16 +5,16 @@ hosts_file="/etc/hosts"
 temp="/etc/hosts.tmp/hosts"
 
 if [ $# -eq 0 ]; then
-    echo "Usage: re-malwack [--restore[-original] | --blockporn | --whitelist <domain> |--blacklist <domain>| --hosts-update | --help]"
+    echo "Usage: re-malwack [ --reset | --blockporn | --whitelist <domain> | --blacklist <domain>| --update-hosts | --help]"
     echo "--update-hosts: Updates the hosts file."
-    echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
+    echo "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
     echo "--blacklist <domain>: Adds domain to the hosts file to be blocked"
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
 else
     case "$1" in
-        --restore-original)
+        --reset)
 
             chmod 644 "$hosts_file"
             echo "Restored permissions for $hosts_file"
@@ -86,35 +86,29 @@ else
 
             # Set perms
             chmod 644 "$hosts_file"
-
+            # Go to internal storage 
+            cd /sdcard
             # Download the hosts file with curl renaming it to hosts
             su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
-                # Check if the file was downloaded successfully
-
-                # Check if the hosts file exists
+            clear
+            echo "The new hosts file is downloaded successfully ✓"
+            # Check if the file was downloaded successfully and exists
             if [ -f "hosts" ]; then
-
-            # a mechanism to apply the new hosts file after a reboot
-
+            # A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
                 if [ -f "$hosts_file" ]; then
-                    mkdir /data/adb/modules_update
-                    cp -r /data/adb/modules/Re-Malwack /data/adb/modules_update
-                    su -c /data/data/com.termux/files/usr/bin/mv hosts /data/adb/modules_update/Re-Malwack/system/etc
-                    chmod 0644 /data/adb/modules_update/Re-Malwack/system/etc/hosts
+                    mv /sdcard/hosts /data/adb/modules/Re-Malwack/system/etc
                     echo ""
-                    echo "Done! Reboot to apply the update."
-                fi                    
-                    # Echo that the entry has been added
-                    echo "Entry for $host added to $hosts_file"
+                    echo "Done ✓"
+                fi
             else
                     echo "Error: Downloaded file hosts does not exist."
             fi
                 exit 1
         ;;
         --help)
-            echo "Usage: re-malwack [--restore[-original] | --blockporn |--update-hosts|--blacklist| --whitelist <domain> | --help]"
+            echo "Usage: re-malwack [ --reset | --blockporn | --update-hosts |--blacklist <domain> | --whitelist <domain> | --help ]"
             echo "--update-hosts: Updates the hosts file."
-            echo "--restore-original: Restore the hosts file to its original state. (Disable ads blocking)"
+            echo "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
             echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
             echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
             echo "--whitelist <domain>: Remove the specified domain from the hosts file."
