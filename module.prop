@@ -1,7 +1,12 @@
 id=Re-Malwack
 name=Re-Malwack | Revival of Malwack Module
-version=v5.0.0
-versionCode=20
+
+version=v5.1.0
+versionCode=21
+
+
+
+
 author= ZG089 aka ZG_DEV
 description= A Magisk Module which protects your device from ads, po*n, and malware :)
 updateJson=https://raw.githubusercontent.com/ZG089/Re-Malwack/main/update.json

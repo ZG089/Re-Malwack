@@ -16,6 +16,8 @@
 [![XDA Support thread](https://img.shields.io/badge/Support_thread-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 
+<h3 align="center">This is the test branch were I implement & test new features.</h3>
+
 
 ## Features
 
@@ -30,11 +32,20 @@
 ## Requirements
 
 - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
+
+
+
+## Download Module
+
+
+=======
 - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``--update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module and it will work.
 
 ## Download Module
 
 You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+
+
 
 ## Get started
 
