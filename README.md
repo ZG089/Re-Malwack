@@ -29,19 +29,11 @@
 ## Requirements
 
 - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
-
-
-
-## Download Module
-
-
-=======
 - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``--update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module and it will work.
 
 ## Download Module
 
 You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
-
 
 
 ## Get started
