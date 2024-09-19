@@ -10,7 +10,7 @@
 - ⚙️ Changed descriptions of some arguments.
 - 🗑️ Removed built-in sed binary, curl binary and mv binary, The module now requires Termux app in order to work properly. Dependency on termux may be changed in the future updates.
 - ↩️ Added Ability to reset hosts file after uninstallation.
-- ⚙️ Removed optimized code and fixed other bugs.
+- ⚙️ Optimized code and fixed other bugs.
 ---
 ## v5.0.0
 - Initial Revival of Malwack (existence of Re-Malwack)
