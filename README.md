@@ -16,9 +16,6 @@
 [![XDA Support thread](https://img.shields.io/badge/Support_thread-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 
-<h3 align="center">This is the test branch were I implement & test new features.</h3>
-
-
 ## Features
 
 - Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (Porn block, whitelist, reset hosts)
