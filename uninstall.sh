@@ -1,3 +1,7 @@
+chmod 644 /etc/hosts
+echo "127.0.0.1 localhost" > /etc/hosts
+echo "::1 localhost" >> /etc/hosts
+chmod 644 /etc/hosts
 # Don't modify anything after this
 if [ -f $INFO ]; then
   while read LINE; do

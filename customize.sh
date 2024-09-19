@@ -36,8 +36,6 @@ REPLACE_EXAMPLE="
 REPLACE="
 /system/etc/hosts
 /system/etc/hosts.tmp
-/system/bin/mv
-/system/bin/sed
 "
 
 ##########################################################################################
@@ -48,9 +46,6 @@ set_permissions() {
   :
   set_perm_recursive $MODPATH/system/etc/hosts 0 0 0644 0755
   set_perm  $MODPATH/system/bin/re-malwack  0  0  0777
-  set_perm  $MODPATH/system/bin/curl  0  0  0777
-  set_perm  $MODPATH/system/bin/mv  0  0  0777
-  set_perm  $MODPATH/system/bin/sed  0  0  0777
 }
 
 ##########################################################################################
