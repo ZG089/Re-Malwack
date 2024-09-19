@@ -36,8 +36,6 @@ REPLACE_EXAMPLE="
 REPLACE="
 /system/etc/hosts
 /system/etc/hosts.tmp
-/system/bin/mv
-/system/bin/sed
 "
 
 ##########################################################################################
