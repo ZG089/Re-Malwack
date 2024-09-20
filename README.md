@@ -14,7 +14,7 @@
 [![Channel](https://img.shields.io/badge/Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?color=blue&logo=telegram)](https://t.me/zgx_dev)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/m/zg_dev.11432109/)
-[![XDA Support thread](https://img.shields.io/badge/Support_thread-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
+[![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 
 ## Features
