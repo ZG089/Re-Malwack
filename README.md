@@ -30,7 +30,7 @@
 ## Requirements
 
 - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
-- For KernelSU users and for those who noticed that the hosts file isn't updated after running ``--update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module and it will work.
+- For KernelSU users and for those who noticed that the hosts file isn't updated after running ``--update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
 
 ## Download Module
 
