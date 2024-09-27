@@ -43,7 +43,9 @@ You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/
 2. Reboot your device to activate the Re-Malwack Module's protective features.
 3. Enjoy :)
 
-## Command Usage
+## Command Usage (How to use Re-Malwack on Terminal
+
+Type``su -c remalwack`` on Termux to show up the help message which will output this:
 
 ```
 "Usage: re-malwack [--update-hosts | -reset | --blockporn | --whitelist <domain> | --blacklist | --help]"
