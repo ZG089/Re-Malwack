@@ -82,7 +82,7 @@ else
         fi
         ;;    
         --update-hosts)
-            host="https://hosts.ubuntu101.co.za/hosts"
+            host="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 
             # Set perms
             chmod 644 "$hosts_file"
@@ -96,7 +96,7 @@ else
             if [ -f "hosts" ]; then
             # A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
                 if [ -f "$hosts_file" ]; then
-                    mv /sdcard/hosts /data/adb/modules/Re-Malwack/system/etc
+                    mv /sdcard/hosts /data/adb/modules/Re-Malwack-Lite/system/etc
                     echo ""
                     echo "Done ✓"
                 fi
@@ -115,7 +115,7 @@ else
             echo "--help: Display this help message."
             ;;
         *)
-            echo "Invalid option. Use 're-malwack --help' for usage information."
+            echo "Invalid option. Use 'rmlwk-lite --help' for usage information."
             ;;
     esac
 fi
