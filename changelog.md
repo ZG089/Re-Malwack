@@ -1,3 +1,7 @@
+## v5.2.0
+- Existence of Re-Malwack Lite !
+- Decreasing hosts file size and source, for more lightweight and effective ad blocking experience!
+---
 ## v5.1.0
 - ✨ First update for Re-Malwack.
 - 🆕 Added support for KernelSU (Requires overlayfs module if updating hosts doesn't work)
