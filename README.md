@@ -27,21 +27,20 @@
 - ⚙️ Fixed Malwack's bugs 
 - 🔜 More soon....
 
-## Requirements
-
-- Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
-- For KernelSU users and for those who noticed that the hosts file isn't updated after running ``--update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
+> [!IMPORTANT]
+> ## Requirements
+> - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
 
 ## Download Module
-
-You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+> [!TIP]
+> You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
 ## Get started
-
-1. Open Magisk, go to Modules section, click on the '+' icon, then select the Re-Malwack Module zip file to install.
-2. Reboot your device to activate the Re-Malwack Module's protective features.
-3. Enjoy :)
+> [!NOTE]
+> 1. Open Magisk, go to Modules section, click on the '+' icon, then select the Re-Malwack Lite Module zip file to install.
+> 2. Reboot your device to activate the Re-Malwack Lite Module's protective features.
+> 3. Enjoy, Your device is fully protected now :)
 
 ## Command Usage (How to use Re-Malwack on Terminal)
 
@@ -57,22 +56,28 @@ Type``su -c re-malwack`` on Termux to show up the help message which will output
 "--help: Display this help message."
 ```
 
-## Total Blocked
-- 905,100+ Malware, Ads, Spyware
+> [!TIP]
+> ## Total Blocked
+> - 907,120+ Malware, Ads, Spyware
 
 ## How does it work?
+> [!TIP]
+> **Where is the file?**
+> - Your ``hosts`` file located in ``/system/etc``. It "acts" like your school blocking service that blocks you from going to websites. However, this (the ``Hosts`` file) is done locally on your phone's root system. 
 
-**Where is the file?**
-- Your ``hosts`` file located in ``/system/etc``. It "acts" like your school blocking service that blocks you from going to websites. However, this (the ``Hosts`` file) is done locally on your phone's root system. 
+> [!TIP]
+> **How does the host's file block websites and what modifications were made?**
+> - How does it block websites: The host file blocks websites and malware by denying access for your phone to connect to it at all. It will just return a blank page. ``0.0.0.0 www.the-website-that-is-blocked.com``.
 
-**How does the host's file block websites and what modifications were made?**
-- How does it block websites: The host file blocks websites and malware by denying access for your phone to connect to it at all. It will just return a blank page. ``0.0.0.0 www.the-website-that-is-blocked.com``.
+> [!TIP]
+> **Does it blocks in-app ads and in-game ads as well ?**
+> - Of course it does ! All of this using the magic of magisk and the hosts file !
 
 
-For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev) 
-
-If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
-
+> [!NOTE]
+> For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev)
+> If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
+> 
 # Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
