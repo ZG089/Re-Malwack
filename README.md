@@ -19,7 +19,7 @@
 
 ## Features
 
-- Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (Porn block, whitelist, reset hosts)
+- Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (Porn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
 - 🛠️ Hosts file is updated daily
 - ✨ Supports Magisk (v20.0+) KernelSU and Apatch (Apatch is not tested)
