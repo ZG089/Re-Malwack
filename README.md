@@ -56,6 +56,10 @@ Type``su -c re-malwack`` on Termux to show up the help message which will output
 "--help: Display this help message."
 ```
 
+> [!WARNING]
+> Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module. They may get angry if they met each other, and may cause a war that will benefit no one.
+
+
 > [!TIP]
 > ## Total Blocked
 > - 907,120+ Malware, Ads, Spyware
