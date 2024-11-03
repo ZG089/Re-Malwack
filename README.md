@@ -6,7 +6,7 @@
 <h2 align="center">Re-Awakening of Malwack Magisk Module</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
-![Module Update Status](https://img.shields.io/badge/Module_update_status-Regularly-green)
+![Module Version](https://img.shields.io/badge/Module_Version-v5.1.0-green)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 ![Hosts Update Time](https://img.shields.io/badge/Hosts_update_Time-≈19:30_UTC-green)
 ![Built with](https://img.shields.io/badge/Made_with-Love-red)
