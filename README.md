@@ -59,6 +59,9 @@ Type``su -c re-malwack`` on Termux to show up the help message which will output
 > [!WARNING]
 > Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module. They may get angry if they met each other, and may cause a war that will benefit no one.
 
+> [!NOTE]
+> - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwck-lite --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
+
 
 > [!TIP]
 > ## Total Blocked
