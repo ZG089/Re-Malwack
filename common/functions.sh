@@ -126,6 +126,21 @@ sleep 1.5
 ui_print "     Installation will take less than 2 seconds ⚡"
 sleep 1.5
 ui_print ""
+host="https://hosts.ubuntu101.co.za/hosts"
+# Set perms
+chmod 644 "$hosts_file"
+# Go to internal storage 
+cd /sdcard
+ # Download the hosts file with curl renaming it to hosts
+su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
+# Check if the file was downloaded successfully and exists
+if [ -f "hosts" ]; then
+# A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
+if [ -f "$hosts_file" ]; then
+mv /sdcard/hosts /data/adb/modules_update/Re-Malwack/system/etc
+echo ""
+echo "The new hosts file is downloaded successfully ✓"
+
 
 # Check for min/max api version
 [ -z $MINAPI ] || { [ $API -lt $MINAPI ] && abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!"; }
