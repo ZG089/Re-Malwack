@@ -1,4 +1,4 @@
-#!/system/bin/sh
+ #!/system/bin/sh
 
 # Define the path to the hosts file
 hosts_file="/etc/hosts"
@@ -118,6 +118,7 @@ else
             echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
             echo "--whitelist <domain>: Remove the specified domain from the hosts file."
             echo "--help: Display this help message."
+            echo "-h: same as --help"
             ;;
         -h)
             clear
