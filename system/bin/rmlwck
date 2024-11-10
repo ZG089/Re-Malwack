@@ -7,7 +7,7 @@ temp="/etc/hosts.tmp/hosts"
 if [ $# -eq 0 ]; then
     clear
     cat /system/bin/rmlwk-banner
-    echo "Usage: rmlwck [ --reset | --blockporn | --whitelist <domain> | --blacklist <domain>| --update-hosts | --help]"
+    echo "Usage: rmlwck [ --reset | --blockporn | --whitelist <domain> | --blacklist <domain> | --update-hosts | --help]"
     echo "--update-hosts: Updates the hosts file."
     echo "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
     echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
