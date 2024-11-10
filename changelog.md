@@ -1,3 +1,11 @@
+## v5.2.0
+- 🆕 Added "-h" argument, a short for "--help"
+- 🆕 Added ability to block Gambling & Fake news sites into the built-in tool. 
+- 🆕 The module will now download updated hosts file during installation.
+- 🔁 Changed the built-in tool name to "rmlwck" instead of "re-malwack".
+- 🤩 Added some touches to the built-in tool :)
+- 🚀 Code optimization and perfomance enhancement.
+---
 ## v5.1.0
 - ✨ First update for Re-Malwack.
 - 🆕 Added support for KernelSU (Requires overlayfs module if updating hosts doesn't work)
