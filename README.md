@@ -21,6 +21,7 @@
 
 - Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (Porn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
+- ⛔ Blocks P*rn sites, fake news sites, and gambling sites
 - 🛠️ Hosts file is updated daily
 - ✨ Supports Magisk (v20.0+) KernelSU and Apatch (Apatch is not tested)
 - 🔧 Regularly maintained & updated
@@ -44,16 +45,19 @@
 
 ## Command Usage (How to use Re-Malwack on Terminal)
 
-Type``su -c re-malwack`` on Termux to show up the help message which will output this:
+Type``su -c rmlwk`` on Termux to show up the help message which will output this:
 
 ```
-"Usage: re-malwack [--update-hosts | -reset | --blockporn | --whitelist <domain> | --blacklist | --help]"
+"Usage: rmlwk [ --reset | --blockporn | --block-gambling | --block-fake |  --update-hosts | --blacklist <domain> | --whitelist <domain> | --help | -h ]"
 "--update-hosts: Updates the hosts file"
 "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
 "--blockporn: Block pornographic websites by adding entries to the hosts file."
+"--block-gambling: Block gambling sites"
+"--block-fake: Block Fake news sites"
 "--whitelist <domain>: Remove the specified domain from the hosts file."
 "--blacklist <domain>: Adds domain to the hosts file to be blocked
 "--help: Display this help message."
+"-h: same as --help
 ```
 
 > [!WARNING]
