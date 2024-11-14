@@ -31,6 +31,7 @@
 > [!IMPORTANT]
 > ## Requirements
 > - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
+> - Requires internet connection in order to download hosts file during installation, otherwise it will use the bundled hosts file.
 
 ## Download Module
 > [!TIP]
