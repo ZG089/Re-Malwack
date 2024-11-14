@@ -92,6 +92,7 @@ Type``su -c re-malwack`` on Termux to show up the help message which will output
 - [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
 - [@StevenBlack](https://github.com/StevenBlack/hosts) Porn sites blocklist
 - [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
+- [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + contribution to the Re-Malwack project
 - And Finally, YOU! For using my module :)
 
 # Donations
