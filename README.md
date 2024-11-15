@@ -89,7 +89,11 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 > [!NOTE]
 > For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev)
 > If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
-> 
+
+# Activity
+
+![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
+ 
 # Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
