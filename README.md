@@ -87,8 +87,8 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 
 
 > [!NOTE]
-> For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev)
-> If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
+> - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/zg_dev.11432109/) or [Telegram](https://t.me/zgx_dev)
+> - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 # Activity
 
@@ -101,6 +101,7 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 - [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
 - [@StevenBlack](https://github.com/StevenBlack/hosts) Porn sites blocklist
 - [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
+- [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + contribution to the Re-Malwack project
 - And Finally, YOU! For using my module :)
 
 # Donations
