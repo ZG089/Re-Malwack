@@ -1,25 +1,25 @@
 ##########################################################################################
-#
+
 # MMT Extended Utility Functions
-#
+
 ##########################################################################################
 
 abort() {
-  ui_print "$1"
-  rm -rf $MODPATH 2>/dev/null
-  cleanup
-  rm -rf $TMPDIR 2>/dev/null
-  exit 1
+	ui_print "$1"
+	rm -rf $MODPATH 2>/dev/null
+	rm -rf $TMPDIR 2>/dev/null
+	cleanup
+	exit 1
 }
 
 cleanup() {
-  rm -rf $MODPATH/common 2>/dev/null
+	rm -rf $MODPATH/common 2>/dev/null
 }
 
 device_check() {
-  local opt=`getopt -o dm -- "$@"` type=device
-  eval set -- "$opt"
-  while true; do
+	local opt=`getopt -o dm -- "$@"` type=device
+	eval set -- "$opt"
+	while true; do
     case "$1" in
       -d) local type=device; shift;;
       -m) local type=manufacturer; shift;;
@@ -105,37 +105,14 @@ prop_process() {
   done < $1
 }
 
-# Credits in acsii for "Re-Malwack" + Intro
-ui_print " 
-╔──────────────────────────────────────────────────╗
-│     ░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█     │
-│     ░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄     │
-│     ░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀     │
-╚──────────────────────────────────────────────────╝
-"
-sleep 1.0
-ui_print "   Welcome to Re-Malwack installation wizard!"
-ui_print " "
-sleep 1.5
-ui_print "   Installation will take only few seconds ⚡"
-sleep 1.5
-ui_print ""
-ui_print "- Downloading the latest hosts file..."
-host="https://hosts.ubuntu101.co.za/hosts"
-# Go to internal storage 
-cd /sdcard
-hosts_file="/etc/hosts"
- # Download the hosts file with curl renaming it to hosts
-su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
-# Check if the file was downloaded successfully and exists
-if [ -f "hosts" ]; then
- if [ -f "$hosts_file" ]; then
-  echo "- The new hosts file is downloaded successfully ✓"
- fi
-fi
 # Check for min/max api version
-[ -z $MINAPI ] || { [ $API -lt $MINAPI ] && abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!"; }
-[ -z $MAXAPI ] || { [ $API -gt $MAXAPI ] && abort "! Your system API of $API is greater than the maximum api of $MAXAPI! Aborting!"; }
+if [ -z $MINAPI ] || [ $API -lt $MINAPI ]; then
+	abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!";
+fi
+
+if [ -z $MAXAPI ] || [ $API -gt $MAXAPI ]; then
+	abort "! Your system API of $API is greater than the maximum api of $MAXAPI! Aborting!";
+fi
 
 # Set variables
 [ $API -lt 26 ] && DYNLIB=false
@@ -143,117 +120,50 @@ fi
 [ -z $DEBUG ] && DEBUG=false
 INFO=$NVBASE/modules/.$MODID-files
 ORIGDIR="$MAGISKTMP/mirror"
+
+# aaaaaaaaaaaaaa
 if $DYNLIB; then
-  LIBPATCH="\/vendor"
-  LIBDIR=/system/vendor
+	LIBPATCH="\/vendor"
+	LIBDIR=/system/vendor
 else
-  LIBPATCH="\/system"
-  LIBDIR=/system
+	LIBPATCH="\/system"
+	LIBDIR=/system
 fi
+
+# rcm lore.
 if ! $BOOTMODE; then
-  ui_print "- Only uninstall is supported in recovery"
-  ui_print "  Uninstalling!"
-  touch $MODPATH/remove
-  [ -s $INFO ] && install_script $MODPATH/uninstall.sh || rm -f $INFO $MODPATH/uninstall.sh
-  recovery_cleanup
-  cleanup
-  rm -rf $NVBASE/modules_update/$MODID $TMPDIR 2>/dev/null
-  exit 0
+	ui_print "- Only uninstall is supported in recovery"
+	ui_print "  Uninstalling!"
+	touch $MODPATH/remove
+	[ -s $INFO ] && install_script $MODPATH/uninstall.sh || rm -f $INFO $MODPATH/uninstall.sh
+	recovery_cleanup
+	cleanup
+	rm -rf $NVBASE/modules_update/$MODID $TMPDIR 2>/dev/null
+	abort "  Uninstalling!"
 fi
 
-# Debug
+# canary / debug magisk builds.
 if $DEBUG; then
-  ui_print "- Debug mode"
-  ui_print "  Module install log will include debug info"
-  ui_print "  Be sure to save it after module install"
-  set -x
+	ui_print "- Debug mode"
+	ui_print "  Module install log will include debug info"
+	ui_print "  Be sure to save it after module install"
+	set -x
 fi
 
-# Extract files
-ui_print "- Extracting module files"
-unzip -o "$ZIPFILE" -x 'META-INF/*' 'common/functions.sh' -d $MODPATH >&2
-[ -f "$MODPATH/common/addon.tar.xz" ] && tar -xf $MODPATH/common/addon.tar.xz -C $MODPATH/common 2>/dev/null
-
-# Run addons
-if [ "$(ls -A $MODPATH/common/addon/*/install.sh 2>/dev/null)" ]; then
-  ui_print " "; ui_print "- Running Addons -"
-  for i in $MODPATH/common/addon/*/install.sh; do
-    ui_print "  Running $(echo $i | sed -r "s|$MODPATH/common/addon/(.*)/install.sh|\1|")..."
-    . $i
-  done
+# make an bool to prevent extracting things if we dont have anything to extract...
+if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
+	ui_print "- Extracting module files"
+	unzip -o "$ZIPFILE" -x 'META-INF/*' -d $MODPATH >&2
 fi
 
-# Remove files outside of module directory
-ui_print "- Removing old files"
-
-if [ -f $INFO ]; then
-  while read LINE; do
-    if [ "$(echo -n $LINE | tail -c 1)" == "~" ]; then
-      continue
-    elif [ -f "$LINE~" ]; then
-      mv -f $LINE~ $LINE
-    else
-      rm -f $LINE
-      while true; do
-        LINE=$(dirname $LINE)
-        [ "$(ls -A $LINE 2>/dev/null)" ] && break 1 || rm -rf $LINE
-      done
-    fi
-  done < $INFO
-  rm -f $INFO
+# prevent initializing add-ons if we dont have to.
+if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
+	if [ "$(ls -A $MODPATH/common/addon/*/install.sh 2>/dev/null)" ]; then
+		ui_print " ";
+		ui_print "- Running Addons -"
+		for i in $MODPATH/common/addon/*/install.sh; do
+			ui_print "  Running $(echo $i | sed -r "s|$MODPATH/common/addon/(.*)/install.sh|\1|")..."
+			. $i
+		done
+	fi
 fi
-
-### Install
-[ -f "$MODPATH/common/install.sh" ] && . $MODPATH/common/install.sh
-ui_print "- Currently protecting a/an $(getprop ro.product.brand) device, model: $(getprop ro.product.model) 🛡"
-# Remove comments from files and place them, add blank line to end if not already present
-for i in $(find $MODPATH -type f -name "*.sh" -o -name "*.prop" -o -name "*.rule"); do
-  [ -f $i ] && { sed -i -e "/^#/d" -e "/^ *$/d" $i; [ "$(tail -1 $i)" ] && echo "" >> $i; } || continue
-  case $i in
-    "$MODPATH/service.sh") install_script -l $i;;
-    "$MODPATH/post-fs-data.sh") install_script -p $i;;
-    "$MODPATH/uninstall.sh") if [ -s $INFO ] || [ "$(head -n1 $MODPATH/uninstall.sh)" != "# Don't modify anything after this" ]; then
-                               install_script $MODPATH/uninstall.sh
-                             else
-                               rm -f $INFO $MODPATH/uninstall.sh
-                             fi;;
-  esac
-done
-
-$IS64BIT || for i in $(find $MODPATH/system -type d -name "lib64"); do rm -rf $i 2>/dev/null; done  
-[ -d "/system/priv-app" ] || mv -f $MODPATH/system/priv-app $MODPATH/system/app 2>/dev/null
-[ -d "/system/xbin" ] || mv -f $MODPATH/system/xbin $MODPATH/system/bin 2>/dev/null
-if $DYNLIB; then
-  for FILE in $(find $MODPATH/system/lib* -type f 2>/dev/null | sed "s|$MODPATH/system/||"); do
-    [ -s $MODPATH/system/$FILE ] || continue
-    case $FILE in
-      lib*/modules/*) continue;;
-    esac
-    mkdir -p $(dirname $MODPATH/system/vendor/$FILE)
-    mv -f $MODPATH/system/$FILE $MODPATH/system/vendor/$FILE
-    [ "$(ls -A `dirname $MODPATH/system/$FILE`)" ] || rm -rf `dirname $MODPATH/system/$FILE`
-  done
-  # Delete empty lib folders (busybox find doesn't have this capability)
-  toybox find $MODPATH/system/lib* -type d -empty -delete >/dev/null 2>&1
-fi
-
-#installing new hosts file
-ui_print "- Installing hosts file"
-cat /sdcard/hosts /etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
-chmod 0644 $MODPATH/system/etc/hosts
-# Set permissions
-ui_print "- Setting Permissions"
-set_perm_recursive $MODPATH 0 0 0755 0644
-if [ -d $MODPATH/system/vendor ]; then
-  set_perm_recursive $MODPATH/system/vendor 0 0 0755 0644 u:object_r:vendor_file:s0
-  [ -d $MODPATH/system/vendor/app ] && set_perm_recursive $MODPATH/system/vendor/app 0 0 0755 0644 u:object_r:vendor_app_file:s0
-  [ -d $MODPATH/system/vendor/etc ] && set_perm_recursive $MODPATH/system/vendor/etc 0 0 0755 0644 u:object_r:vendor_configs_file:s0
-  [ -d $MODPATH/system/vendor/overlay ] && set_perm_recursive $MODPATH/system/vendor/overlay 0 0 0755 0644 u:object_r:vendor_overlay_file:s0
-  for FILE in $(find $MODPATH/system/vendor -type f -name *".apk"); do
-    [ -f $FILE ] && chcon u:object_r:vendor_app_file:s0 $FILE
-  done
-fi
-set_permissions
-
-# Complete install
-cleanup
