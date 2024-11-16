@@ -107,41 +107,32 @@ prop_process() {
 
 # Credits in acsii for "Re-Malwack" + Intro
 ui_print " 
-
-
-
-
-
-   ___ ___    __  __   _   _ __      ___   ___ _  __
-  | _ \ __|__|  \/  | /_\ | |\ \    / /_\ / __| |/ /
-  |   / _|___| |\/| |/ _ \| |_\ \/\/ / _ \ (__| ' < 
-  |_|_\___|  |_|  |_/_/ \_\____\_/\_/_/ \_\___|_|\_\
-
-                                                 
+╔──────────────────────────────────────────────────╗
+│     ░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█     │
+│     ░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄     │
+│     ░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀     │
+╚──────────────────────────────────────────────────╝
 "
 sleep 1.0
-ui_print "      Welcome to Re-Malwack installation wizard!"
+ui_print "   Welcome to Re-Malwack installation wizard!"
 ui_print " "
 sleep 1.5
-ui_print "     Installation will take less than 2 seconds ⚡"
+ui_print "   Installation will take only few seconds ⚡"
 sleep 1.5
 ui_print ""
+ui_print "- Downloading the latest hosts file..."
 host="https://hosts.ubuntu101.co.za/hosts"
-# Set perms
-chmod 644 "$hosts_file"
 # Go to internal storage 
 cd /sdcard
+hosts_file="/etc/hosts"
  # Download the hosts file with curl renaming it to hosts
 su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
 # Check if the file was downloaded successfully and exists
 if [ -f "hosts" ]; then
-# A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
-if [ -f "$hosts_file" ]; then
-mv /sdcard/hosts /data/adb/modules_update/Re-Malwack/system/etc
-echo ""
-echo "The new hosts file is downloaded successfully ✓"
-
-
+ if [ -f "$hosts_file" ]; then
+  echo "- The new hosts file is downloaded successfully ✓"
+ fi
+fi
 # Check for min/max api version
 [ -z $MINAPI ] || { [ $API -lt $MINAPI ] && abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!"; }
 [ -z $MAXAPI ] || { [ $API -gt $MAXAPI ] && abort "! Your system API of $API is greater than the maximum api of $MAXAPI! Aborting!"; }
@@ -214,7 +205,7 @@ fi
 
 ### Install
 [ -f "$MODPATH/common/install.sh" ] && . $MODPATH/common/install.sh
-ui_print "- Installing for $ARCH SDK $API device..."
+ui_print "- Currently protecting a/an $(getprop ro.product.brand) device, model: $(getprop ro.product.model) 🛡"
 # Remove comments from files and place them, add blank line to end if not already present
 for i in $(find $MODPATH -type f -name "*.sh" -o -name "*.prop" -o -name "*.rule"); do
   [ -f $i ] && { sed -i -e "/^#/d" -e "/^ *$/d" $i; [ "$(tail -1 $i)" ] && echo "" >> $i; } || continue
@@ -246,8 +237,11 @@ if $DYNLIB; then
   toybox find $MODPATH/system/lib* -type d -empty -delete >/dev/null 2>&1
 fi
 
+#installing new hosts file
+ui_print "- Installing hosts file"
+cat /sdcard/hosts /etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
+chmod 0644 $MODPATH/system/etc/hosts
 # Set permissions
-ui_print " "
 ui_print "- Setting Permissions"
 set_perm_recursive $MODPATH 0 0 0755 0644
 if [ -d $MODPATH/system/vendor ]; then
