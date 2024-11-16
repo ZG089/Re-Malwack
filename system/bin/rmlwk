@@ -173,7 +173,7 @@ elif [ "$(tolower "$1")" == "--blacklist" ]; then
 # update the hosts to the latest available one.
 elif [ "$(tolower "$1")" == "--update-hosts" ]; then
 	# Download the hosts file with curl..
-    curl -o hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+    curl -o hosts "https://hosts.ubuntu101.co.za/hosts"
     chmod 644 /data/adb/modules/Re-Malwack/system/etc/hosts
     echo "- Applying....."
     # Check if the file was downloaded successfully and exists
