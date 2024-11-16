@@ -21,19 +21,19 @@ else
     case "$1" in
         --reset)
 
-            chmod 644 "$hosts_file"
-            echo "Restored permissions for $hosts_file"
+            chmod 644 /data/adb/modules/Re-Malwack/system/etc/hosts
+            echo "Restored permissions for hosts file
 
             # Reset Hosts file
-            echo "127.0.0.1 localhost" > "$hosts_file"
-            echo "::1 localhost" >> "$hosts_file"
+            echo "127.0.0.1 localhost" > /data/adb/modules/Re-Malwack/system/etc/hosts
+            echo "::1 localhost" >> /data/adb/modules/Re-Malwack/system/etc/hosts
 
             # Restore the original permissions
-            chmod 644 "$hosts_file"
-            echo "Restored permissions for $hosts_file"
+            chmod 644 /data/adb/modules/Re-Malwack/system/etc/hosts
+            echo "Restored permissions succesfully !"
 
             # Notify completion
-            echo "Restored $hosts_file to its original state"
+            echo "Restored hosts file to its original state"
             ;;
         --blockporn)
             host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts" #76k entries
@@ -44,13 +44,13 @@ else
                 # Check if the hosts file exists
                 if [ -f "hosts" ]; then
                     # Append the downloaded hosts to the current hosts file
-                    cat hosts >> "$hosts_file"
+                    cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
                     # Remove the downloaded hosts file
                     rm hosts
 
                     # Echo that the entry has been added
-                    echo "Entries for blocking porn sites are added to $hosts_file"
+                    echo "Entries for blocking porn sites are added to hosts file"
                 else
                     echo "Error: Downloaded file hosts does not exist."
                 fi
@@ -67,13 +67,13 @@ else
                 # Check if the hosts file exists
                 if [ -f "hosts" ]; then
                     # Append the downloaded hosts to the current hosts file
-                    cat hosts >> "$hosts_file"
+                    cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
                     # Remove the downloaded hosts file
                     rm hosts
 
                     # Echo that the entry has been added
-                    echo "Entries for blocking gambling sites are added to $hosts_file"
+                    echo "Entries for blocking gambling sites are added to hosts file"
                 else
                     echo "Error: Downloaded file hosts does not exist."
                 fi
@@ -90,13 +90,13 @@ else
                 # Check if the hosts file exists
                 if [ -f "hosts" ]; then
                     # Append the downloaded hosts to the current hosts file
-                    cat hosts >> "$hosts_file"
+                    cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
                     # Remove the downloaded hosts file
                     rm hosts
 
                     # Echo that the entry has been added
-                    echo "Entries for fake news sites are added to $hosts_file"
+                    echo "Entries for fake news sites are added to hosts file"
                 else
                     echo "Error: Downloaded file hosts does not exist."
                 fi
@@ -112,13 +112,13 @@ else
                 domain="$2"
                 temp=$(mktemp)  # Create a temporary file
                 if su -c /data/data/com.termux/files/usr/bin/sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
-                    if su -c /data/data/com.termux/files/usr/bin/mv "$temp" "$hosts_file"; then
-                        echo "Whitelisted $domain in $hosts_file"
+                    if su -c /data/data/com.termux/files/usr/bin/mv "$temp" /data/adb/modules/Re-Malwack/system/etc/hosts ; then
+                        echo "Whitelisted $domain in hosts file"
                     else
-                        echo "Error: Failed to replace $hosts_file with the modified content."
+                        echo "Error: Failed to replace hosts file with the modified content."
                     fi
                 else
-                    echo "Error: Failed to remove $domain from $hosts_file."
+                    echo "Error: Failed to remove $domain from hosts file."
                 fi
                 echo "Done"
             fi
@@ -128,27 +128,27 @@ else
                 echo "Error: Please provide a domain to be added in the blacklist."
         else
             domain="$2"
-            echo "0.0.0.0 $2" >> /etc/hosts
-            echo "Done added your domain to the blacklist"
+            echo "0.0.0.0 $2" >> /data/adb/modules/Re-Malwack/system/etc/hosts
+            echo "Done added your domain to the hosts file to be blocked"
         fi
         ;;    
         --update-hosts)
             host="https://hosts.ubuntu101.co.za/hosts"
 
             # Set perms
-            chmod 644 "$hosts_file"
+            chmod 644 /data/adb/modules/Re-Malwack/system/etc/hosts
             # Go to internal storage 
             cd /sdcard
             # Download the hosts file with curl renaming it to hosts
             su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
-            clear
-            echo "The new hosts file is downloaded successfully ✓"
+            echo "Applying....."
             # Check if the file was downloaded successfully and exists
             if [ -f "hosts" ]; then
-            # A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
+            # Merging updates, with removal of duplicated entries
                 if [ -f "$hosts_file" ]; then
-                    mv /sdcard/hosts /data/adb/modules/Re-Malwack/system/etc
+                    cat /sdcard/hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
                     echo ""
+                    rm /sdcard/hosts
                     echo "Done ✓"
                 fi
             else
