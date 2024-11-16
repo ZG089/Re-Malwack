@@ -23,7 +23,7 @@
 - 🚫 Has Blacklist Feature
 - ⛔ Blocks P*rn sites, fake news sites, and gambling sites
 - 🛠️ Hosts file is updated daily
-- ✨ Supports Magisk (v20.0+) KernelSU and Apatch (Apatch is not tested)
+- ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested)
 - 🔧 Regularly maintained & updated
 - ⚙️ Fixed Malwack's bugs 
 - 🔜 More soon....
