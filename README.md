@@ -49,14 +49,14 @@
 Type``su -c rmlwk`` on Termux to show up the help message which will output this:
 
 ```
-"Usage: rmlwk [ --reset | --blockporn | --block-gambling | --block-fake |  --update-hosts | --blacklist <domain> | --whitelist <domain> | --help | -h ]"
+"Usage: rmlwk [ --reset | --block-porn | --block-gambling | --block-fake |  --update-hosts | --blacklist <domain> | --whitelist <domain> | --help | -h ]"
 "--update-hosts: Updates the hosts file"
 "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
-"--blockporn: Block pornographic websites by adding entries to the hosts file."
+"--block-porn: Block pornographic websites by adding entries to the hosts file."
 "--block-gambling: Block gambling sites"
 "--block-fake: Block Fake news sites"
 "--whitelist <domain>: Remove the specified domain from the hosts file."
-"--blacklist <domain>: Adds domain to the hosts file to be blocked
+"--blacklist <domain>: Adds domain to the hosts file to be blocked"
 "--help: Display this help message."
 "-h: same as --help
 ```
@@ -65,7 +65,7 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 > Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module. They may get angry if they met each other, and may cause a war that will benefit no one.
 
 > [!NOTE]
-> - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c re-malwack --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
+> - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwk --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
 
 
 > [!TIP]
@@ -96,12 +96,12 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
  
 # Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
-- [@topjohnwu](https://github.com/topjohnwu) - Magisk Creator
-- [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - Magisk Template Creator
+- [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
+- [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
 - [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
-- [@StevenBlack](https://github.com/StevenBlack/hosts) Porn sites blocklist
-- [@Lightswitch05](https://github.com/Lightswitch05/hosts) /system/etc/hosts file
+- [@StevenBlack](https://github.com/StevenBlack/hosts) Porn sites + fake news blocklist
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + contribution to the Re-Malwack project
+- [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
 - And Finally, YOU! For using my module :)
 
 # Donations
