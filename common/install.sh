@@ -4,16 +4,13 @@ ui_print "
 │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
 │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│
 │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│
-│░█░░░▀█▀░▀█▀░█▀▀                             │
-│░█░░░░█░░░█░░█▀▀                             │
-│░▀▀▀░▀▀▀░░▀░░▀▀▀                             │
 ╚────────────────────────────────────────╝
 "
 sleep 1
-ui_print "   Welcome to Re-Malwack Lite installation wizard!"
+ui_print "   Welcome to Re-Malwack installation wizard!"
 ui_print " "
 sleep 1.5
-ui_print "   The Installation will only few seconds ⚡"
+ui_print "   The Installation will only take few seconds ⚡"
 sleep 1
 ui_print " "
 ui_print "- Downloading the latest hosts file..."
@@ -25,7 +22,7 @@ if ! ping -w 1 google.com; then
 fi
 
  # Download the hosts file and save it as "hosts"
-su -c wget "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" $TMPDIR/hosts
+su -c wget "https://hosts.ubuntu101.co.za/hosts" $TMPDIR/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "$TMPDIR/hosts" ]; then
