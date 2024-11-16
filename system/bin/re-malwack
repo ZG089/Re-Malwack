@@ -1,121 +1,202 @@
-#!/system/bin/sh
+#!/bin/bash
 
-# Define the path to the hosts file
+# define functions.
+function malvack_banner() {
+	clear
+	echo -e "\033[0;31m                                      .--.                            "
+	echo -e "\033[0;31m                                   .=*#=                              "
+	echo -e "\033[0;31m                                 .+###+                               "
+	echo -e "\033[0;31m                                .*#####-                              "
+	echo -e "\033[0;31m                               .*##***-**=:                           "
+	echo -e "\033[0;31m                             .*###-    .=*##+-.                       "
+	echo -e "\033[0;31m                             .-+**        .-=*##+=:                   "
+	echo -e "\033[0;31m                   .:.           ::           -*####+-.               "
+	echo -e "\033[0;31m                   -*#*+:     -*##+.            .-+####+-.           "
+	echo -e "\033[0;31m                     .:*#+***+#*:                  .-+###*           "
+	echo -e "\033[0;31m                      :*#######*.                     .:-.           "
+	echo -e "\033[0;31m                      +*********-                                     "
+	echo -e "\033[0;32m              +#+.   .:::::  ::::    :*#:                             "
+	echo -e "\033[0;32m               :+#+==#####* .####*==*#+:                              "
+	echo -e "\033[0;32m                 .---##*-: :+####+---.                                "
+	echo -e "\033[0;32m                     ##=  :#*+*##=                                    "
+	echo -e "\033[0;32m                 .=++###**#+   *#*++-                                 "
+	echo -e "\033[0;32m                =##=--####- .-=#*--+#*-                               "
+	echo -e "\033[0;32m               =*=.   .+#+ -##*=.   .+*:                              "
+	echo -e "\033[0;34m                        .. :-:                                        "
+	echo -e "\033[0;33m╔──────────────────────────────────────────────────────────╗"
+	echo -e "\033[0;33m│░░░░░░░░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█░░░░░░░░░░░│"
+	echo -e "\033[0;33m│░░░░░░░░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄░░░░░░░░░░░│"
+	echo -e "\033[0;33m│░░░░░░░░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀░░░░░░░░░░░│"
+	echo -e "\033[0;33m╚──────────────────────────────────────────────────────────╝\033[0m"
+}
+
+function tolower() {
+	local string="$1"
+	echo "$string" | tr '[:upper:]' '[:lower:]'
+}
+
+function abort() {
+	echo "- $1"
+	sleep 0.5
+	exit 1
+}
+
+function nuke_if_we_dont_have_internet() {
+	if ping -w 1 google.com; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+function ask() {
+	local question="$1"
+	local answer
+	printf "- $question (y/n) : "
+	read answer
+	answer="$(echo "${answer}" | tr '[:upper:]' '[:lower:]')"
+	if [ "${answer}" == "y" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# let's define some variables.
 hosts_file="/etc/hosts"
 temp="/etc/hosts.tmp/hosts"
 
-if [ $# -eq 0 ]; then
-    echo "Usage: re-malwack [ --reset | --blockporn | --whitelist <domain> | --blacklist <domain>| --update-hosts | --help]"
+# let's clear the terminal and show the banner art.
+malvack_banner
+
+# let's prevent the users from running on different distros.
+if ! ls $PREFIX/bin | grep -q termux-; then
+	abort "Please run this script in termux, otherwise the script won't run..."
+else
+	export PATH="$PATH:/data/data/com.termux/files/usr/bin/"
+fi
+
+# prevent users from running in different user shells.
+if [ ! "$(id -u)" -eq "0" ]; then
+	abort "Root is required to run this script..."
+fi
+
+# let's check if we have curl or not....
+if [ -z "$(command -v curl)" ]; then
+	if nuke_if_we_dont_have_internet; then
+		if ask "Some tools are missing, do you want to install them?"; then
+			pkg install curl || abort "Failed to install dependencies..."
+		fi
+	else
+		abort "An active internet connection is required to download some stuffs."
+	fi
+fi
+	 
+# reverts the changes.
+if [ "$(tolower "$1")" == "--reset" ]; then
+	echo "- Reverting the changes...."
+	echo "127.0.0.1 localhost\n::1 localhost" > /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+	chmod 644 /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+    echo "- Successfully reverted the changes, Thanks for using this module"
+
+# blocks some inappropriate internet contents.
+elif [ "$(tolower "$1")" == "--block-porn" ]; then
+	 # Download the hosts file with curl...
+     curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
+	 
+	 # bomb.
+     if [ -f "/data/local/tmp/hosts" ]; then
+		cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+		rm /data/local/tmp/hosts
+		echo "- Entries for blocking porn sites are added to hosts file"
+     else
+		abort "Error: Downloaded file wasn't found..."
+	 fi
+	 
+# blocks some "mr beast" stuffs.
+elif [ "$(tolower "$1")" == "--block-gambling" ]; then
+	# Download the hosts file with curl...
+    curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling-only/hosts"
+	
+	# bomb.
+     if [ -f "/data/local/tmp/hosts" ]; then
+		cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+		rm /data/local/tmp/hosts
+		echo "- Entries for blocking gambling sites are added to hosts file"
+     else
+		abort "Error: Downloaded file wasn't found..."
+	 fi
+	
+# nice try diddy...
+elif [ "$(tolower "$1")" == "--block-fake" ]; then
+	# Download the hosts file with curl...
+    curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts"
+    
+	# bomb.
+	if [ -f "/data/local/tmp/hosts" ]; then
+		cat hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+		rm /data/local/tmp/hosts
+		echo "- Entries for blocking porn sites are added to hosts file"
+     else
+		abort "Error: Downloaded file wasn't found..."
+	 fi
+	
+# whitelist the requested domain.
+elif [ "$(tolower "$1")" == "--whitelist" ]; then
+    if [ -z "$2" ]; then
+		abort "Error: Please provide a domain to whitelist."
+    else
+		domain="$2"
+        temp=$(mktemp)
+        if sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
+			if mv "$temp" /data/adb/modules/Re-Malwack-Lite/system/etc/hosts; then
+				echo "- Whitelisted $domain in hosts file"
+            else
+                abort "Error: Failed to replace hosts file with the modified content."
+            fi
+        else
+            abort "Error: Failed to remove $domain from hosts file."
+		fi
+		echo "- Done"
+    fi
+
+# blacklist the requested domain.
+elif [ "$(tolower "$1")" == "--blacklist" ]; then
+	if [ -z "$2" ]; then
+		echo "Error: Please provide a domain to be added in the blacklist."
+    else
+        domain="$2"
+        echo "0.0.0.0 $2" >> /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+        echo "- Added the requested domain to the hosts file..."
+    fi
+	
+# update the hosts to the latest available one.
+elif [ "$(tolower "$1")" == "--update-hosts" ]; then
+	# Download the hosts file with curl..
+    curl -o hosts "https://hosts.ubuntu101.co.za/hosts"
+    chmod 644 /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+    echo "- Applying....."
+    # Check if the file was downloaded successfully and exists
+    if [ -f "hosts" ]; then
+		if [ -f "$hosts_file" ]; then
+			cat /sdcard/hosts /etc/hosts | sort | uniq > /data/adb/modules/Re-Malwack-Lite/system/etc/hosts
+            echo -e "\nDone ✓"
+        fi
+    else
+		abort "Error: Downloaded file wasn't found..."
+    fi	
+
+# drop a bomb shell if the arg is not either of those.
+else
+    echo ""
+    echo "Usage: re-malwack [ --reset | --blockporn | --block-gambling | --block-fake |  --update-hosts | --blacklist <domain> | --whitelist <domain> | --help | -h ]"
     echo "--update-hosts: Updates the hosts file."
     echo "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
-    echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
+    echo "--block-porn: Block pornographic websites by adding entries to the hosts file."
+    echo "--block-gambling: Block gambling sites"
+    echo "--block-fake: Block Fake news sites"
     echo "--blacklist <domain>: Adds domain to the hosts file to be blocked"
     echo "--whitelist <domain>: Remove the specified domain from the hosts file."
     echo "--help: Display this help message."
-else
-    case "$1" in
-        --reset)
-
-            chmod 644 "$hosts_file"
-            echo "Restored permissions for $hosts_file"
-
-            # Reset Hosts file
-            echo "127.0.0.1 localhost" > "$hosts_file"
-            echo "::1 localhost" >> "$hosts_file"
-
-            # Restore the original permissions
-            chmod 644 "$hosts_file"
-            echo "Restored permissions for $hosts_file"
-
-            # Notify completion
-            echo "Restored $hosts_file to its original state"
-            ;;
-        --blockporn)
-            host="https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
-
-            # Download the hosts file with curl renaming it to hosts
-            if su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host"; then
-
-                # Check if the hosts file exists
-                if [ -f "hosts" ]; then
-                    # Append the downloaded hosts to the current hosts file
-                    cat hosts >> "$hosts_file"
-
-                    # Remove the downloaded hosts file
-                    rm hosts
-
-                    # Echo that the entry has been added
-                    echo "Entry for $host added to $hosts_file"
-                else
-                    echo "Error: Downloaded file hosts does not exist."
-                fi
-            else
-                echo "Error: Failed to download the hosts file."
-            fi
-            ;;
-        --whitelist)
-            # Check if the second argument (the domain) is provided
-            if [ -z "$2" ]; then
-                echo "Error: Please provide a domain to whitelist."
-            else
-                domain="$2"
-                temp=$(mktemp)  # Create a temporary file
-                if su -c /data/data/com.termux/files/usr/bin/sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp"; then
-                    if su -c /data/data/com.termux/files/usr/bin/mv "$temp" "$hosts_file"; then
-                        echo "Whitelisted $domain in $hosts_file"
-                    else
-                        echo "Error: Failed to replace $hosts_file with the modified content."
-                    fi
-                else
-                    echo "Error: Failed to remove $domain from $hosts_file."
-                fi
-                echo "Done"
-            fi
-            ;;
-        --blacklist)
-        if [ -z "$2" ]; then
-                echo "Error: Please provide a domain to be added in the blacklist."
-        else
-            domain="$2"
-            echo "0.0.0.0 $2" >> /etc/hosts
-            echo "Done added your domain to the blacklist"
-        fi
-        ;;    
-        --update-hosts)
-            host="https://hosts.ubuntu101.co.za/hosts"
-
-            # Set perms
-            chmod 644 "$hosts_file"
-            # Go to internal storage 
-            cd /sdcard
-            # Download the hosts file with curl renaming it to hosts
-            su -c /data/data/com.termux/files/usr/bin/curl -o hosts "$host";
-            clear
-            echo "The new hosts file is downloaded successfully ✓"
-            # Check if the file was downloaded successfully and exists
-            if [ -f "hosts" ]; then
-            # A mechanism to apply the new hosts file, takes advantage of files mirroring made by magisk and kernelSU.
-                if [ -f "$hosts_file" ]; then
-                    mv /sdcard/hosts /data/adb/modules/Re-Malwack/system/etc
-                    echo ""
-                    echo "Done ✓"
-                fi
-            else
-                    echo "Error: Downloaded file hosts does not exist."
-            fi
-                exit 1
-        ;;
-        --help)
-            echo "Usage: re-malwack [ --reset | --blockporn | --update-hosts |--blacklist <domain> | --whitelist <domain> | --help ]"
-            echo "--update-hosts: Updates the hosts file."
-            echo "--reset: Restore the hosts file to its original state. (Disable ads blocking)"
-            echo "--blockporn: Block pornographic websites by adding entries to the hosts file."
-            echo "--blacklist <domain>: Add a website to the hosts file to be blocked"
-            echo "--whitelist <domain>: Remove the specified domain from the hosts file."
-            echo "--help: Display this help message."
-            ;;
-        *)
-            echo "Invalid option. Use 're-malwack --help' for usage information."
-            ;;
-    esac
+    echo "-h: Same as --help"
 fi
