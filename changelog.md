@@ -4,7 +4,7 @@
 - 🆕 The module will now download updated hosts file during installation.
 - 🔁 Changed the built-in tool name to "rmlwck" instead of "re-malwack".
 - 🤩 Added some touches to the built-in tool :)
-- 🚀 Code optimization and perfomance enhancement.
+- 🚀 Code optimization and perfomance enhancement. (Thanks for @forsaken-heart24 !)
 ---
 ## v5.1.0
 - ✨ First update for Re-Malwack.
