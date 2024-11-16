@@ -3,7 +3,7 @@
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
 </div>
 <h1 align="center">Re-Malwack</h1>
-<h2 align="center">Re-Awakening of Malwack Magisk Module</h2>
+<h2 align="center">It's Malwack, but built different 🗿</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Version](https://img.shields.io/badge/Module_Version-v5.2.0-green)
@@ -19,7 +19,7 @@
 
 ## Features
 
-- Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (Porn block, whitelist, reset hosts, ad block, protection from malware.)
+- Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (P*rn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
 - ⛔ Blocks P*rn sites, fake news sites, and gambling sites
 - 🛠️ Hosts file is updated daily
