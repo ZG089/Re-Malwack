@@ -1,3 +1,6 @@
+# ahem, it's only for like idk
+source $TMPDIR/functions.sh
+
 ui_print " 
    ___ ___    __  __   _   _ __      ___   ___ _  __
   | _ \ __|__|  \/  | /_\ | |\ \    / /_\ / __| |/ /
