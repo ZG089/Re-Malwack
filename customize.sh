@@ -53,5 +53,8 @@ set_permissions() {
 ##########################################################################################
 
 SKIPUNZIP=1
-unzip -qjo "$ZIPFILE" 'common/functions.sh' -d $TMPDIR >&2
-. $TMPDIR/functions.sh
+for i in "common/functions.sh" "common/install.sh"; do
+  unzip -qjo "$ZIPFILE" $i -d $TMPDIR || abort "- Failed to unpack module resources, please try again"
+done
+source $TMPDIR/functions.sh
+. $TMPDIR/install.sh
