@@ -22,7 +22,16 @@ if ! ping -w 1 google.com; then
 fi
 
  # Download the hosts file and save it as "hosts"
-su -c wget "https://hosts.ubuntu101.co.za/hosts" $TMPDIR/hosts
+wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts0" $TMPDIR/hosts0
+wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts1" $TMPDIR/hosts1
+wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts2" $TMPDIR/hosts2
+wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts3" $TMPDIR/hosts3
+cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 > $TMPDIR/hosts
+# cleaning up
+rm $TMPDIR/hosts0
+rm $TMPDIR/hosts1
+rm $TMPDIR/hosts2
+rm $TMPDIR/hosts3 
 
 # let's see if the file was downloaded or not.
 if [ ! -f "$TMPDIR/hosts" ]; then
