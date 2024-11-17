@@ -52,6 +52,9 @@ set_permissions() {
 # MMT Extended Logic - Don't modify anything after this
 ##########################################################################################
 # add vars if state = bomb
+# update: ok bomb
+DO_WE_HAVE_ANYTHING_TO_EXTRACT=true
+DO_WE_REALLY_NEED_ADDONS=false
 # ok.
 SKIPUNZIP=1
 for i in "common/functions.sh" "common/install.sh"; do
