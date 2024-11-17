@@ -1,64 +1,13 @@
-##########################################################################################
-#
-# MMT Extended Config Script
-#
-##########################################################################################
-
-##########################################################################################
-# Config Flags
-##########################################################################################
-
-# Uncomment and change 'MINAPI' and 'MAXAPI' to the minimum and maximum android version for your mod
-# Uncomment DYNLIB if you want libs installed to vendor for oreo+ and system for anything older
-# Uncomment DEBUG if you want full debug logs (saved to /sdcard)
-#MINAPI=21
-#MAXAPI=25
-#DYNLIB=true
-#DEBUG=true
-
-##########################################################################################
-# Replace list
-##########################################################################################
-
-# List all directories you want to directly replace in the system
-# Check the documentations for more info why you would need this
-
-# Construct your list in the following format
-# This is an example
-REPLACE_EXAMPLE="
-/system/app/Youtube
-/system/priv-app/SystemUI
-/system/priv-app/Settings
-/system/framework
-"
-
-# Construct your own list here
-REPLACE="
-/system/etc/hosts
+# who tf wrote this lmao, should have made this as an array lmao.
+REPLACE="/system/etc/hosts
 /system/etc/hosts.tmp
 "
-
-##########################################################################################
-# Permissions
-##########################################################################################
-
-set_permissions() {
-  :
-  set_perm_recursive $MODPATH/system/etc/hosts 0 0 0644 0755
-  set_perm  $MODPATH/system/bin/rmlwk 0  0  0777
-}
-
-##########################################################################################
-# MMT Extended Logic - Don't modify anything after this
-##########################################################################################
-# add vars if state = bomb
-# update: ok bomb
-DO_WE_HAVE_ANYTHING_TO_EXTRACT=true
+DO_WE_HAVE_ANYTHING_TO_EXTRACT=false
 DO_WE_REALLY_NEED_ADDONS=false
-# ok.
 SKIPUNZIP=1
-for i in "common/functions.sh" "common/install.sh"; do
+for i in "common/functions.sh" "common/install.sh" "system"; do
   unzip -qjo "$ZIPFILE" $i -d $TMPDIR || abort "- Failed to unpack module resources, please try again"
 done
+mv $TMPDIR/system $MODPATH/
 source $TMPDIR/functions.sh
 . $TMPDIR/install.sh
