@@ -30,6 +30,9 @@ for i in $(seq 0 3); do
     rm $TMPDIR/hosts${i}
 done
 
+# let's backup the file to revert the changes.
+cp /system/etc/hosts $MODPATH/hosts.bak
+
 # let's see if the file was downloaded or not.
 if [ ! -f "$TMPDIR/hosts" ]; then
     abort "   The ad-blocker file is missing, please try again."
