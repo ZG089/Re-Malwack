@@ -10,10 +10,10 @@ sleep 1
 ui_print "   Welcome to Re-Malwack installation wizard!"
 ui_print " "
 sleep 1.5
-ui_print "   The Installation will only take few seconds ⚡"
+ui_print "   The Installation will only take few moments ⚡"
 sleep 1
 ui_print " "
-ui_print "- Downloading the latest hosts file..."
+ui_print "- Checking internet connection..."
 
 # let's check do we have internet or not.
 if ! ping -w 1 google.com; then
@@ -22,6 +22,7 @@ if ! ping -w 1 google.com; then
 fi
 
  # Download the hosts file and save it as "hosts"
+ui_print "Downloading hosts file..."
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts0" $TMPDIR/hosts0
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts1" $TMPDIR/hosts1
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts2" $TMPDIR/hosts2
