@@ -44,4 +44,6 @@ fi
 ui_print "- Currently protecting a/an $(getprop ro.product.brand) device, model: $(getprop ro.product.model) 🛡"
 ui_print "- Installing hosts file"
 cat $TMPDIR/hosts /etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
+#set perms
 chmod 0644 $MODPATH/system/etc/hosts
+chmod 0777 $MODPATH/system/bin/rmlwk
