@@ -65,16 +65,11 @@ fi
 
 # Download the hosts file and save it as "hosts"
 ui_print "   Downloading hosts file..."
-rm hosts
-touch hosts
-for i in $(seq 0 3); do
-    wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts${i}" "hosts${i}"
-done
+wget https://hosts.ubuntu101.co.za/hosts
 
 # mod and nuke those temp files
 ui_print "   Installing hosts file into your device..."
-cat hosts0 hosts1 hosts2 hosts3 /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
-rm hosts0 hosts1 hosts2 hosts3
+cat hosts /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's backup the file to revert the changes.
 cp -af /system/etc/hosts $MODPATH/hosts.bak
