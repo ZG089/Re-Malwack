@@ -69,7 +69,9 @@ wget https://hosts.ubuntu101.co.za/hosts
 
 # merge bombs to get a big nuke
 ui_print "   Installing hosts file into your device..."
-cat hosts /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
+cat >> $MODPATH/system/etc/hosts << EOF
+$(for j_cole in /system/bin/hosts hosts; do cat $j_cole | sort; echo ""; done)
+EOF
 
 # let's backup the file to revert the changes.
 cp -af /system/etc/hosts $MODPATH/hosts.bak
