@@ -40,6 +40,7 @@ fi
 ui_print "   Currently protecting a/an $(getprop ro.product.brand) device, model: $(getprop ro.product.model) 🛡"
 ui_print "   Installing hosts file into your device..."
 chown 0 $MODPATH/system/bin/rmlwk $MODPATH/system/etc/hosts
-chgrp 0 $MODPATH/system/bin/rmlwk $MODPATH/system/etc/hosts
+chgrp 0 $MODPATH/system/etc/hosts
+chgrp 2000 $MODPATH/system/bin/rmlwk
 chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
