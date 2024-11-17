@@ -1,4 +1,3 @@
-# Credits in acsii for "Re-Malwack Lite" + Intro # [Luna] 5:44PM HUH?????????
 ui_print " 
 ╔────────────────────────────────────────╗
 │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
@@ -28,10 +27,7 @@ for i in $(seq 0 3); do
     touch $TMPDIR/hosts
     wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts${i}" "$TMPDIR/hosts${i}"
     cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 /system/etc/hosts | sort | uniq >> $MODPATH/system/etc/hosts
-    rm $TMPDIR/hosts0
-    rm $TMPDIR/hosts1
-    rm $TMPDIR/hosts2
-    rm $TMPDIR/hosts3 
+    rm $TMPDIR/hosts${i}
 done
 
 # let's see if the file was downloaded or not.
