@@ -72,7 +72,7 @@ for i in $(seq 0 3); do
 done
 
 # mod and nuke those temp files
-cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 /system/etc/hosts | sort | uniq >> $MODPATH/system/etc/hosts
+cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
 rm $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3
 
 # let's backup the file to revert the changes.
