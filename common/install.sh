@@ -65,28 +65,28 @@ fi
 
 # Download the hosts file and save it as "hosts"
 ui_print "   Downloading hosts file..."
-rm $TMPDIR/hosts
-touch $TMPDIR/hosts
+rm hosts
+touch hosts
 for i in $(seq 0 3); do
-    wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts${i}" "$TMPDIR/hosts${i}"
+    wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts${i}" "hosts${i}"
 done
 
 # mod and nuke those temp files
-cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
-rm $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3
+ui_print "   Installing hosts file into your device..."
+cat hosts0 hosts1 hosts2 hosts3 /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
+rm hosts0 hosts1 hosts2 hosts3
 
 # let's backup the file to revert the changes.
-cp /system/etc/hosts $MODPATH/hosts.bak
+cp -af /system/etc/hosts $MODPATH/hosts.bak
 
 # let's see if the file was downloaded or not.
-if [ ! -f "$TMPDIR/hosts" ]; then
+if [ ! -f "hosts" ]; then
     abort "   The ad-blocker file is missing, please try again."
 else 
     ui_print "   The new hosts file is downloaded successfully ✓"
 fi
 
 ui_print "   Currently protecting a/an $(getprop ro.product.brand) device, model: $(getprop ro.product.model) 🛡"
-ui_print "   Installing hosts file into your device..."
 chown 0 $MODPATH/system/bin/rmlwk $MODPATH/system/etc/hosts
 chgrp 0 $MODPATH/system/etc/hosts
 chgrp 2000 $MODPATH/system/bin/rmlwk
