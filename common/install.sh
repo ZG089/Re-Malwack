@@ -22,12 +22,12 @@ if ! ping -w 1 google.com; then
 fi
 
  # Download the hosts file and save it as "hosts"
-ui_print "Downloading hosts file..."
+ui_print "- Downloading hosts file..."
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts0" $TMPDIR/hosts0
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts1" $TMPDIR/hosts1
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts2" $TMPDIR/hosts2
 wget "https://raw.githubusercontent.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/master/hosts/hosts3" $TMPDIR/hosts3
-cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 > $TMPDIR/hosts
+cat $TMPDIR/hosts0 $TMPDIR/hosts1 $TMPDIR/hosts2 $TMPDIR/hosts3 | sort | uniq > $TMPDIR/hosts
 # cleaning up
 rm $TMPDIR/hosts0
 rm $TMPDIR/hosts1
