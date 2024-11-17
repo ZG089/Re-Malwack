@@ -106,13 +106,13 @@ prop_process() {
 }
 
 # Check for min/max api version
-if [ -z $MINAPI ] || [ $API -lt $MINAPI ]; then
-	abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!";
-fi
+#if [ -z $MINAPI ] || [ $API -lt $MINAPI ]; then
+#	abort "! Your system API of $API is less than the minimum api of $MINAPI! Aborting!";
+#fi
 
-if [ -z $MAXAPI ] || [ $API -gt $MAXAPI ]; then
-	abort "! Your system API of $API is greater than the maximum api of $MAXAPI! Aborting!";
-fi
+#if [ -z $MAXAPI ] || [ $API -gt $MAXAPI ]; then
+#	abort "! Your system API of $API is greater than the maximum api of $MAXAPI! Aborting!";
+#fi
 
 # Set variables
 [ $API -lt 26 ] && DYNLIB=false
