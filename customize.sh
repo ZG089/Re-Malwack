@@ -8,6 +8,5 @@ SKIPUNZIP=1
 for i in "common/functions.sh" "common/install.sh" "system"; do
   unzip -qjo "$ZIPFILE" $i -d $TMPDIR || abort "- Failed to unpack module resources, please try again"
 done
-mv $TMPDIR/system $MODPATH/
 source $TMPDIR/functions.sh
 . $TMPDIR/install.sh
