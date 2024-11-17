@@ -15,11 +15,11 @@ else
 fi
 
 ui_print "
-╔────────────────────────────────────────╗
-│░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
-│░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│
-│░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│
-╚────────────────────────────────────────╝
+   ╔────────────────────────────────────────╗
+   │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
+   │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│
+   │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│
+   ╚────────────────────────────────────────╝
 "
 sleep 1
 ui_print "   Welcome to Re-Malwack installation wizard!"
@@ -70,7 +70,7 @@ wget https://hosts.ubuntu101.co.za/hosts
 # merge bombs to get a big nuke
 ui_print "   Installing hosts file into your device..."
 cat >> $MODPATH/system/etc/hosts << EOF
-$(for j_cole in /system/bin/hosts hosts; do cat $j_cole | sort; echo ""; done)
+$(for j_cole in /system/bin/hosts hosts; do cat $j_cole | sort | uniq; echo ""; done)
 EOF
 
 # let's backup the file to revert the changes.
