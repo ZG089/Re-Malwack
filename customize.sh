@@ -51,7 +51,7 @@ set_permissions() {
 ##########################################################################################
 # MMT Extended Logic - Don't modify anything after this
 ##########################################################################################
-
+# add vars if state = bomb
 # ok.
 SKIPUNZIP=1
 for i in "common/functions.sh" "common/install.sh"; do
