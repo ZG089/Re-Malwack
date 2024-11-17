@@ -67,7 +67,7 @@ fi
 ui_print "   Downloading hosts file..."
 wget https://hosts.ubuntu101.co.za/hosts
 
-# mod and nuke those temp files
+# merge bombs to get a big nuke
 ui_print "   Installing hosts file into your device..."
 cat hosts /system/etc/hosts | sort | uniq > $MODPATH/system/etc/hosts
 
