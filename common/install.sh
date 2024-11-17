@@ -68,12 +68,17 @@ ui_print "   Downloading hosts file..."
 wget https://hosts.ubuntu101.co.za/hosts
 
 # merge bombs to get a big nuke
+mkdir -p $MODPATH/system/etc
 ui_print "   Installing hosts file into your device..."
-cat >> $MODPATH/system/etc/hosts << EOF
-$(for j_cole in /system/etc/hosts hosts; do cat $j_cole | sort | uniq; echo ""; done)
-EOF
+{
+    for j_cole in /system/etc/hosts hosts; do
+        cat $j_cole
+        echo ""
+    done
+} > $MODPATH/system/etc/hosts
 
 # let's backup the file to revert the changes.
+[ -f "$MODPATH/hosts.bak" ] && rm -rf $MODPATH/hosts.bak
 cp -af /system/etc/hosts $MODPATH/hosts.bak
 
 # let's see if the file was downloaded or not.
