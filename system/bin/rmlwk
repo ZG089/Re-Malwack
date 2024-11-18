@@ -98,7 +98,7 @@ case "$(tolower "$1")" in
         block_type=${1#--block-}
         curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" || abort "Failed to download hosts file."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
-        echo "- Entries for blocking ${block_type} sites added."
+        echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
@@ -130,4 +130,5 @@ case "$(tolower "$1")" in
 esac
 
 # Cleanup
-rm -f /data/local/tmp/* "$temp"
+rm "$temp" && find /data/local/tmp/* -type f -exec rm -f {} +
+
