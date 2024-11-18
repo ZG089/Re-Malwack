@@ -90,7 +90,7 @@ fi
 case "$(tolower "$1")" in
     --reset)
         echo "- Reverting the changes..."
-        cp /data/adb/modules/Re-Malwack/hosts.bak "$hosts_file"
+        echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
         echo "- Successfully reverted changes."
         ;;
