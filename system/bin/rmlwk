@@ -112,8 +112,9 @@ case "$(tolower "$1")" in
         ;;
     --update-hosts)
         curl -o /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" || abort "Failed to download hosts file."
+        echo "- Applying update."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
-        echo "- Updated hosts file."
+        echo "- Done."
         ;;
     --help|-h|*)
         echo ""
