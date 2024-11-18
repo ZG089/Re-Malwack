@@ -77,10 +77,6 @@ ui_print "   Installing hosts file into your device..."
     done
 } > $MODPATH/system/etc/hosts
 
-# let's backup the file to revert the changes.
-[ -f "$MODPATH/hosts.bak" ] && rm -rf $MODPATH/hosts.bak
-cp -af /system/etc/hosts $MODPATH/hosts.bak
-
 # let's see if the file was downloaded or not.
 if [ ! -f "hosts" ]; then
     abort "   The ad-blocker file is missing, please try again."
