@@ -13,7 +13,7 @@ if ! ping -w 3 google.com &>/dev/null; then
     exit
 fi
 # Download the hosts file and save it as "hosts"
-wget /sdcard/hosts https://hosts.ubuntu101.co.za/hosts
+wget -O /sdcard/hosts https://hosts.ubuntu101.co.za/hosts
 
 echo "       Preparing New weapons🔫..."
 {
