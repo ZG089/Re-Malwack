@@ -24,9 +24,10 @@ echo "       Preparing New weapons🔫..."
 } | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
 # let's see if the file was downloaded or not.
-if [ ! -f "hosts" ]; then
+if [ ! -f "/sdcard/hosts" ]; then
     echo "       Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     echo "       Everthing is fine now, Enjoy 😉"
-    sleep 0.5
+    rm /sdcard/hosts
+    sleep 1
 fi
