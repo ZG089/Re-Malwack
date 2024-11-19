@@ -25,7 +25,7 @@ sleep 1
 ui_print "       Welcome to Re-Malwack installation wizard!"
 ui_print " "
 sleep 1.5
-ui_print "       The Installation process will only take few moments ⚡"
+ui_print "       Installation process will only take few moments ⚡"
 sleep 1
 
 # rcm lore.
@@ -62,8 +62,6 @@ if ! ping -w 3 google.com &>/dev/null; then
     ui_print "       This module requires internet connection to download"
     abort "        Some utilities, please connect to a mobile network and try again."
 fi
-ui_print " "
-ui_print "       [BEGIN INSTALLATION PHASE]"
 # Download the hosts file and save it as "hosts"
 ui_print "       Preparing Shields 🛡️..."
 wget https://hosts.ubuntu101.co.za/hosts
@@ -83,6 +81,7 @@ if [ ! -f "hosts" ]; then
     abort "       Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     ui_print "       Your $(getprop ro.product.brand) device, model $(getprop ro.product.model) is now armed against ads, malware and more 🛡"
+    sleep 0.5
 fi
 
 # set perms
