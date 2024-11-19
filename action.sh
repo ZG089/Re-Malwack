@@ -9,8 +9,8 @@ sleep 0.5
 echo "       Updating Defenses...."
 if ! ping -w 3 google.com &>/dev/null; then
 
-    echo "       This module requires internet connection to download"
-    abort "        Some utilities, please connect to a mobile network and try again."
+    echo "       An error occured, check your internet connection "
+    exit
 fi
 # Download the hosts file and save it as "hosts"
 wget /data/local/tmp/hosts https://hosts.ubuntu101.co.za/hosts
