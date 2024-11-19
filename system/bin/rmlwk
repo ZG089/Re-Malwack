@@ -77,10 +77,10 @@ if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
 
-# Check for wget
-if ! command -v wget >/dev/null 2>&1; then
+# Check for curl
+if ! command -v curl >/dev/null 2>&1; then
     if nuke_if_we_dont_have_internet && ask "Some tools are missing. Install them?"; then
-        pkg install -y wget || abort "Failed to install dependencies."
+        pkg install -y curl || abort "Failed to install dependencies."
     else
         abort "An active internet connection is required to download tools."
     fi
@@ -98,7 +98,7 @@ case "$(tolower "$1")" in
         block_type=${1#--block-}
         echo "- Downloading entries for ${block_type}."
         sleep 0.5
-        wget -O /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts || abort "Failed to download hosts file."
+        curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" &>/dev/null || abort "Failed to download hosts file."
         echo "- Applying enteries..."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking ${block_type} sites are added successfully."
@@ -116,7 +116,7 @@ case "$(tolower "$1")" in
     --update-hosts)
         echo "- Downloading update.."
         sleep 0.5
-        wget -O /data/local/tmp/hosts https://hosts.ubuntu101.co.za/hosts || abort "Failed to download hosts file."
+        curl -o /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" &>/dev/null || abort "Failed to download hosts file."
         echo "- Applying update."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Done."
