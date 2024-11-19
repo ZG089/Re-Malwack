@@ -15,15 +15,13 @@ fi
 # Download the hosts file and save it as "hosts"
 wget data/local/tmp/hosts https://hosts.ubuntu101.co.za/hosts
 
-# merge bombs to get a big nuke
-mkdir -p $MODPATH/system/etc
 echo "       Preparing New weapons🔫..."
 {
     for j_cole in /system/etc/hosts data/local/tmp/hosts; do
         cat $j_cole
         echo ""
     done
-} | sort | uniq > $MODPATH/system/etc/hosts
+} | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "hosts" ]; then
