@@ -25,7 +25,7 @@ echo "       Preparing New weapons🔫..."
 
 # let's see if the file was downloaded or not.
 if [ ! -f "hosts" ]; then
-    abort "       Looks like there is a problem with some weapons, maybe check your internet connection?"
+    echo "       Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     echo "       Everthing is fine now, Enjoy 😉"
     sleep 0.5
