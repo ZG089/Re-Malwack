@@ -105,7 +105,7 @@ case "$(tolower "$1")" in
         ;;
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-        sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && mv "$temp" "$hosts_file" || abort "Failed to update hosts file."
+        sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && cp -f "$temp" "$hosts_file" || abort "Failed to whitelist $domain ."
         echo "- Whitelisted $domain."
         ;;
     --blacklist)
