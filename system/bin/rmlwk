@@ -23,11 +23,11 @@ function malvack_banner() {
     echo -e "\033[0;31m                =##=--####- .-=#*--+#*-                               "
     echo -e "\033[0;31m               =*=.   .+#+ -##*=.   .+*:                              "
     echo -e "\033[0;31m                        .. :-:                                        "
-    echo -e "\033[0;31m        ╔────────────────────────────────────────╗"
-    echo -e "\033[0;31m        │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│"
-    echo -e "\033[0;31m        │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│"
-    echo -e "\033[0;31m        │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│"
-    echo -e "\033[0;31m        ╚────────────────────────────────────────╝\033[0m"
+    echo -e "\033[0;37m        ╔────────────────────────────────────────╗"
+    echo -e "\033[0;37m        │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│"
+    echo -e "\033[0;37m        │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│"
+    echo -e "\033[0;37m        │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│"
+    echo -e "\033[0;37m        ╚────────────────────────────────────────╝\033[0m"
 }
 
 function tolower() {
@@ -77,10 +77,10 @@ if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
 
-# Check for curl
-if ! command -v curl >/dev/null 2>&1; then
+# Check for wget
+if ! command -v wget >/dev/null 2>&1; then
     if nuke_if_we_dont_have_internet && ask "Some tools are missing. Install them?"; then
-        pkg install -y curl || abort "Failed to install dependencies."
+        pkg install -y wget || abort "Failed to install dependencies."
     else
         abort "An active internet connection is required to download tools."
     fi
@@ -96,7 +96,10 @@ case "$(tolower "$1")" in
         ;;
     --block-porn|--block-gambling|--block-fake)
         block_type=${1#--block-}
-        curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" || abort "Failed to download hosts file."
+        echo "- Downloading entries for ${block_type}."
+        sleep 0.5
+        wget -O /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" || abort "Failed to download hosts file."
+        echo "- Applying enteries..."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
@@ -111,7 +114,9 @@ case "$(tolower "$1")" in
         echo "- Blacklisted $domain."
         ;;
     --update-hosts)
-        curl -o /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" || abort "Failed to download hosts file."
+        echo "- Downloading update.."
+        sleep 0.5
+        wget -O /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" || abort "Failed to download hosts file."
         echo "- Applying update."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Done."
