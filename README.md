@@ -21,21 +21,22 @@
 
 - Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (P*rn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
-- ⛔ Blocks P*rn sites, fake news sites, and gambling sites
+- ⛔ Blocks ads, malware, P*rn sites, fake news sites, and gambling sites
 - 🛠️ Hosts file is updated daily
 - ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested)
 - 🔧 Regularly maintained & updated
-- ⚙️ Fixed Malwack's bugs 
+- ⚙️ Fixed Malwack's bugs
+- 🚀 Enhanced for more performance and effectiveness.
 - 🔜 More soon....
 
+## Requirements
 > [!IMPORTANT]
-> ## Requirements
 > - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
-> - Requires internet connection in order to download hosts file during installation, otherwise it will use the bundled hosts file.
+> - Requires internet connection in order to download hosts file during installation.
 
 ## Download Module
 > [!TIP]
-> You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
 ## Get started
@@ -44,22 +45,24 @@
 > 2. Reboot your device to activate the Re-Malwack Module's protective features.
 > 3. Enjoy, Your device is fully protected now :)
 
-## Command Usage (How to use Re-Malwack on Terminal)
+## Command Usage (How to use Re-Malwack on Termux)
 
-Type``su -c rmlwk`` on Termux to show up the help message which will output this:
+Type``su -c rmlwk`` on Termux to show up the help message which will clarify how to use it:
 
 ```
-"Usage: rmlwk [ --reset | --block-porn | --block-gambling | --block-fake |  --update-hosts | --blacklist <domain> | --whitelist <domain> | --help | -h ]"
-"--update-hosts: Updates the hosts file"
-"--reset: Restore the hosts file to its original state. (Disable ads blocking)"
-"--block-porn: Block pornographic websites by adding entries to the hosts file."
-"--block-gambling: Block gambling sites"
-"--block-fake: Block Fake news sites"
-"--whitelist <domain>: Remove the specified domain from the hosts file."
-"--blacklist <domain>: Adds domain to the hosts file to be blocked"
-"--help: Display this help message."
-"-h: same as --help
+Usage: rmlwk [options]
+--reset: Restore original hosts file.
+--block-porn: Block pornographic sites.
+--block-gambling: Block gambling sites.
+--block-fake: Block fake news sites.
+--whitelist <domain>: Whitelist a domain.
+--blacklist <domain>: Blacklist a domain.
+--update-hosts: Update the hosts file.
+--help, -h: Display help.
 ```
+
+> [!TIP]
+> - You can update hosts file by going into magisk, and press the action button on the module.
 
 > [!WARNING]
 > Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module.
@@ -68,9 +71,9 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 > - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwk --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
 
 
+## Total Blocked
 > [!TIP]
-> ## Total Blocked
-> - 907,120+ Malware, Ads, Spyware
+> - 910,553+ Malware, Ads, Spyware
 
 ## How does it work?
 > [!TIP]
@@ -98,9 +101,9 @@ Type``su -c rmlwk`` on Termux to show up the help message which will output this
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
-- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) /system/etc/hosts file 
-- [@StevenBlack](https://github.com/StevenBlack/hosts) Porn sites + fake news blocklist
-- [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + contribution to the Re-Malwack project
+- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) - Base hosts file 
+- [@StevenBlack](https://github.com/StevenBlack/hosts) - P*rn sites, fake news sites and gambling sites blocklist
+- [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
 - And Finally, YOU! For using my module :)
 
