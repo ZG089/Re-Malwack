@@ -57,7 +57,8 @@ fi
 
 # let's check do we have internet or not.
 ui_print "       Checking internet connection..."
-if ! ping -w 1 google.com; then
+if ! ping -w 3 google.com &>/dev/null; then
+
     ui_print "       This module requires internet connection to download"
     abort "        Some utilities, please connect to a mobile network and try again."
 fi
@@ -81,7 +82,7 @@ ui_print "       Preparing weapons to kill malware🔫..."
 if [ ! -f "hosts" ]; then
     abort "       Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
-    ui_print "       Your $(getprop ro.product.brand) device, model: $(getprop ro.product.model) is now armed against ads and malware 🛡"
+    ui_print "       Your $(getprop ro.product.brand) device, model $(getprop ro.product.model) is now armed against ads, malware and more 🛡"
 fi
 
 # set perms
