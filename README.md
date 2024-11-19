@@ -3,7 +3,7 @@
 <a href="https://ibb.co/MRfcZnF"><img src="https://i.ibb.co/MRfcZnF/20240828-173916-0000-modified.png" alt="20240828-173916-0000-modified" border="0"></a>
 </div>
 <h1 align="center">Re-Malwack</h1>
-<h2 align="center">It's Malwack, but built different 🗿</h2>
+<h2 align="center">Protection-maxxing magisk module 🗿</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
 ![Module Version](https://img.shields.io/badge/Module_Version-v5.2.0-green)
