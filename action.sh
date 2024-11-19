@@ -6,7 +6,7 @@ echo "
   ╚────────────────────────────────────────╝
 "
 sleep 0.5
-echo "       Updating Defenses...."
+echo "       Upgrading Defenses🛡️...."
 if ! ping -w 3 google.com &>/dev/null; then
 
     echo "       An error occured, check your internet connection "
