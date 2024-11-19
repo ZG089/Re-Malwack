@@ -13,11 +13,11 @@ if ! ping -w 3 google.com &>/dev/null; then
     abort "        Some utilities, please connect to a mobile network and try again."
 fi
 # Download the hosts file and save it as "hosts"
-wget data/local/tmp/hosts https://hosts.ubuntu101.co.za/hosts
+wget /data/local/tmp/hosts https://hosts.ubuntu101.co.za/hosts
 
 echo "       Preparing New weapons🔫..."
 {
-    for j_cole in /system/etc/hosts data/local/tmp/hosts; do
+    for j_cole in /system/etc/hosts /data/local/tmp/hosts; do
         cat $j_cole
         echo ""
     done
