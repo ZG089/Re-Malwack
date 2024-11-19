@@ -87,3 +87,4 @@ fi
 # set perms
 chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
+chmod 755 $MODPATH/action.sh
