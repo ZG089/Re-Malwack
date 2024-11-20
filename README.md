@@ -75,7 +75,8 @@ Usage: rmlwk [options]
 > [!TIP]
 > - 910,553+ Malware, Ads, Spyware
 
-## How does it work?
+
+## How does it work? - Frequently Asked Questions
 > [!TIP]
 > **Where is the file?**
 > - Your ``hosts`` file located in ``/system/etc``. It "acts" like your school blocking service that blocks you from going to websites. However, this (the ``Hosts`` file) is done locally on your phone's root system. 
