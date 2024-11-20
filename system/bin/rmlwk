@@ -1,0 +1,140 @@
+#!/system/bin/sh
+
+# Define functions
+function malvack_banner() {
+    clear
+    echo -e "\033[0;31m                                      .--.                            "
+    echo -e "\033[0;31m                                   .=*#=                              "
+    echo -e "\033[0;31m                                 .+###+                               "
+    echo -e "\033[0;31m                                .*#####-                              "
+    echo -e "\033[0;31m                               .*##***-**=:                           "
+    echo -e "\033[0;31m                             .*###-    .=*##+-.                       "
+    echo -e "\033[0;31m                             .-+**        .-=*##+=:                   "
+    echo -e "\033[0;31m                   .:.           ::           -*####+-.               "
+    echo -e "\033[0;31m                   -*#*+:     -*##+.            .-+####+-.           "
+    echo -e "\033[0;31m                     .:*#+***+#*:                  .-+###*           "
+    echo -e "\033[0;31m                      :*#######*.                     .:-.           "
+    echo -e "\033[0;31m                      +*********-                                     "
+    echo -e "\033[0;31m              +#+.   .:::::  ::::    :*#:                             "
+    echo -e "\033[0;31m               :+#+==#####* .####*==*#+:                              "
+    echo -e "\033[0;31m                 .---##*-: :+####+---.                                "
+    echo -e "\033[0;31m                     ##=  :#*+*##=                                    "
+    echo -e "\033[0;31m                 .=++###**#+   *#*++-                                 "
+    echo -e "\033[0;31m                =##=--####- .-=#*--+#*-                               "
+    echo -e "\033[0;31m               =*=.   .+#+ -##*=.   .+*:                              "
+    echo -e "\033[0;31m                        .. :-:                                        "
+    echo -e "\033[0;37m        ╔────────────────────────────────────────╗"
+    echo -e "\033[0;37m        │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│"
+    echo -e "\033[0;37m        │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│"
+    echo -e "\033[0;37m        │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│"
+    echo -e "\033[0;37m        ╚────────────────────────────────────────╝\033[0m"
+}
+
+function tolower() {
+    echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+function abort() {
+    echo "- $1"
+    sleep 0.5
+    exit 1
+}
+
+function nuke_if_we_dont_have_internet() {
+    ping -w 1 google.com >/dev/null 2>&1
+    return $?
+}
+
+function ask() {
+    local question="$1"
+    local answer
+    printf "- $question (y/n): "
+    read -r answer
+    if [[ "$(tolower "$answer")" == "y" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Variables
+domain="$2"
+temp=$(mktemp)
+hosts_file="/data/adb/modules/Re-Malwack/system/etc/hosts"
+
+# Banner
+malvack_banner
+
+# Check Termux
+if ! ls "$PREFIX/bin" | grep -q termux-; then
+    abort "Please run this script in Termux."
+else
+    export PATH="$PATH:/data/data/com.termux/files/usr/bin/"
+fi
+
+# Check Root
+if [ "$(id -u)" -ne 0 ]; then
+    abort "Root is required to run this script."
+fi
+
+# Check for curl
+if ! command -v curl >/dev/null 2>&1; then
+    if nuke_if_we_dont_have_internet && ask "Some tools are missing. Install them?"; then
+        pkg install -y curl || abort "Failed to install dependencies."
+    else
+        abort "An active internet connection is required to download tools."
+    fi
+fi
+
+# Main Logic
+case "$(tolower "$1")" in
+    --reset)
+        echo "- Reverting the changes..."
+        echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+        chmod 644 "$hosts_file"
+        echo "- Successfully reverted changes."
+        ;;
+    --block-porn|--block-gambling|--block-fake)
+        block_type=${1#--block-}
+        echo "- Downloading entries for ${block_type}."
+        sleep 0.5
+        curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" &>/dev/null || abort "Failed to download hosts file."
+        echo "- Applying enteries..."
+        cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
+        echo "- Entries for blocking ${block_type} sites are added successfully."
+        ;;
+    --whitelist)
+        [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
+        sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && cp -f "$temp" "$hosts_file" || abort "Failed to whitelist $domain ."
+        echo "- Whitelisted $domain."
+        ;;
+    --blacklist)
+        [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
+        echo "0.0.0.0 $domain" >> "$hosts_file"
+        echo "- Blacklisted $domain."
+        ;;
+    --update-hosts)
+        echo "- Downloading update.."
+        sleep 0.5
+        curl -o /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" &>/dev/null || abort "Failed to download hosts file."
+        echo "- Applying update."
+        cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
+        echo "- Done."
+        ;;
+    --help|-h|*)
+        echo ""
+        echo "Usage: rmlwk [options]"
+        echo "--reset: Restore original hosts file."
+        echo "--block-porn: Block pornographic sites."
+        echo "--block-gambling: Block gambling sites."
+        echo "--block-fake: Block fake news sites."
+        echo "--whitelist <domain>: Whitelist a domain."
+        echo "--blacklist <domain>: Blacklist a domain."
+        echo "--update-hosts: Update the hosts file."
+        echo "--help, -h: Display help."
+        ;;
+esac
+
+# Cleanup
+rm "$temp" && find /data/local/tmp/* -type f -exec rm -f {} +
+
