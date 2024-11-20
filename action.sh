@@ -7,11 +7,7 @@ echo "
 "
 sleep 0.5
 echo "       Upgrading Defenses🛡️...."
-if ! ping -w 3 google.com &>/dev/null; then
-
-    echo "       An error occured, check your internet connection "
-    exit
-fi
+ping -w 1 google.com &>/dev/null || abort "       Failed to Upgrade, Please check your internet connection." && sleep 1.5
 # Download the hosts file and save it as "hosts"
 wget -O /sdcard/hosts https://hosts.ubuntu101.co.za/hosts
 
