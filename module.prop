@@ -1,12 +1,9 @@
 id=Re-Malwack
-name=Re-Malwack | Revival of Malwack Module
-
-version=v5.1.0
-versionCode=21
-
-
-
-
-author= ZG089 aka ZG_DEV
-description= A Magisk Module which protects your device from ads, po*n, and malware :)
+name=Re-Malwack | Protection-maxxing 🛡️
+version=v5.2.0
+versionCode=20241120
+author=ZG089 | Github : @ZG089 | Telegram : @zgx_dev
+description=Protecting your device from ads, Malware, p*rn, and more :) 
 updateJson=https://raw.githubusercontent.com/ZG089/Re-Malwack/main/update.json
+support=https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/
+donate=https://buymeacoffee.com/zg089

@@ -1,25 +1,25 @@
 ##########################################################################################
-#
+
 # MMT Extended Utility Functions
-#
+
 ##########################################################################################
 
 abort() {
-  ui_print "$1"
-  rm -rf $MODPATH 2>/dev/null
-  cleanup
-  rm -rf $TMPDIR 2>/dev/null
-  exit 1
+	ui_print "$1"
+	rm -rf $MODPATH 2>/dev/null
+	rm -rf $TMPDIR 2>/dev/null
+	cleanup
+	exit 1
 }
 
 cleanup() {
-  rm -rf $MODPATH/common 2>/dev/null
+	rm -rf $MODPATH/common 2>/dev/null
 }
 
 device_check() {
-  local opt=`getopt -o dm -- "$@"` type=device
-  eval set -- "$opt"
-  while true; do
+	local opt=`getopt -o dm -- "$@"` type=device
+	eval set -- "$opt"
+	while true; do
     case "$1" in
       -d) local type=device; shift;;
       -m) local type=manufacturer; shift;;
