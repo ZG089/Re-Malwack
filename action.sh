@@ -7,7 +7,13 @@ echo "
 "
 sleep 0.5
 echo "       Upgrading Defenses🛡️...."
-ping -w 1 google.com &>/dev/null || abort "       Failed to Upgrade, Please check your internet connection."
+ping -w 1 google.com &>/dev/null
+if [ $? -ne 0 ]; then
+    echo "Failed to upgrade. Please check your internet connection."
+    sleep 2
+    exit 1
+fi
+
 # Download the hosts file and save it as "hosts"
 wget -O /sdcard/hosts https://hosts.ubuntu101.co.za/hosts
 
@@ -25,5 +31,5 @@ if [ ! -f "/sdcard/hosts" ]; then
 else 
     echo "       Everthing is fine now, Enjoy 😉"
     rm /sdcard/hosts
-    sleep 1
+    sleep 1.5
 fi
