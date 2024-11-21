@@ -50,6 +50,13 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 	fi
 fi
 
+#checking for conflicts
+conflict=1
+pm list packages | grep -q org.adaway && conflict=$((conflict + 1))
+for conflicts in /data/adb/modules/*; do [ -f "$conflicts/system/etc/hosts" ] && conflict=$((conflict + 1)); done
+[ "$conflict" -ge "2" ] && abort " - $conflict conflicts has been detected, please uninstall them\n  to install this module." 
+
+
 # make an bool to prevent extracting things if we dont have anything to extract...
 if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
 	unzip -o "$ZIPFILE" -x 'META-INF/*' -d $MODPATH >&2
