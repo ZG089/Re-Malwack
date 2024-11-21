@@ -6,7 +6,7 @@
 - ⛔ Added conflitcts checker during installation (thanks to @forsaken-heart24!)
 - 🔁 Changed the built-in tool name to "rmlwk" instead of "re-malwack".
 - 🤩 Added some touches to the built-in tool :)
-- 🚀 Code optimization and perfomance enhancement. (Special thanks for @forsaken-heart24!)
+- 🚀 Code optimization and performance enhancement. (Special thanks for @forsaken-heart24!)
 ---
 ## v5.1.0
 - ✨ First update for Re-Malwack.
