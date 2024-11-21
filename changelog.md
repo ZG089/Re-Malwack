@@ -3,7 +3,7 @@
 - 🆕 Added ability to block Gambling & Fake news sites into the built-in tool. 
 - 🆕 The module will now download updated hosts file during installation.
 - 🆕 Added Action button, clicking on it updates the hosts file.
-- ⛔ Added conflitcts checker during installation (thanks to @forsaken-heart24!)
+- ⛔ Added conflicts checker during installation (thanks to @forsaken-heart24!)
 - 🔁 Changed the built-in tool name to "rmlwk" instead of "re-malwack".
 - 🤩 Added some touches to the built-in tool :)
 - 🚀 Code optimization and performance enhancement. (Special thanks for @forsaken-heart24!)
