@@ -1,0 +1,13 @@
+{
+	"license": "GPL-3.0",
+	"support": "https://github.com/Magisk-Modules-Alt-Repo/Re-Malwack/issues",
+	"donate": "http://buymeacoffee.com/ZG089",
+	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/Add-Text-11-22-12-57-45.png",
+	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/20240828-173916-0000-modified.png",
+	"categories": [
+		"Adblocking and Hosts Files"
+	],
+	"require": [],
+	"screenshots": [],
+	"readme": "https://github.com/Magisk-Modules-Alt-Repo/Re-Malwack/README.md"
+}
