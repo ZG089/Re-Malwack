@@ -51,10 +51,10 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 fi
 
 #checking for conflicts
-conflict=1
+conflict=0
 pm list packages | grep -q org.adaway && conflict=$((conflict + 1))
 for conflicts in /data/adb/modules/*; do [ -f "$conflicts/system/etc/hosts" ] && conflict=$((conflict + 1)); done
-[ "$conflict" -ge "2" ] && abort " - $conflict conflicts has been detected, please uninstall them\n  to install this module." 
+[ "$conflict" -ge "1" ] && abort " - $conflict conflicts has been detected, please uninstall them to install this module." 
 
 
 # make an bool to prevent extracting things if we dont have anything to extract...
