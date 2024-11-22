@@ -1,3 +1,5 @@
+## v5.2.1
+- 🎯 Fix Conflicts counter
 ## v5.2.0
 - 🆕 Added "-h" argument, does the same job as "--help"
 - 🆕 Added ability to block Gambling & Fake news sites into the built-in tool. 
