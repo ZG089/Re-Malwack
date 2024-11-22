@@ -62,7 +62,7 @@ Usage: rmlwk [options]
 ```
 
 > [!TIP]
-> - You can update hosts file by going into magisk, and press the action button on the module.
+> - You can update hosts file by going into magisk, and press the action button on the module, besides updating it un Termux
 
 > [!WARNING]
 > Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module.
