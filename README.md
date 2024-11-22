@@ -10,7 +10,6 @@
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 ![Hosts Update Time](https://img.shields.io/badge/Hosts_update_Time-≈19:30_UTC-green)
 ![Built with](https://img.shields.io/badge/Made_with-Love-red)
-![GitHub repo size](https://img.shields.io/github/repo-size/ZG089/Re-Malwack)
 [![Channel](https://img.shields.io/badge/Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?color=blue&logo=telegram)](https://t.me/zgx_dev)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/m/zg_dev.11432109/)
