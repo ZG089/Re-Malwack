@@ -1,3 +1,5 @@
+## v5.2.1-hotfix
+- 🎯 Fix extraction error
 ## v5.2.1
 - 🎯 Fix Conflicts counter
 ## v5.2.0
