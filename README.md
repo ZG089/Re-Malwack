@@ -45,6 +45,8 @@ You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/
 > 3. Enjoy, Your device is fully protected now :)
 
 ## Command Usage (How to use Re-Malwack on Termux)
+> [!NOTE]
+> - It's not required to use it on terminal if you want to update hosts.
 
 Type``su -c rmlwk`` on Termux to show up the help message which will clarify how to use it:
 
