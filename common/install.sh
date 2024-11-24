@@ -55,7 +55,7 @@ ui_print "     Checking for conflicts"
 
 abort() { echo "$1" && exit 1;}
 
-mods=$(sudo find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | grep -oP '(?<=/data/adb/modules/)[^/]+' | sort | uniq)
+mods=$(find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | grep -oP '(?<=/data/adb/modules/)[^/]+' | sort | uniq)
 apps=$(pm list packages | grep 'org.adaway' | sed 's/package://')
 
 nah() {
@@ -97,7 +97,7 @@ ui_print "     Preparing weapons to kill malware🔫..."
 } | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
-if [ ! -f "hosts" ]; then
+if [ ! -f "hosts1" ]; then
     abort "     Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     ui_print "     Your $(getprop ro.product.brand) device, model $(getprop ro.product.model) is now armed against ads, malware and more 🛡"
