@@ -51,6 +51,8 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 fi
 
 #checking for conflicts
+ui_print "     Checking for conflicts"
+
 abort() { echo "$1" && exit 1;}
 
 mods=$(sudo find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | grep -oP '(?<=/data/adb/modules/)[^/]+' | sort | uniq)
@@ -59,13 +61,13 @@ apps=$(pm list packages | grep 'org.adaway' | sed 's/package://')
 nah() {
   [ "$1" = 0 ] && { a='mods' && b="$mods";} ||\
                   { a='apps' && b="$apps";}
-  echo "- error! conflicts found,"\
+  echo "     Error! conflicts found,"\
        "please uninstall the following $a first:\n$b"
 }
 
 [ ! -z "$mods" ] && abort "$(nah 0)"
 [ ! -z "$apps" ] && abort "$(nah 1)"
-echo '- all good!'
+echo "     All good!"
 
 # make an bool to prevent extracting things if we dont have anything to extract...
 if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
@@ -81,13 +83,14 @@ if ! ping -w 3 google.com &>/dev/null; then
 fi
 # Download the hosts file and save it as "hosts"
 ui_print "     Preparing Shields 🛡️..."
-wget https://hosts.ubuntu101.co.za/hosts
+wget -O hosts1 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt
+wget -O hosts2 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 
 # merge bombs to get a big nuke
 mkdir -p $MODPATH/system/etc
 ui_print "     Preparing weapons to kill malware🔫..."
 {
-    for j_cole in /system/etc/hosts hosts; do
+    for j_cole in /system/etc/hosts hosts1 hosts2; do
         cat $j_cole
         echo ""
     done

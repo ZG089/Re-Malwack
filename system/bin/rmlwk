@@ -116,9 +116,11 @@ case "$(tolower "$1")" in
     --update-hosts)
         echo "- Downloading update.."
         sleep 0.5
-        curl -o /data/local/tmp/hosts "https://hosts.ubuntu101.co.za/hosts" &>/dev/null || abort "Failed to download hosts file."
+        
+        curl -o /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        curl -o /data/local/tmp/hosts2 "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt" &>/dev/null || abort "Failed to download hosts file."
         echo "- Applying update."
-        cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
+        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Done."
         ;;
     --help|-h|*)
