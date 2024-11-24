@@ -55,7 +55,7 @@ ui_print "     Checking for conflicts"
 
 abort() { echo "$1" && exit 1;}
 
-mods=$(find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | grep -oP '(?<=/data/adb/modules/)[^/]+' | sort | uniq)
+mods=$(find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | grep -o -P '(?<=/data/adb/modules/)[^/]+' | sort | uniq)
 apps=$(pm list packages | grep 'org.adaway' | sed 's/package://')
 
 nah() {
