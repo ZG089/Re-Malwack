@@ -1,3 +1,9 @@
+## v5.2.2
+- 🎯 Fix update bug where conflicts checker thinks the module conflicts itself (Thanks for @GalaxyA14User @ Github)
+- ✨ enhanced conflicts checker
+- 🔁 Using curl instead of wget in action.sh
+- 😄 Last but not the least: Enhanced ad blocking experience, and hosts file is now smaller, it mustn't affect device perfomance.
+
 ## v5.2.1-hotfix
 - 🎯 Fix extraction error
 ## v5.2.1
