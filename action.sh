@@ -15,8 +15,8 @@ if [ $? -ne 0 ]; then
 fi
 
 # Download the hosts file and save it as "hosts"
-        curl -o /sdcard/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-        curl -o /sdcard/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt
+        wget -O /sdcard/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        wget -O /sdcard/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt
 
 echo "       Preparing New weapons🔫..."
 {
