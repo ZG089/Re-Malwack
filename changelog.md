@@ -1,3 +1,7 @@
+## v5.2.3 [not released yet]
+- Again, working on ad block enhancements
+- Improving p*rn blocking
+- .....
 ## v5.2.2
 - 🎯 Fix update bug where conflicts checker thinks the module conflicts itself (Thanks for @GalaxyA14User @ Github)
 - ✨ enhanced conflicts checker
