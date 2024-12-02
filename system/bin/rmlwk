@@ -94,7 +94,7 @@ case "$(tolower "$1")" in
         chmod 644 "$hosts_file"
         echo "- Successfully reverted changes."
         ;;
-    --block-porn|--block-gambling|--block-fake)
+    |--block-gambling|--block-fake)
         block_type=${1#--block-}
         echo "- Downloading entries for ${block_type}."
         sleep 0.5
@@ -103,6 +103,15 @@ case "$(tolower "$1")" in
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
+    --block-porn)
+        echo "- Downloading entries for p*rn block"
+        sleep 0.5
+        curl -o /data/local/tmp/hosts1 "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" &>/dev/null || abort "Failed to download hosts file."
+        curl -o /data/local/tmp/hosts2 "https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt" &>/dev/null || abort "Failed to download hosts file."
+        curl -o /data/local/tmp/hosts3 "https://www.someonewhocares.org/hosts/hosts" &>/dev/null || abort "Failed to download hosts file."
+        echo "- Applying enteries..."
+        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 "$hosts_file" | sort | uniq > "$hosts_file"
+        echo "- Entries for blocking p*rn sites are added successfully."
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
         sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && cp -f "$temp" "$hosts_file" || abort "Failed to whitelist $domain ."
@@ -114,13 +123,13 @@ case "$(tolower "$1")" in
         echo "- Blacklisted $domain."
         ;;
     --update-hosts)
-        echo "- Downloading update.."
+        echo "- Downloading updates, Please wait."
         sleep 0.5
-        
-        curl -o /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-        curl -o /data/local/tmp/hosts2 "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt" &>/dev/null || abort "Failed to download hosts file."
+        curl -o /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file." #122k hosts
+        curl -o /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro-compressed.txt &>/dev/null || abort "Failed to download hosts file." # 550k entries compressed into 61k
+        curl -o /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file." # 458k hosts 
         echo "- Applying update."
-        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 "$hosts_file" | sort | uniq > "$hosts_file"
+        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Done."
         ;;
     --help|-h|*)
