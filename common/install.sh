@@ -82,22 +82,23 @@ if ! ping -w 3 google.com &>/dev/null; then
     abort "      Some utilities, please connect to a mobile network and try again."
 fi
 # Download the hosts file and save it as "hosts"
-ui_print "     Preparing Shields 🛡️..."
-wget -O hosts1 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate-compressed.txt
-wget -O hosts2 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+ui_print "     Preparing Shields🛡️..."
+wget -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts #122k hosts
+wget -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro-compressed.txt # 550k entries compressed into 61k
+wget -O hosts3 https://hblock.molinero.dev/hosts # 458k hosts
 
 # merge bombs to get a big nuke
 mkdir -p $MODPATH/system/etc
 ui_print "     Preparing weapons to kill malware🔫..."
 {
-    for j_cole in /system/etc/hosts hosts1 hosts2; do
+    for j_cole in /system/etc/hosts hosts1 hosts2 hosts3 ; do
         cat $j_cole
         echo ""
     done
 } | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
-if [ ! -f "hosts1" ]; then
+if [ ! -f "hosts3" ]; then
     abort "     Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     ui_print "     Your $(getprop ro.product.brand) device, model $(getprop ro.product.model) is now armed against ads, malware and more 🛡"
