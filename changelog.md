@@ -1,3 +1,8 @@
+## v5.2.4
+- 🛠 Fixed syntax error in "rmlwk"
+- 🛠 Fixed Several other bugs, removed unwanted/extra codes
+- 🎯 Using Pro Plus Compressed hosts file from Hagezi's instead of pro
+- 🎯 Using hBlock hosts file along with the hosts file sources from previous version
 ## v5.2.3
 - 😶 Again, working on ad block enhancements
 - 🎯 Improving p*rn blocking

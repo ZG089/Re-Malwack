@@ -6,7 +6,7 @@
 <h2 align="center">Protection-maxxing magisk module 🗿</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
-![Module Version](https://img.shields.io/badge/Module_Version-v5.2.3-green)
+![Module Version](https://img.shields.io/badge/Module_Version-v5.2.4-green)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 ![Hosts Update Time](https://img.shields.io/badge/Hosts_update_Time-≈19:30_UTC-green)
 ![Built with](https://img.shields.io/badge/Made_with-Love-red)
@@ -103,8 +103,8 @@ Usage: rmlwk [options]
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
-- [@Ultimate.Hosts.Blacklist](https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist) - Base hosts file 
-- [@StevenBlack](https://github.com/StevenBlack/hosts) - P*rn sites, fake news sites and gambling sites blocklist
+- [Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
+- [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
 - And Finally, YOU! For using my module :)
