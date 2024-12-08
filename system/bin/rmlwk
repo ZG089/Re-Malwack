@@ -112,6 +112,7 @@ case "$(tolower "$1")" in
         echo "- Applying enteries..."
         cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking p*rn sites are added successfully."
+        ;;
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
         sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && cp -f "$temp" "$hosts_file" || abort "Failed to whitelist $domain ."
