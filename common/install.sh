@@ -84,7 +84,7 @@ fi
 # Download the hosts file and save it as "hosts"
 ui_print "     Preparing Shields🛡️..."
 wget -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts #122k hosts
-wget -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro-compressed.txt # 550k entries compressed into 61k
+wget -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
 wget -O hosts3 https://hblock.molinero.dev/hosts # 458k hosts
 
 # merge bombs to get a big nuke
