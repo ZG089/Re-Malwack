@@ -35,7 +35,7 @@
 
 ## Download Module
 > [!TIP]
-You can download the module from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Malwack) Or from[Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
 ## Get started
@@ -103,7 +103,8 @@ Usage: rmlwk [options]
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
-- [Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
+- [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
+- [@hBlock](https://github.com/hectorm/hblock) - Hosts file
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
