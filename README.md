@@ -35,7 +35,7 @@
 
 ## Download Module
 > [!TIP]
-You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Malwack) Or from[Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Malwack) Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
 ## Get started
