@@ -1,7 +1,8 @@
 ## v5.3.0
 - ✨ The module got a new webUI which you can open using [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) or using [MMRL](https://github.com/DerGoogler/MMRL)
 - 👌 The module now shows up info like module version, Device name, model, etc during installation proccess.
-- 👍 The script can now be used in ohter terminals, not just termux now.
+- 🛠 Fixed bug in conflicts checker code where it didn't show the conflicted module name properly. (Thanks for @GalaxyA14User and @forsaken-heart24)
+- 👍 The script can now be used in other terminals, not only termux.
 - 🎯 Updated TG username in module.prop
 ## v5.2.4
 - 🛠 Fixed syntax error in "rmlwk"
@@ -13,7 +14,7 @@
 - 🎯 Improving p*rn blocking
 - 🛠 Fix Action.sh not working
 ## v5.2.2
-- 🎯 Fix update bug where conflicts checker thinks the module conflicts itself (Thanks for @GalaxyA14User @ Github)
+- 🎯 Fix update bug where conflicts checker thinks the module conflicts itself (Thanks for @GalaxyA14User)
 - ✨ enhanced conflicts checker
 - 🔁 Using curl instead of wget in action.sh
 - 😄 Last but not the least: Enhanced ad blocking experience, and hosts file is now smaller, it mustn't affect device perfomance.
