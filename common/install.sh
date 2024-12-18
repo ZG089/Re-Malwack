@@ -50,23 +50,24 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 	fi
 fi
 
-#checking for conflicts
-ui_print "     Checking for conflicts"
+# check for conflicts
+ui_print "     Checking for conflicts...."
+pm list packages | sed 's/package://' | grep -q org.adaway && abort "     Adaway is detected, aborting the installation..."
+for i in /data/adb/modules/*; do
+    # skip this instance if we got into our own module dir.
+    if [ "$(grep_prop id ${i}/module.prop)" == "Re-Malwack" ]; then
+        continue
+    fi
 
-abort() { echo "$1" && exit 1;}
-
-mods=$(find /data/adb/modules | grep /system/etc/hosts | grep -v 'Re-Malwack' | awk '{while(match($0, /\/data\/adb\/modules\/([^\/]+)/)) {print substr($0, RSTART+20, RLENGTH-20); $0=substr($0, RSTART+RLENGTH)}}' | sort | uniq)
-apps=$(pm list packages | grep 'org.adaway' | sed 's/package://')
-
-nah() {
-  [ "$1" = 0 ] && { a='mods' && b="$mods";} ||\
-                  { a='apps' && b="$apps";}
-  echo "     Error! conflicts found,"\
-       "please uninstall the following $a first:\n$b"
-}
-
-[ ! -z "$mods" ] && abort "$(nah 0)"
-[ ! -z "$apps" ] && abort "$(nah 1)"
+    # idk man whatever...
+    if [ -f "${i}/system/etc/hosts" ]; then
+        modules_count=$(($modules_count + 1))
+        echo "     $(grep_prop name ${i}/module.prop) might conflict with this module.."
+    fi
+done
+if [ "$modules_count" -ge "1" ]; then
+    abort "     The Module Installation is aborted because there are some modules that might conflict with our module.."
+fi
 echo "     All good!"
 
 # make an bool to prevent extracting things if we dont have anything to extract...
