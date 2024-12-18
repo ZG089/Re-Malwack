@@ -52,6 +52,7 @@ fi
 
 # check for conflicts
 ui_print "     Checking for conflicts...."
+tempFileToStoreModuleNames=$(mktemp)
 pm list packages | sed 's/package://' | grep -q org.adaway && abort "     Adaway is detected, aborting the installation..."
 for i in /data/adb/modules/*; do
     # skip this instance if we got into our own module dir.
@@ -63,10 +64,15 @@ for i in /data/adb/modules/*; do
     if [ -f "${i}/system/etc/hosts" ]; then
         modules_count=$(($modules_count + 1))
         echo "     $(grep_prop name ${i}/module.prop) might conflict with this module.."
+	echo -e "$(grep_prop name ${i}/module.prop)\n" >> $tempFileToStoreModuleNames
     fi
 done
 if [ "$modules_count" -ge "1" ]; then
-    abort "     The Module Installation is aborted because there are some modules that might conflict with our module.."
+    echo "     Error: Please uninstall the following modules to proceed the installation:"
+    for i in "$(cat $tempFileToStoreModuleNames)"; do
+        echo -e "\t\t$i"
+    done
+    abort "     Thanks for understanding xD"
 fi
 echo "     All good!"
 
