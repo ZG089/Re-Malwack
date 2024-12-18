@@ -57,6 +57,19 @@ function ask() {
     fi
 }
 
+check_wget() {
+    for path in /data/adb/magisk/busybox /data/adb/ksu/bin/busybox /data/adb/ap/bin/busybox /data/adb/modules/busybox-ndk/system/*/busybox; do
+        [ -f "$path" ] && BUSYBOX="$path" && break
+    done
+    if ! command -v wget >/dev/null || grep -q "wget-curl" "$(command -v wget)"; then
+        if [ -n "$BUSYBOX" ]; then
+            wget() { "$BUSYBOX" wget "$@"; }
+        else
+            exit 1
+        fi
+    fi
+}
+
 # Variables
 domain="$2"
 temp=$(mktemp)
@@ -65,25 +78,9 @@ hosts_file="/data/adb/modules/Re-Malwack/system/etc/hosts"
 # Banner
 malvack_banner
 
-# Check Termux
-if ! ls "$PREFIX/bin" | grep -q termux-; then
-    abort "Please run this script in Termux."
-else
-    export PATH="$PATH:/data/data/com.termux/files/usr/bin/"
-fi
-
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
-fi
-
-# Check for curl
-if ! command -v curl >/dev/null 2>&1; then
-    if nuke_if_we_dont_have_internet && ask "Some tools are missing. Install them?"; then
-        pkg install -y curl || abort "Failed to install dependencies."
-    else
-        abort "An active internet connection is required to download tools."
-    fi
 fi
 
 # Main Logic
@@ -94,21 +91,24 @@ case "$(tolower "$1")" in
         chmod 644 "$hosts_file"
         echo "- Successfully reverted changes."
         ;;
-    --block-gambling|--block-fake)
+    --block-gambling|--block-fakenews)
+        check_wget
         block_type=${1#--block-}
         echo "- Downloading entries for ${block_type}."
         sleep 0.5
-        curl -o /data/local/tmp/hosts "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" &>/dev/null || abort "Failed to download hosts file."
+        wget --no-check-certificate -O /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null || abort "Failed to download hosts file."
         echo "- Applying enteries..."
         cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
     --block-porn)
+        check_wget
+        block_type=${1#--block-}
         echo "- Downloading entries for p*rn block"
         sleep 0.5
-        curl -o /data/local/tmp/hosts1 "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts" &>/dev/null || abort "Failed to download hosts file."
-        curl -o /data/local/tmp/hosts2 "https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt" &>/dev/null || abort "Failed to download hosts file."
-        curl -o /data/local/tmp/hosts3 "https://www.someonewhocares.org/hosts/hosts" &>/dev/null || abort "Failed to download hosts file."
+        wget --no-check-certificate -O /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null || abort "Failed to download hosts file."
+        wget --no-check-certificate -O /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt  &>/dev/null || abort "Failed to download hosts file."
+        wget --no-check-certificate -O /data/local/tmp/hosts3 https://www.someonewhocares.org/hosts/hosts &>/dev/null || abort "Failed to download hosts file."
         echo "- Applying enteries..."
         cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Entries for blocking p*rn sites are added successfully."
@@ -124,11 +124,12 @@ case "$(tolower "$1")" in
         echo "- Blacklisted $domain."
         ;;
     --update-hosts)
+        check_wget
         echo "- Downloading updates, Please wait."
         sleep 0.5
-        curl -o /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file." #122k hosts
-        curl -o /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
-        curl -o /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file." # 458k hosts 
+        wget --no-check-certificate -O /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file." #122k hosts
+        wget --no-check-certificate -O /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
+        wget --no-check-certificate -O /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file." # 458k hosts 
         echo "- Applying update."
         cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | sort | uniq > "$hosts_file"
         echo "- Done."
@@ -139,7 +140,7 @@ case "$(tolower "$1")" in
         echo "--reset: Restore original hosts file."
         echo "--block-porn: Block pornographic sites."
         echo "--block-gambling: Block gambling sites."
-        echo "--block-fake: Block fake news sites."
+        echo "--block-fakenews: Block fake news sites."
         echo "--whitelist <domain>: Whitelist a domain."
         echo "--blacklist <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
