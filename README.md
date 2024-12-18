@@ -21,6 +21,7 @@
 - Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (P*rn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
 - ⛔ Blocks ads, malware, P*rn sites, fake news sites, and gambling sites
+- ✨ Has WebUI
 - 🛠️ Hosts file is updated daily
 - ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested)
 - 🔧 Regularly maintained & updated
@@ -30,8 +31,7 @@
 
 ## Requirements
 > [!IMPORTANT]
-> - Requires [Termux](https://f-droid.org/en/packages/com.termux/) App.
-> - Requires internet connection in order to download hosts file during installation.
+> - Stable internet connection in order to download hosts during installation.
 
 ## Download Module
 > [!TIP]
@@ -44,14 +44,15 @@ You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Ma
 > 2. Reboot your device to activate the Re-Malwack Module's protective features.
 > 3. Enjoy, Your device is fully protected now :)
 
-## Command Usage (How to use Re-Malwack on Termux)
+## How to use Re-Malwack
 > [!NOTE]
-> - It's not required to use it on terminal if you want to update hosts.
+> - It's not required to use it on terminal if you want to update hosts, by just clicking the action button it will get updated.
 
-Type``su -c rmlwk`` on Termux to show up the help message which will clarify how to use it:
+### via Terminal
+- Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
 ```
-Usage: rmlwk [options]
+Usage: rmlwk [--options]
 --reset: Restore original hosts file.
 --block-porn: Block pornographic sites.
 --block-gambling: Block gambling sites.
@@ -61,6 +62,9 @@ Usage: rmlwk [options]
 --update-hosts: Update the hosts file.
 --help, -h: Display help.
 ```
+
+### Via WebUI
+ - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) and [MMRL](https://github.com/DerGoogler/MMRL)
 
 > [!TIP]
 > - You can update hosts file by going into magisk, and press the action button on the module, besides updating it un Termux
@@ -74,7 +78,7 @@ Usage: rmlwk [options]
 
 ## Total Blocked
 > [!TIP]
-> - 910,553+ Malware, Ads, Spyware
+> - 917,343+ Malware, Ads, Spyware
 
 
 ## How does it work? - Frequently Asked Questions
@@ -95,11 +99,11 @@ Usage: rmlwk [options]
 > - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089)
 > - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
-# Activity
+## Activity
 
 ![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
  
-# Credits
+## Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
@@ -108,9 +112,10 @@ Usage: rmlwk [options]
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
+- [@KOWX712](https://github.com/KOWX712) - WebUI + Fixing bugs
 - And Finally, YOU! For using my module :)
 
-# Donations
+## Donations
 
 As a 10th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
 
