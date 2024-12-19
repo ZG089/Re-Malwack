@@ -63,14 +63,15 @@ for i in /data/adb/modules/*; do
     # idk man whatever...
     if [ -f "${i}/system/etc/hosts" ]; then
         modules_count=$(($modules_count + 1))
-        echo "     $(grep_prop name ${i}/module.prop) might conflict with this module.."
+        #echo "     $(grep_prop name ${i}/module.prop) might conflict with this module.."
 	echo -e "$(grep_prop name ${i}/module.prop)\n" >> $tempFileToStoreModuleNames
     fi
 done
 if [ "$modules_count" -ge "1" ]; then
-    echo "     Error: Please uninstall the following modules to proceed the installation:"
+    echo "     Error: The following modules will get disabled to proceed the installation:"
     for i in "$(cat $tempFileToStoreModuleNames)"; do
         echo -e "\t\t$i"
+	touch /data/adb/modules/$i/disable
     done
     abort "     Thanks for understanding xD"
 fi
