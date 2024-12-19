@@ -6,9 +6,8 @@ echo "
 ╚────────────────────────────────────────╝
 "
 sleep 0.5
-echo "- Upgrading Defenses🛡️, this may take a while...."
-ping -w 1 google.com &>/dev/null
-if [ $? -ne 0 ]; then
+echo "       Upgrading Defenses🛡️, this may take a while...."
+if ! ping -w 1 google.com; then
     echo "Failed to upgrade. Please check your internet connection."
     sleep 2
     exit 1
@@ -30,9 +29,7 @@ echo "- Preparing New weapons🔫..."
 if [ ! -f "/sdcard/hosts3" ]; then
     echo "- Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
-    echo "- Everthing is updated now, Enjoy 😉"
-    rm /sdcard/hosts1
-    rm /sdcard/hosts2
-    rm /sdcard/hosts3
+    echo "       Everthing is fine now, Enjoy 😉"
+    rm /sdcard/hosts*
     sleep 1.5
 fi
