@@ -115,23 +115,25 @@ ping -w 3 google.com &>/dev/null || abort "- This module requires internet conne
 
 # Download the hosts file and save it as "hosts"
 ui_print "- Preparing Shields🛡️..."
-wget -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts #122k hosts
-wget -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
-wget -O hosts3 https://hblock.molinero.dev/hosts # 458k hosts
-wget -O hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt #
+wget --no-check-certificate -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
+wget --no-check-certificate -O hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
 
 # merge bombs to get a big nuke
 mkdir -p $MODPATH/system/etc
 ui_print "- Preparing weapons to kill malware🔫..."
 {
-    for j_cole in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 ; do
+    for j_cole in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
         cat $j_cole
         echo ""
     done
 } | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
-if [ ! -f "hosts3" ]; then
+if [ ! -f "hosts6" ]; then
     abort "- Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
     ui_print "- Your device is now armed against ads malware and more 🛡"
