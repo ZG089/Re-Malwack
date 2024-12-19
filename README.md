@@ -48,7 +48,7 @@ You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Ma
 > [!NOTE]
 > - It's not required to use it on terminal if you want to update hosts, by just clicking the action button it will get updated.
 
-### via Terminal
+### 1. via Terminal
 - Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
 ```
@@ -64,7 +64,7 @@ Usage: rmlwk [--options]
 Example command: su -c rmlwk --update-hosts
 ```
 
-### Via WebUI
+### 2. Via WebUI
  - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) and [MMRL](https://github.com/DerGoogler/MMRL)
 
 > [!TIP]
