@@ -102,7 +102,7 @@ case "$(tolower "$1")" in
         ;;
     --block-porn)
         block_type=${1#--block-}
-        echo "- Downloading entries for p*rn block"
+        echo "- Downloading entries for porn block"
         sleep 0.5
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
@@ -124,9 +124,12 @@ case "$(tolower "$1")" in
     --update-hosts)
         echo "- Downloading updates, Please wait."
         sleep 0.5
-        fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null #122k hosts
+        fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
-        fetch /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null # 458k hosts 
+        fetch /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null
+        fetch /data/local/tmp/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null
+        fetch /data/local/tmp/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
+        fetch /data/local/tmp/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
         echo "- Applying update."
         cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 /data/local/tmp/hosts4 /data/local/tmp/hosts5 /data/local/tmp/hosts6 "$hosts_file" | sort | uniq > "$hosts_file"
         string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
