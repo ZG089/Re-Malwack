@@ -5,8 +5,13 @@
 	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/Add-Text-11-22-12-57-45.png",
 	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/20240828-173916-0000-modified.png",
 	"categories": [
-		"Adblocking and Hosts Files"
-	],
+        "Adblocking and Hosts Files",
+        "APatch",
+        "KernelSU",
+        "Magisk",
+		"Built Different",
+		"Protection"
+    ],
 	"require": [],
 	"screenshots": [],
 	"readme": "https://raw.githubusercontent.com/magisk-modules-alt-repo/Re-Malwack/refs/heads/main/README.md"
