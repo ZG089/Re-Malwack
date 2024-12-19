@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Re-Malwack</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="/styles.css" type="text/css">
+	<link rel="stylesheet" type="text/css" href="/mmrl/insets.css" />
+	<script type="module" crossorigin src="/index.js"></script>
+</head>
+
+<body>
+	<div class="content">
+		<div class="header" id="info-box">
+		    <i class="logo" id="logo">
+		        <object data="/assets/logo-transparent.svg" type="image/svg+xml">initializing</object>
+		    </i>
+		    Re-Malwack
+		    <i class="about" id="about-button">
+		        <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" width="24px" fill="#eee"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+	        </i>
+			<p id="version-status">
+			    <span id="version-text">Initializing...</span>
+			    <span id="status-text"></span>
+			</p>
+		</div>
+		<div class="box">
+			<div class="toggle-container" id="update">
+				<i class="control-icon" id="update-icon">
+				    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q17-72 85-137t145-65q33 0 56.5 23.5T520-716v242l64-62 56 56-160 160-160-160 56-56 64 62v-242q-76 14-118 73.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-48-22-89.5T600-680v-93q74 35 117 103.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm220-358Z"/></svg>
+				</i>
+				<ul id="reset-text">Update hosts file</ul>
+			</div>
+	    </div>
+		<div class="box">
+			<div class="toggle-container" id="reset">
+				<i class="control-icon" id="reset-icon">
+				    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z"/></svg>
+				</i>
+				<ul id="reset-text">Restore original hosts file</ul>
+			</div>
+	    </div>
+	    <div class="box">
+			<div class="toggle-container" id="block-porn">
+			    <i class="control-icon" id="block-porn-icon">
+			        <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q54 0 104-17.5t92-50.5L228-676q-33 42-50.5 92T160-480q0 134 93 227t227 93Zm252-124q33-42 50.5-92T800-480q0-134-93-227t-227-93q-54 0-104 17.5T284-732l448 448Z"/></svg>
+			    </i>
+				<ul id="block-porn-text">Block pornography sites</ul>
+			</div>
+		</div>
+		<div class="box">
+			<div class="toggle-container" id="block-gambling">
+			    <i class="control-icon" id="block-gambling-icon">
+			        <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-83v-40q-35-5-67.5-19T312-256l-28 29q33 26 72.5 42.5T440-163Zm80 0q44-5 83.5-21.5T676-227l-28-29q-28 20-60.5 34T520-203v40Zm-40-117q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm253-4q26-33 42.5-72.5T797-440h-40q-5 35-19 67.5T704-312l29 28Zm-506 0 29-29q-20-28-34-60t-19-67h-40q5 44 21.5 83.5T227-284Zm253-36L360-480l120-160 120 160-120 160ZM163-520h40q5-35 19-67t34-60l-29-29q-26 33-42.5 72.5T163-520Zm594 0h40q-5-44-22-83.5T732-676l-28 28q20 28 34 60.5t19 67.5ZM313-704q28-20 60-34t67-19v-40q-44 5-83.5 21.5T284-733l29 29Zm335 0 28-28q-33-26-72.5-43T520-797v40q35 5 67.5 19t60.5 34Z"/></svg>
+			    </i>
+				<ul id="block-gambling-text">Block gambling sites</ul>
+			</div>
+		</div>
+		<div class="box">
+			<div class="toggle-container" id="block-fake">
+			    <i class="control-icon" id="block-fake-icon">
+			        <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M280-280q17 0 28.5-11.5T320-320q0-17-11.5-28.5T280-360q-17 0-28.5 11.5T240-320q0 17 11.5 28.5T280-280Zm-40-160h80v-240h-80v240Zm200 160h280v-80H440v80Zm0-160h280v-80H440v80Zm0-160h280v-80H440v80ZM160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm0 0v-560 560Z"/></svg>
+			    </i>
+				<ul id="block-fake-text">Block fake news sites</ul>
+			</div>
+		</div>
+        <div class="box" id="whitelist">
+			<h2>Whitelist</h2>
+			<div class="category-container">
+				<input id="whitelist-input" type="text" placeholder="whitelist.this.domain" />
+				<button id="whitelist-add" onclick="handleAdd('whitelist')">
+				    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="m438-338 226-226-57-57-169 169-84-84-57 57 141 141Zm42 258q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>
+				</button>
+			</div>
+			<ul id="whitelist-list"></ul>
+		</div>
+		<div class="box" id="blacklist">
+			<h2>Blacklist</h2>
+			<div class="category-container">
+				<input id="blacklist-input" type="text" placeholder="block.this.domain" />
+				<button id="blacklist-add" onclick="handleAdd('blacklist')">
+				    <svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="#ffffff"><path d="M330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm36-190 114-114 114 114 56-56-114-114 114-114-56-56-114 114-114-114-56 56 114 114-114 114 56 56Zm-2 110h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/></svg>
+				</button>
+			</div>
+			<ul id="blacklist-list"></ul>
+		</div>
+	</div>
+
+	<div id="about-overlay" class="about-overlay">
+        <div id="about-menu" class="about-menu">
+            <button id="close-about" class="close-about">&#x2715;</button>
+            <div class="about-content">
+                <i class="about-logo">
+                    <object data="/assets/logo-white.svg" type="image/svg+xml">initializing</object>
+		        </i>
+                <p id="module-name">Re-Malwack</p>
+                <p id="author">by ZG089<br>WebUI by KOWX712</p>
+                <br>
+                <p>
+                    <div class="link">
+                        <i class="fa fa-telegram" id="telegram" aria-hidden="true"> <span id="link-text">Telegram Channel</span></i>
+                        <i class="fa fa-github" id="github" aria-hidden="true"> <span id="link-text">GitHub</span></i>
+                        <i class="fa fa-comment-o" id="xda" aria-hidden="true"> <span id="link-text">XDA Thread</span></i>
+                        <i class="fa fa-coffee" id="sponsor" aria-hidden="true"> <span id="link-text">Support Us</span></i>
+                    </div>
+                </p>
+                <br>
+                <p id="credits">Credits</p>
+                <p>@person0z - Malwack Magisk module creator</p>
+                <p>@topjohnwu - Magisk Founder</p>
+                <p>@Zackptg5 - MMTE Template</p>
+                <p>@Hagezi - Hosts file</p>
+                <p>@hBlock - Hosts file</p>
+                <p>@StevenBlack - Fake news & gambling sites blocklist</p>
+                <p>@GalaxyA14user - Fixing bugs + Contribution to the Re-Malwack project</p>
+                <p>@forsaken-heart24 - Contribution to the Re-Malwack Project</p>
+                <p>And Finally, YOU! For using my module :)</p>
+            </div>
+        </div>
+    </div>
+	
+	<div id="prompt" class="prompt"></div>
+
+	<div class="footer"></div>
+</body>
+
+</html>
