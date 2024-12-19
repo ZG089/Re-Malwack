@@ -61,6 +61,7 @@ Usage: rmlwk [--options]
 --blacklist <domain>: Blacklist a domain.
 --update-hosts: Update the hosts file.
 --help, -h: Display help.
+Example command: su -c rmlwk --update-hosts
 ```
 
 ### Via WebUI
