@@ -1,3 +1,5 @@
+MODDIR="/data/adb/modules/Re-Malwack"
+
 echo "
 ╔────────────────────────────────────────╗
 │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
@@ -14,22 +16,27 @@ if ! ping -w 1 google.com; then
 fi
 
 # Download the hosts file and save it as "hosts"
-        wget -O /sdcard/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts #122k hosts
-        wget -O /sdcard/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
-        wget -O /sdcard/hosts3 https://hblock.molinero.dev/hosts # 458k hosts
+wget --no-check-certificate -O /sdcard/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O /sdcard/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
+wget --no-check-certificate -O /sdcard/hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O /sdcard/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O /sdcard/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O /sdcard/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
 echo "- Preparing New weapons🔫..."
 {
-    for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 ; do
+    for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 /sdcard/hosts4 /sdcard/hosts5 /sdcard/hosts6 ; do
         cat $j_cole
         echo ""
     done
 } | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
 
 # let's see if the file was downloaded or not.
-if [ ! -f "/sdcard/hosts3" ]; then
+if [ ! -f "/sdcard/hosts6" ]; then
     echo "- Looks like there is a problem with some weapons, check your internet connection and try again"
     sleep 3
-else 
+else
+    string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
+    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop 
     echo "- Everthing is fine now, Enjoy 😉"
     rm /sdcard/hosts*
     sleep 1.5

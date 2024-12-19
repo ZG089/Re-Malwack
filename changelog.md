@@ -1,4 +1,5 @@
 ## v5.3.0
+- ⛔ Enhanced ads, malware and trackers blocking experience 
 - ✨ The module got a new webUI which you can open using [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) or using [MMRL](https://github.com/DerGoogler/MMRL)
 - 👌 Enhanced installation script
 - 🛠 Fixed bug in conflicts checker code where it didn't show the conflicted module name properly. (Thanks for @GalaxyA14User and @forsaken-heart24)
