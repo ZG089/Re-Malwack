@@ -11,9 +11,10 @@ if $DYNLIB; then
 	LIBDIR=/system/vendor
 else
 	LIBPATCH="\/system"
-	LIBDI
+	LIBDIR=/system
+fi
+
 MODVER=`grep_prop version $TMPDIR/module.prop`
-DEV=`grep_prop author $TMPDIR/module.prop`
 Model=`getprop ro.product.model`
 Brand=`getprop ro.product.brand` 
 Architecture=`getprop ro.product.cpu.abi`
@@ -97,7 +98,7 @@ for i in /data/adb/modules/*; do
     fi
 done
 if [ "$modules_count" -ge "1" ]; then
-    echo "     Notice: The following modules will be disabled to proceed the installation:"
+    echo "- Notice: The following modules will be disabled to prevent conflicts:"
     for i in "$(cat $tempFileToStoreModuleNames)"; do
         echo -e "\t\t$i"
 	touch /data/adb/modules/$i/disable
