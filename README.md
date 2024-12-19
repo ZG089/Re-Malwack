@@ -68,7 +68,7 @@ Example command: su -c rmlwk --update-hosts
  - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) and [MMRL](https://github.com/DerGoogler/MMRL)
 
 > [!TIP]
-> - You can update hosts file by going into magisk, and press the action button on the module, besides updating it un Termux
+> - You can update hosts file by going into magisk, and pressing the action button on the module card instead of updating it using Re-Malwack cli. 
 
 > [!WARNING]
 > Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module.
