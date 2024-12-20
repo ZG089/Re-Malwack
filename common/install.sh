@@ -33,7 +33,7 @@ ui_print "- 📱 Device Brand: $(getprop ro.product.brand)"
 sleep 0.5
 ui_print "- 📱 Device Model: $(getprop ro.product.model)"
 sleep 0.5
-ui_print "- 🤖 Android Version: $(getprop ro.system.build.version.release)"
+ui_print "- 🤖 Android Version: $(getprop ro.build.version.release)"
 sleep 0.5
 ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.5
@@ -46,7 +46,7 @@ ui_print "                                    /"
 ui_print " ----------------------------------"
 sleep 1
 ui_print " "
-sleep 1.5
+sleep 1
 ui_print "[INSTALLATION BEGINS]"
 sleep 1
 
