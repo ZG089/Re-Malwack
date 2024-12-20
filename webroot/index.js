@@ -64,10 +64,10 @@ async function getVersion() {
 async function getStatus() {
     try {
         await execCommand("grep -q '0.0.0.0' /system/etc/hosts");
-        document.getElementById('status-text').textContent = "Working 🟢🟢🟢";
+        document.getElementById('status-text').textContent = "Protection is enabled ✅";
     } catch (error) {
         console.error("Failed to check status:", error);
-        document.getElementById('status-text').textContent = "Ready 🟡🟡";
+        document.getElementById('status-text').textContent = "Ready 🟡";
     }
 }
 
