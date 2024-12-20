@@ -76,7 +76,7 @@ async function performAction(promptMessage, commandOption, errorPrompt, errorMes
     try {
         showPrompt(promptMessage);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const command = `su -c '/system/bin/rmlwk ${commandOption}'`;
+        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}'`;
         const output = await execCommand(command);
         const lines = output.split("\n");
         lines.forEach(line => {
@@ -156,7 +156,7 @@ async function handleAdd(fileType) {
         return;
     }
     try {
-        await execCommand(`su -c '/system/bin/rmlwk --${fileType} ${inputValue}'`);
+        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} ${inputValue}'`);
         console.log(`${fileType}ed "${inputValue}" successfully.`);
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
