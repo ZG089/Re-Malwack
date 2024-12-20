@@ -23,12 +23,14 @@ wget --no-check-certificate -O /sdcard/hosts4 https://raw.githubusercontent.com/
 wget --no-check-certificate -O /sdcard/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
 echo "- Preparing New weapons🔫..."
+sleep 1
+ui_print "- This may take a while, please wait...."
 {
     for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 /sdcard/hosts4 /sdcard/hosts5 /sdcard/hosts6 ; do
         cat $j_cole
         echo ""
     done
-} | sort | uniq > $MODDIR/system/etc/hosts
+} grep -vE '^\s*#' | grep -vE '^\s*$' | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "/sdcard/hosts6" ]; then
