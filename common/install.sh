@@ -74,13 +74,9 @@ fi
 
 # check for conflicts
 ui_print "- Checking for conflicts...."
-tempFileToStoretempFileToStoreModuleNames=$(
-    if touch /data/local/tmp/tempFile; then
-        echo "/data/local/tmp/tempFile"
-    else
-        echo "/sdcard/tempFile"
-    fi
-)
+# can't cope with ZG blah blah zapp zapp's oppo anymore.
+tempFileToStoretempFileToStoreModuleNames="/data/local/tmp/tempFile
+touch $tempFileToStoretempFileToStoreModuleNames
 
 pm list packages | sed 's/package://' | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
 for i in /data/adb/modules/*; do
