@@ -104,3 +104,21 @@ prop_process() {
     echo "$LINE" >> $MODPATH/system.prop
   done < $1
 }
+
+# will make this function more robust..
+download_stuffs() {
+    local path_to_save="$1"
+    local url="$2"
+
+    if [ "$#" -lt "2" ]; then
+        abort " - Missing arguments... "
+    fi
+
+    if ping -w 3 google.com; then
+        if ! wget --no-check-certificate -O $path_to_save $url; then
+            abort " - failed to fetch files, try again"
+        fi
+    else
+        abort " - Module requires an active internet connection to fetch hosts, please try again later!"
+    fi
+}
