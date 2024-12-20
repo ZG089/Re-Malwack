@@ -152,4 +152,4 @@ case "$(tolower "$1")" in
 esac
 
 # Cleanup
-rm "$temp" && find /data/local/tmp/* -type f -exec rm -f {} +
+rm "$temp" && find /data/local/tmp/* -type f -exec rm -f {} + &>/dev/null

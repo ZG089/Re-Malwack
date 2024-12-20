@@ -9,7 +9,7 @@ echo "
 "
 sleep 0.5
 echo "- Upgrading Defenses🛡️, this may take a while...."
-if ! ping -w 1 google.com; then
+if ! ping -w 1 google.com &>/dev/null ; then
     echo "- Failed to upgrade. Please check your internet connection."
     sleep 2
     exit 1
@@ -28,7 +28,7 @@ echo "- Preparing New weapons🔫..."
         cat $j_cole
         echo ""
     done
-} | sort | uniq > /data/adb/modules/Re-Malwack/system/etc/hosts
+} | sort | uniq > $MODDIR/system/etc/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "/sdcard/hosts6" ]; then
