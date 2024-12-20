@@ -44,7 +44,6 @@ ui_print ""
 sleep 0.5
 ui_print "                                    /"
 ui_print " ----------------------------------"
-sleep 1
 ui_print " "
 sleep 1
 ui_print "[INSTALLATION BEGINS]"
@@ -91,18 +90,16 @@ for i in /data/adb/modules/*; do
     # idk man whatever...
     if [ -f "${i}/system/etc/hosts" ]; then
         modules_count=$(($modules_count + 1))
-        #echo "     $(grep_prop name ${i}/module.prop) might conflict with this module.."
 	    echo -e "$(grep_prop name ${i}/module.prop)\n" >> $tempFileToStoreModuleNames
     fi
 done
 if [ "$modules_count" -ge "1" ]; then
     echo "- Notice: The following modules will be disabled to prevent conflicts:"
     for i in "$(cat $tempFileToStoreModuleNames)"; do
-        echo -e "\t\t$i"
+        echo "$i"
 	touch /data/adb/modules/$i/disable
     done
 fi
-echo "- All good!"
 
 # make an bool to prevent extracting things if we dont have anything to extract...
 if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
@@ -113,7 +110,7 @@ fi
 ui_print "- Checking internet connection..."
 ping -w 3 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
-# Download the hosts file and save it as "hosts"
+# Download hosts files
 ui_print "- Preparing Shields🛡️..."
 wget --no-check-certificate -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
@@ -125,18 +122,20 @@ wget --no-check-certificate -O hosts6 https://raw.githubusercontent.com/r-a-y/mo
 # merge bombs to get a big nuke
 mkdir -p $MODPATH/system/etc
 ui_print "- Preparing weapons to kill malware🔫..."
+sleep 1
+ui_print "- This may take a while, please wait...."
 {
     for j_cole in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
         cat $j_cole
         echo ""
     done
-} | sort | uniq > $MODPATH/system/etc/hosts
+} | grep -vE '^\s*#' | grep -vE '^\s*$' | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "hosts6" ]; then
     abort "- Looks like there is a problem with some weapons, maybe check your internet connection?"
 else 
-    ui_print "- Your device is now armed against ads malware and more 🛡"
+    ui_print "- Your device is now armed against ads, malware and more 🛡"
     sleep 0.5
 fi
 
