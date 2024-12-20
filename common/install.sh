@@ -47,7 +47,7 @@ ui_print " ----------------------------------"
 sleep 1
 ui_print " "
 sleep 1.5
-ui_print "- Installation process will only take few moments ⚡"
+ui_print "[INSTALLATION BEGINS]"
 sleep 1
 
 # rcm lore.
@@ -74,9 +74,13 @@ fi
 
 # check for conflicts
 ui_print "- Checking for conflicts...."
-# can't cope with ZG blah blah zapp zapp's oppo anymore.
-tempFileToStoretempFileToStoreModuleNames="/data/local/tmp/tempFile
-touch $tempFileToStoretempFileToStoreModuleNames
+tempFileToStoreModuleNames=$(
+    if touch /data/local/tmp/tempFile; then
+        echo "/data/local/tmp/tempFile"
+    else
+        echo "/sdcard/tempFile"
+    fi
+)
 
 pm list packages | sed 's/package://' | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
 for i in /data/adb/modules/*; do
