@@ -56,12 +56,12 @@ body.input-focused {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 85vw;
+    width: 80vw;
     max-width: 600px;
     transform: translate(-50%, -50%);
     background: #FFF2F1;
     border-radius: 12px;
-    padding: 35px 15px;
+    padding: 35px 20px;
     z-index: 1200;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     opacity: 0;
@@ -91,6 +91,10 @@ body.input-focused {
     font-size: 14px;
 }
 
+.credit-list {
+    text-align: left;
+}
+
 #module-name {
     padding-top: 5px;
     font-size: 28px;
@@ -101,21 +105,31 @@ body.input-focused {
 }
 
 #credits {
+    padding-top: 10px;
+    padding-bottom: 5px;
     font-weight: bold;
     font-size: 20px;
 }
 
 .link {
-    flex: 0 1 auto;
+    width: auto;
 }
 
-.fa {
-    font-size: 18px;
+.link-icon {
+    display:inline-block;
+    font-style: normal;
     padding: 5px 10px;
     color: #fff;
     border-radius: 8px;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
+}
+
+.link-icon object {
+    padding-bottom: 2px;
+    vertical-align: bottom;
+    height: 17px;
+    width: 17px;
 }
 
 #telegram {
