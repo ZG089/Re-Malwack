@@ -107,10 +107,10 @@ for i in /data/adb/modules/*; do
 done
 if [ "$modules_count" -ge "1" ]; then
     echo "- Notice: The following modules will be disabled to prevent conflicts:"
-    for i in "$(cat $tempFileToStoreModuleNames)"; do
-        echo "$i"
-	touch /data/adb/modules/$i/disable
-    done
+    while read -r moduleName; do
+        echo "- $moduleName"
+        touch "/data/adb/modules/$moduleName/disable"
+    done < $tempFileToStoreModuleNames
 fi
 
 # make an bool to prevent extracting things if we dont have anything to extract...
