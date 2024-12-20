@@ -32,6 +32,7 @@
 ## Requirements
 > [!IMPORTANT]
 > - Stable internet connection in order to download hosts during installation.
+> - Mid-Range or high-end device.
 
 ## Download Module
 > [!TIP]
