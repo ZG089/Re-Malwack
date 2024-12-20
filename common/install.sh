@@ -14,6 +14,18 @@ else
 	LIBDIR=/system
 fi
 
+# let's store the url links here to make the installation easier.
+# we have uhhh, 6 links now..
+hostsFileURL=(
+    "dummy_text, used as a placeholder for handling array"
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt"
+    "https://hblock.molinero.dev/hosts"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
+)
+
 ui_print "
 ╔────────────────────────────────────────╗
 │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
@@ -112,12 +124,9 @@ ping -w 3 google.com &>/dev/null || abort "- This module requires internet conne
 
 # Download hosts files
 ui_print "- Preparing Shields🛡️..."
-wget --no-check-certificate -O hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file."
-wget --no-check-certificate -O hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
-wget --no-check-certificate -O hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file."
-wget --no-check-certificate -O hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null || abort "Failed to download hosts file."
-wget --no-check-certificate -O hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
-wget --no-check-certificate -O hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
+for ((i = 1; i < 7; i++)); do
+    download_stuffs "hosts${i}" "${hostsFileURL[$i]}"
+done
 
 # merge bombs to get a big nuke
 mkdir -p $MODPATH/system/etc
