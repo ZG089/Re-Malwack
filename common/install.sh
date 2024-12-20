@@ -75,10 +75,10 @@ fi
 # check for conflicts
 ui_print "- Checking for conflicts...."
 tempFileToStoretempFileToStoreModuleNames=$(
-    if touch /data/local/tmp/6dc75057591648cc7d51d7924887cfcbe0448b36b2ef65a9e0edac00d2cc; then
-        echo "/data/local/tmp/6dc75057591648cc7d51d7924887cfcbe0448b36b2ef65a9e0edac00d2cc"
+    if touch /data/local/tmp/tempFile; then
+        echo "/data/local/tmp/tempFile"
     else
-        echo "/sdcard/6dc75057591648cc7d51d7924887cfcbe0448b36b2ef65a9e0edac00d2cc"
+        echo "/sdcard/tempFile"
     fi
 )
 
