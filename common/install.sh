@@ -129,7 +129,7 @@ ui_print "- This may take a while, please wait...."
         cat $j_cole
         echo ""
     done
-} | grep -vE '^\s*#' | grep -vE '^\s*$' | sort | uniq > $MODPATH/system/etc/hosts
+} | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > $MODPATH/system/etc/hosts
 
 # let's see if the file was downloaded or not.
 if [ ! -f "hosts6" ]; then
