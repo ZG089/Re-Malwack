@@ -16,14 +16,14 @@ fi
 
 # let's store the url links here to make the installation easier.
 # we have uhhh, 6 links now..
-hostsFileURL=(
-    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt"
-    "https://hblock.molinero.dev/hosts"
-    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
-    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
-    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
-)
+hostsFileURL="
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
+https://hblock.molinero.dev/hosts
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
+"
 
 ui_print "
 ╔────────────────────────────────────────╗
@@ -123,18 +123,26 @@ ping -w 3 google.com &>/dev/null || abort "- This module requires internet conne
 
 # Download hosts files
 ui_print "- Preparing Shields🛡️..."
-for ((i = 1; i < 7; i++)); do
-    download_stuffs "hosts${i}" "${hostsFileURL[$i]}"
+counter=1
+echo "$hostsFileURL" | while read -r url; do
+    # Skip empty lines
+    [ -n "$url" ] || continue
+
+    # Download using wget
+    wget --no-check-certificate -O "hosts${counter}" "$url" &>/dev/null || {
+        abort "- Failed to download hosts file from $url"
+    }
+    counter=$((counter + 1))
 done
 
-# merge bombs to get a big nuke
+# Merge files into a single hosts file
 mkdir -p $MODPATH/system/etc
 ui_print "- Preparing weapons to kill malware🔫..."
 sleep 1
 ui_print "- This may take a while, please wait...."
 {
-    for j_cole in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
-        cat $j_cole
+    for file in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6; do
+        [ -f "$file" ] && cat "$file"
         echo ""
     done
 } | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > $MODPATH/system/etc/hosts
