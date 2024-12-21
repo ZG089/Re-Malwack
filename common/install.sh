@@ -111,11 +111,13 @@ ui_print "- Checking internet connection..."
 ping -w 3 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Download hosts files
-hostsURL="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts\nhttps://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt\nhttps://hblock.molinero.dev/hosts\nhttps://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt\nhttps://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt\nhttps://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
+download_stuffs "hostsFileRawFactor" "https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts_list"
+howManyLinesWeHaveOnThatFile=(( $(wc -l < hostsFileRawFactor) + 1 ))
 ui_print "- Preparing Shields🛡️..."
-for ((i = 1; i < 7; i++)); done
-    for fetchHostsFromCodebase in "${hostsURL}"; do
-        download_stuffs "hosts${i}" "$(echo -e "${fetchHostsFromCodebase}")"
+for ((i = 1; i < $howManyLinesWeHaveOnThatFile; i++)); do
+    # hawk tuahhhhhhhh, spit on that thanggg
+    for hostFromThatThang in "$(cat hostsFileRawFactor)"; do
+	download_stuffs "hosts${i}" "${hostFromThatThang}"
     done
 done
 
@@ -140,6 +142,8 @@ else
 fi
 
 # set perms
-for file in "$MODPATH/system/etc/hosts" "$MODPATH/system/bin/rmlwk" "$MODPATH/action.sh"; do
-  [ "$file" = "$MODPATH/system/etc/hosts" ] && chmod 644 "$file" || chmod 755 "$file"
-done
+chmod 644 $MODPATH/system/etc/hosts
+chmod 755 $MODPATH/system/bin/rmlwk
+chmod 755 $MODPATH/action.sh
+# cleanup
+rm -rf $tempFileToStoreModuleNames
