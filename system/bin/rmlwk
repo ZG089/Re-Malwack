@@ -81,6 +81,11 @@ if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
 
+# Check Internet Connection
+if ! nuke_if_we_dont_have_internet; then
+    abort "Internet connection is required to proceed. Please check your connection."
+fi
+
 # Main Logic
 case "$(tolower "$1")" in
     --reset)
