@@ -84,7 +84,7 @@ fi
 
 # check for conflicts
 ui_print "- Checking for conflicts...."
-tempFileToStoreModuleNames=$(
+tempFileToStoreConflicts=$(
     if touch /data/local/tmp/tempFile; then
         echo "/data/local/tmp/tempFile"
     else
@@ -93,24 +93,29 @@ tempFileToStoreModuleNames=$(
 )
 
 pm list packages | sed 's/package://' | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
+
 for i in /data/adb/modules/*; do
-    # skip this instance if we got into our own module dir.
+    # Skip this instance if we are in our own module directory
     if [ "$(grep_prop id ${i}/module.prop)" == "Re-Malwack" ]; then
         continue
     fi
-    # idk man whatever...
+    # Check for conflict by looking for a hosts file in the module
     if [ -f "${i}/system/etc/hosts" ]; then
-    modules_count=$(($modules_count + 1))
-    echo "$(grep_prop name ${i}/module.prop)" >> $tempFileToStoreModuleNames
+        modules_count=$(($modules_count + 1))
+        # Save both the name and ID to the temp file (name|id format)
+        echo "$(grep_prop name ${i}/module.prop)|$(grep_prop id ${i}/module.prop)" >> $tempFileToStoreConflicts
     fi
 done
+
 if [ "$modules_count" -ge "1" ]; then
     echo "- Notice: The following modules will be disabled to prevent conflicts:"
-    while read -r moduleName; do
+    while IFS='|' read -r moduleName moduleID; do
         echo "- $moduleName"
-        touch "/data/adb/modules/$moduleName/disable"
-    done < $tempFileToStoreModuleNames
+        # Create the disable file in the corresponding module directory
+        touch "/data/adb/modules/$moduleID/disable"
+    done < $tempFileToStoreConflicts
 fi
+
 
 # make an bool to prevent extracting things if we dont have anything to extract...
 if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
@@ -160,4 +165,4 @@ chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
 chmod 755 $MODPATH/action.sh
 # cleanup
-rm -rf $tempFileToStoreModuleNames
+rm -rf $tempFileToStoreConflicts
