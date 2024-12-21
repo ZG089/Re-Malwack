@@ -14,6 +14,17 @@ else
 	LIBDIR=/system
 fi
 
+# let's store the url links here to make the installation easier.
+# we have uhhh, 6 links now..
+hostsFileURL=(
+    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt"
+    "https://hblock.molinero.dev/hosts"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
+    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
+)
+
 ui_print "
 ╔────────────────────────────────────────╗
 │░█▀▄░█▀▀░░░░░█▄█░█▀█░█░░░█░█░█▀█░█▀▀░█░█│
