@@ -101,8 +101,8 @@ case "$(tolower "$1")" in
         echo "- Downloading entries for ${block_type}."
         sleep 0.5
         fetch /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
-        echo "- Applying enteries..."
-        cat /data/local/tmp/hosts "$hosts_file" | sort | uniq > "$hosts_file"
+        echo "- Applying entries..."
+        cat /data/local/tmp/hosts "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
         echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
     --block-porn)
@@ -112,9 +112,9 @@ case "$(tolower "$1")" in
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
         fetch /data/local/tmp/hosts3 https://www.someonewhocares.org/hosts/hosts &>/dev/null
-        echo "- Applying enteries..."
-        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | sort | uniq > "$hosts_file"
-        echo "- Entries for blocking p*rn sites are added successfully."
+        echo "- Applying entries..."
+        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
+        echo "- Entries for blocking porn sites are added successfully."
         ;;
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
@@ -136,7 +136,7 @@ case "$(tolower "$1")" in
         fetch /data/local/tmp/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
         fetch /data/local/tmp/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
         echo "- Applying update."
-        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 /data/local/tmp/hosts4 /data/local/tmp/hosts5 /data/local/tmp/hosts6 "$hosts_file" | sort | uniq > "$hosts_file"
+        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 /data/local/tmp/hosts4 /data/local/tmp/hosts5 /data/local/tmp/hosts6 "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
         string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
         sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         echo "- Done."
