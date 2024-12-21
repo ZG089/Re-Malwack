@@ -30,6 +30,15 @@ function malvack_banner() {
     echo -e "\033[0;37m        ╚────────────────────────────────────────╝\033[0m"
 }
 
+function install_hosts() {
+        # Merging hosts with removing commented lines and whitespaces, along with removing duplicated entries
+        cat "${downloaded_hosts[@]}" "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
+        # Delete downloaded hosts files after merging
+        for file in "${downloaded_hosts[@]}"; do
+            [ -f "$file" ] && rm -f "$file"
+        done
+}
+
 function tolower() {
     echo "$1" | tr '[:upper:]' '[:lower:]'
 }
@@ -92,7 +101,7 @@ case "$(tolower "$1")" in
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
-        string="description=Status: disabled due to reset ❌"
+        string="description=Status: Protection is disabled due to reset ❌"
         sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         echo "- Successfully reverted changes."
         ;;
@@ -103,6 +112,7 @@ case "$(tolower "$1")" in
         fetch /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         echo "- Applying entries..."
         cat /data/local/tmp/hosts "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
+        rm /data/local/tmp/hosts
         echo "- Entries for blocking ${block_type} sites are added successfully."
         ;;
     --block-porn)
@@ -113,7 +123,14 @@ case "$(tolower "$1")" in
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
         fetch /data/local/tmp/hosts3 https://www.someonewhocares.org/hosts/hosts &>/dev/null
         echo "- Applying entries..."
-        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
+        # Variables for downloaded files
+        downloaded_hosts=(
+        /data/local/tmp/hosts1
+        /data/local/tmp/hosts2
+        /data/local/tmp/hosts3
+        )
+        # Merge downloaded hosts files into the main hosts file
+        install_hosts
         echo "- Entries for blocking porn sites are added successfully."
         ;;
     --whitelist)
@@ -136,7 +153,17 @@ case "$(tolower "$1")" in
         fetch /data/local/tmp/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
         fetch /data/local/tmp/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
         echo "- Applying update."
-        cat /data/local/tmp/hosts1 /data/local/tmp/hosts2 /data/local/tmp/hosts3 /data/local/tmp/hosts4 /data/local/tmp/hosts5 /data/local/tmp/hosts6 "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
+        # Variables for downloaded files
+        downloaded_hosts=(
+        /data/local/tmp/hosts1
+        /data/local/tmp/hosts2
+        /data/local/tmp/hosts3
+        /data/local/tmp/hosts4
+        /data/local/tmp/hosts5
+        /data/local/tmp/hosts6
+        )
+        # Merge downloaded hosts files into the main hosts file
+        install_hosts
         string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
         sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         echo "- Done."
@@ -155,6 +182,3 @@ case "$(tolower "$1")" in
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts"
         ;;
 esac
-
-# Cleanup
-rm "$temp" && find /data/local/tmp/* -type f -exec rm -f {} + &>/dev/null
