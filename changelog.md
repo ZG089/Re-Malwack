@@ -6,6 +6,7 @@
 - 🔁 You can now see protection status in module description in your root manager (As well as in webUI).
 - 👍 The script can now be used in other terminals, not only termux.
 - 🎯 Updated Telegram username in module.prop
+- ⚙ Several bug fixes and code optimizations
 ## v5.2.4
 - 🛠 Fixed syntax error in "rmlwk"
 - 🛠 Fixed Several other bugs, removed unwanted/extra codes
