@@ -31,7 +31,7 @@ ui_print "
 │░█▀▄░█▀▀░▄▄▄░█░█░█▀█░█░░░█▄█░█▀█░█░░░█▀▄│
 │░▀░▀░▀▀▀░░░░░▀░▀░▀░▀░▀▀▀░▀░▀░▀░▀░▀▀▀░▀░▀│
 ╚────────────────────────────────────────╝"
-ui_print "- Welcome to Re-Malwack installation wizard!"
+ui_print "    Welcome to Re-Malwack installation wizard!"
 sleep 0.5
 ui_print ""
 ui_print " ----------------------------------"
@@ -100,8 +100,8 @@ for i in /data/adb/modules/*; do
     fi
     # idk man whatever...
     if [ -f "${i}/system/etc/hosts" ]; then
-        modules_count=$(($modules_count + 1))
-	    echo -e "$(grep_prop name ${i}/module.prop)\n" >> $tempFileToStoreModuleNames
+    modules_count=$(($modules_count + 1))
+    echo "$(grep_prop name ${i}/module.prop)" >> $tempFileToStoreModuleNames
     fi
 done
 if [ "$modules_count" -ge "1" ]; then
