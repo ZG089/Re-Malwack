@@ -111,14 +111,9 @@ ui_print "- Checking internet connection..."
 ping -w 3 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Download hosts files
-download_stuffs "hostsFileRawFactor" "https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts_list"
-howManyLinesWeHaveOnThatFile=(( $(wc -l < hostsFileRawFactor) + 1 ))
 ui_print "- Preparing Shields🛡️..."
-for ((i = 1; i < $howManyLinesWeHaveOnThatFile; i++)); do
-    # hawk tuahhhhhhhh, spit on that thanggg
-    for hostFromThatThang in "$(cat hostsFileRawFactor)"; do
-	download_stuffs "hosts${i}" "${hostFromThatThang}"
-    done
+for ((i = 1; i < 7; i++)); do
+    download_stuffs "hosts${i}" "${hostsFileURL[$i]}"
 done
 
 # merge bombs to get a big nuke
