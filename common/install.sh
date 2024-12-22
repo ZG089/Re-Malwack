@@ -124,7 +124,7 @@ fi
 
 # let's check do we have internet or not.
 ui_print "- Checking internet connection"
-ping -w 3 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
+ping -w 2 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Download hosts files
 ui_print "- Preparing Shields 🛡️"
