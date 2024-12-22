@@ -142,7 +142,7 @@ done
 
 # Merge files into a single hosts file
 mkdir -p $MODPATH/system/etc
-ui_print "- Preparing weapons to kill malware🔫.. (Please wait)"
+ui_print "- Preparing weapons to kill malware🔫..."
 {
     for file in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
         [ -f "$file" ] && cat "$file"

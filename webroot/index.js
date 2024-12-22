@@ -9,7 +9,7 @@ const sponsorLink = document.getElementById('sponsor');
 
 // Link redirect
 const links = [
-    { element: telegramLink, url: 'https://t.me/ZGTechs', name: 'Telegram' },
+    { element: telegramLink, url: 'https://t.me/Re_Malwack', name: 'Telegram' },
     { element: githubLink, url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
     { element: xdaLink, url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
     { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
