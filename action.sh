@@ -8,7 +8,7 @@ echo "
 ╚────────────────────────────────────────╝
 "
 sleep 0.5
-echo "- Upgrading Defenses🛡️, this may take a while...."
+echo "- Upgrading Defenses🛡️, this may take a while."
 if ! ping -w 1 google.com &>/dev/null ; then
     echo "- Failed to upgrade. Please check your internet connection."
     sleep 2
@@ -23,23 +23,18 @@ wget --no-check-certificate -O /sdcard/hosts4 https://raw.githubusercontent.com/
 wget --no-check-certificate -O /sdcard/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
 echo "- Preparing New weapons🔫..."
-sleep 1
-ui_print "- This may take a while, please wait...."
-{
-    for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 /sdcard/hosts4 /sdcard/hosts5 /sdcard/hosts6 ; do
-        cat $j_cole
-        echo ""
-    done
-} grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > $MODPATH/system/etc/hosts
+
+for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 /sdcard/hosts4 /sdcard/hosts5 /sdcard/hosts6; do
+    cat "$j_cole"
+    echo ""
+done | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$MODDIR/system/etc/hosts"
 
 # let's see if the file was downloaded or not.
 if [ ! -f "/sdcard/hosts6" ]; then
     echo "- Looks like there is a problem with some weapons, check your internet connection and try again"
-    sleep 3
 else
     string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
     sed -i "s/^description=.*/$string/g" $MODDIR/module.prop 
     echo "- Everthing is fine now, Enjoy 😉"
     rm /sdcard/hosts*
-    sleep 1.5
 fi
