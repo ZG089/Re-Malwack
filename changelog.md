@@ -1,12 +1,13 @@
 ## v5.3.0
-- ⛔ Enhanced ads, malware and trackers blocking experience 
-- ✨ The module got a new webUI which you can open using [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) or using [MMRL](https://github.com/DerGoogler/MMRL)
+- ⛔ Enhanced ads, malware and trackers blocking experience.
+- ✨ The module got a new webUI which you can open using [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) or using [MMRL](https://github.com/DerGoogler/MMRL).
+- 🛠 Fixed bug in conflicts checker code where it didn't show the conflicted module name(s) properly. (Thanks for @GalaxyA14User and @forsaken-heart24)
 - 👌 Enhanced installation script
-- 🛠 Fixed bug in conflicts checker code where it didn't show the conflicted module name properly. (Thanks for @GalaxyA14User and @forsaken-heart24)
-- 🔁 You can now see protection status in module description in your root manager (As well as in webUI).
-- 👍 The script can now be used in other terminals, not only termux.
+- 🔁 You can now see protection status in module description in your root manager (As well as in webUI)
+- 🛡 Added service.sh to update protection status periodically
+- 👍 The script can now be used in other terminals, not only termux
 - 🎯 Updated Telegram username in module.prop
-- ⚙ Several bug fixes and code optimizations
+- 🚀 Several bug fixes and code optimizations and enhancements
 ## v5.2.4
 - 🛠 Fixed syntax error in "rmlwk"
 - 🛠 Fixed Several other bugs, removed unwanted/extra codes
