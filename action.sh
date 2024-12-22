@@ -8,7 +8,7 @@ echo "
 ╚────────────────────────────────────────╝
 "
 sleep 0.5
-echo "- Upgrading Defenses🛡️, this may take a while."
+echo "- Upgrading Defenses 🛡️"
 if ! ping -w 1 google.com &>/dev/null ; then
     echo "- Failed to upgrade. Please check your internet connection."
     sleep 2
@@ -22,7 +22,7 @@ wget --no-check-certificate -O /sdcard/hosts3 https://o0.pages.dev/Pro/hosts.txt
 wget --no-check-certificate -O /sdcard/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
-echo "- Preparing New weapons🔫..."
+echo "- Preparing New weapons 🔫"
 
 for j_cole in /system/etc/hosts /sdcard/hosts1 /sdcard/hosts2 /sdcard/hosts3 /sdcard/hosts4 /sdcard/hosts5 /sdcard/hosts6; do
     cat "$j_cole"
