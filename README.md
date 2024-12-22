@@ -23,7 +23,7 @@
 - ⛔ Blocks ads, malware, trackers, P*rn sites, fake news sites, and gambling sites
 - ✨ Has WebUI
 - 🛠️ Hosts file is updated regularly
-- ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested - KSU 1.0.2 isn't supported)
+- ✨ Supports Magisk (v20.0+), KernelSU (v1.0.1 and below) and Apatch (Apatch is not tested)
 - 🔧 Regularly maintained & updated
 - ⚙️ Fixed Malwack's bugs
 - 🚀 Enhanced for more performance and effectiveness.
