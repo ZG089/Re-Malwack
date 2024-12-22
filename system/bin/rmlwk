@@ -148,12 +148,16 @@ case "$(tolower "$1")" in
         echo "- Domain $domain is not in the hosts file, nothing to whitelist."
     fi
     ;;
-
     --blacklist)
-        [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
-        echo "0.0.0.0 $domain" >> "$hosts_file"
-        echo "- Blacklisted $domain."
-        ;;
+    [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
+    # Check if the domain is already blocked
+    if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
+        echo "- Domain $domain is already blocked."
+    else
+        echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
+        [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
+    fi
+    ;;
     --update-hosts)
         if ! nuke_if_we_dont_have_internet; then
             abort "Internet connection is required to proceed. Please check your connection."
