@@ -5,25 +5,25 @@
 <h1 align="center">Re-Malwack</h1>
 <h2 align="center">Protection-maxxing magisk module 🗿</h2>
 
-![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Daily-green)
-![Module Version](https://img.shields.io/badge/Module_Version-v5.2.4-green)
+![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Regularly-green)
+![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-green)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
-![Hosts Update Time](https://img.shields.io/badge/Hosts_update_Time-≈19:30_UTC-green)
-![Built with](https://img.shields.io/badge/Made_with-Love-red)
-[![Channel](https://img.shields.io/badge/Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
+[![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
+[![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?color=gray&logo=telegram)](https://t.me/Re_Malwack)
+[![Channel](https://img.shields.io/badge/Follow_Channel-ZGTechs-252850?color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?color=blue&logo=telegram)](https://t.me/ZG089)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?color=orange&logo=xdadevelopers)](https://xdaforums.com/m/ZG089.11432109/)
-[![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
+![Built with](https://img.shields.io/badge/Made_with-Love-red)
 
 ## Features
 
 - Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (P*rn block, whitelist, reset hosts, ad block, protection from malware.)
 - 🚫 Has Blacklist Feature
-- ⛔ Blocks ads, malware, P*rn sites, fake news sites, and gambling sites
+- ⛔ Blocks ads, malware, trackers, P*rn sites, fake news sites, and gambling sites
 - ✨ Has WebUI
-- 🛠️ Hosts file is updated daily
-- ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested)
+- 🛠️ Hosts file is updated regularly
+- ✨ Supports Magisk (v20.0+), KernelSU and Apatch (Apatch is not tested - KSU 1.0.2 isn't supported)
 - 🔧 Regularly maintained & updated
 - ⚙️ Fixed Malwack's bugs
 - 🚀 Enhanced for more performance and effectiveness.
@@ -66,13 +66,13 @@ Example command: su -c rmlwk --update-hosts
 ```
 
 ### 2. Via WebUI
- - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) and [MMRL](https://github.com/DerGoogler/MMRL)
+ - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
 
 > [!TIP]
 > - You can update hosts file by going into magisk, and pressing the action button on the module card instead of updating it using Re-Malwack cli. 
 
 > [!WARNING]
-> Do not use this module with any other ad blocker module, such as AdAway and Magisk's built-in systemless hosts module.
+> **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
 
 > [!NOTE]
 > - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwk --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
@@ -80,7 +80,7 @@ Example command: su -c rmlwk --update-hosts
 
 ## Total Blocked
 > [!TIP]
-> - 917,343+ Malware, Ads, Spyware
+> - 920,783+ Malware, Ads, Spyware
 
 
 ## How does it work? - Frequently Asked Questions
