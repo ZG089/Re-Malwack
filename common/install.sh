@@ -83,7 +83,7 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 fi
 
 # check for conflicts
-ui_print "- Checking for conflicts...."
+ui_print "- Checking for conflicts"
 tempFileToStoreConflicts=$(
     if touch /data/local/tmp/tempFile; then
         echo "/data/local/tmp/tempFile"
@@ -123,11 +123,11 @@ if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
 fi
 
 # let's check do we have internet or not.
-ui_print "- Checking internet connection..."
+ui_print "- Checking internet connection"
 ping -w 3 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Download hosts files
-ui_print "- Preparing Shields🛡️..."
+ui_print "- Preparing Shields 🛡️"
 counter=1
 echo "$hostsFileURL" | while read -r url; do
     # Skip empty lines
@@ -142,7 +142,7 @@ done
 
 # Merge files into a single hosts file
 mkdir -p $MODPATH/system/etc
-ui_print "- Preparing weapons to kill malware🔫..."
+ui_print "- Preparing weapons to kill malware 🔫"
 {
     for file in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
         [ -f "$file" ] && cat "$file"
