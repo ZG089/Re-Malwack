@@ -148,7 +148,7 @@ case "$(tolower "$1")" in
         sleep 0.5
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
-        fetch /data/local/tmp/hosts3 https://hblock.molinero.dev/hosts &>/dev/null
+        fetch /data/local/tmp/hosts3 https://o0.pages.dev/Pro/hosts.txt &>/dev/null
         fetch /data/local/tmp/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null
         fetch /data/local/tmp/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
         fetch /data/local/tmp/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null

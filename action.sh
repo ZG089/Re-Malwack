@@ -18,7 +18,7 @@ fi
 # Download the hosts file and save it as "hosts"
 wget --no-check-certificate -O /sdcard/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null || abort "Failed to download hosts file." 
-wget --no-check-certificate -O /sdcard/hosts3 https://hblock.molinero.dev/hosts &>/dev/null || abort "Failed to download hosts file."
+wget --no-check-certificate -O /sdcard/hosts3 https://o0.pages.dev/Pro/hosts.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null || abort "Failed to download hosts file."
 wget --no-check-certificate -O /sdcard/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null || abort "Failed to download hosts file."
