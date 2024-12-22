@@ -90,10 +90,6 @@ if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
 
-# Check Internet Connection
-if ! nuke_if_we_dont_have_internet; then
-    abort "Internet connection is required to proceed. Please check your connection."
-fi
 
 # Main Logic
 case "$(tolower "$1")" in
@@ -107,6 +103,9 @@ case "$(tolower "$1")" in
         ;;
     --block-gambling|--block-fakenews)
         block_type=${1#--block-}
+        if ! nuke_if_we_dont_have_internet; then
+            abort "Internet connection is required to proceed. Please check your connection."
+        fi
         echo "- Downloading entries for ${block_type}."
         fetch /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         echo "- Applying entries..."
@@ -116,6 +115,9 @@ case "$(tolower "$1")" in
         ;;
     --block-porn)
         block_type=${1#--block-}
+        if ! nuke_if_we_dont_have_internet; then
+            abort "Internet connection is required to proceed. Please check your connection."
+        fi        
         echo "- Downloading entries for porn block"
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
@@ -142,6 +144,9 @@ case "$(tolower "$1")" in
         echo "- Blacklisted $domain."
         ;;
     --update-hosts)
+        if ! nuke_if_we_dont_have_internet; then
+            abort "Internet connection is required to proceed. Please check your connection."
+        fi    
         echo "- Downloading updates, Please wait."
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
