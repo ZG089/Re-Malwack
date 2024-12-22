@@ -108,7 +108,6 @@ case "$(tolower "$1")" in
     --block-gambling|--block-fakenews)
         block_type=${1#--block-}
         echo "- Downloading entries for ${block_type}."
-        sleep 0.5
         fetch /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         echo "- Applying entries..."
         cat /data/local/tmp/hosts "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
@@ -118,7 +117,6 @@ case "$(tolower "$1")" in
     --block-porn)
         block_type=${1#--block-}
         echo "- Downloading entries for porn block"
-        sleep 0.5
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
         fetch /data/local/tmp/hosts3 https://www.someonewhocares.org/hosts/hosts &>/dev/null
@@ -145,7 +143,6 @@ case "$(tolower "$1")" in
         ;;
     --update-hosts)
         echo "- Downloading updates, Please wait."
-        sleep 0.5
         fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
         fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
         fetch /data/local/tmp/hosts3 https://o0.pages.dev/Pro/hosts.txt &>/dev/null
