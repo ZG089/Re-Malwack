@@ -135,9 +135,12 @@ case "$(tolower "$1")" in
         ;;
     --whitelist)
     [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-    # Directly remove the line containing the domain
-    sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" || abort "Failed to whitelist $domain."
-    echo "- Whitelisted $domain."
+    # Directly remove the line containing the domain and handle errors
+    if sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file"; then
+        echo "- Whitelisted $domain."
+    else
+        abort "Error: Failed to whitelist $domain. Please check the hosts file and permissions."
+    fi
     ;;
     --blacklist)
         [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
