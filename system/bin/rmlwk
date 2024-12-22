@@ -156,7 +156,7 @@ case "$(tolower "$1")" in
         exit 1
     else
         echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
-        [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
+        # [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
     fi
     ;;
     --update-hosts)
