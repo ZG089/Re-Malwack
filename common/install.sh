@@ -19,7 +19,7 @@ fi
 hostsFileURL="
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
-https://hblock.molinero.dev/hosts
+https://o0.pages.dev/Pro/hosts.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
@@ -146,7 +146,7 @@ ui_print "- Preparing weapons to kill malware🔫..."
 sleep 1
 ui_print "- This may take a while, please wait...."
 {
-    for file in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6; do
+    for file in /system/etc/hosts hosts1 hosts2 hosts3 hosts4 hosts5 hosts6 ; do
         [ -f "$file" ] && cat "$file"
         echo ""
     done
