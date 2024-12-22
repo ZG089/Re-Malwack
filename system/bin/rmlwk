@@ -135,7 +135,6 @@ case "$(tolower "$1")" in
         ;;
     --whitelist)
     [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-    
     # Check if the domain exists in the hosts file
     if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
         # Remove the line containing the domain
@@ -146,6 +145,7 @@ case "$(tolower "$1")" in
         fi
     else
         echo "- Domain $domain is not in the hosts file, nothing to whitelist."
+        exit 1
     fi
     ;;
     --blacklist)
@@ -153,6 +153,7 @@ case "$(tolower "$1")" in
     # Check if the domain is already blocked
     if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
         echo "- Domain $domain is already blocked."
+        exit 1
     else
         echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
         [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
