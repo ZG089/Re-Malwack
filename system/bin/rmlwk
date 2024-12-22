@@ -134,10 +134,11 @@ case "$(tolower "$1")" in
         echo "- Entries for blocking porn sites are added successfully."
         ;;
     --whitelist)
-        [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-        sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$temp" && cp -f "$temp" "$hosts_file" || abort "Failed to whitelist $domain ."
-        echo "- Whitelisted $domain."
-        ;;
+    [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
+    # Directly remove the line containing the domain
+    sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" || abort "Failed to whitelist $domain."
+    echo "- Whitelisted $domain."
+    ;;
     --blacklist)
         [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
         echo "0.0.0.0 $domain" >> "$hosts_file"
