@@ -34,6 +34,9 @@
 > - Stable internet connection in order to download hosts during installation.
 > - Mid-Range or high-end device.
 
+> [!WARNING]
+> **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
+
 ## Download Module
 > [!TIP]
 You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Malwack) Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
@@ -71,8 +74,6 @@ Example command: su -c rmlwk --update-hosts
 > [!TIP]
 > - You can update hosts file by going into magisk, and pressing the action button on the module card instead of updating it using Re-Malwack cli. 
 
-> [!WARNING]
-> **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
 
 > [!NOTE]
 > - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwk --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
