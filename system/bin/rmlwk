@@ -31,12 +31,34 @@ function malvack_banner() {
 }
 
 function install_hosts() {
-        # Merging hosts with removing commented lines and whitespaces, along with removing duplicated entries
-        cat "${downloaded_hosts[@]}" "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
-        # Delete downloaded hosts files after merging
-        for file in "${downloaded_hosts[@]}"; do
-            [ -f "$file" ] && rm -f "$file"
-        done
+    cp -f "$hosts_file" "${tmp_hosts}0"
+    awk '!/^(\s*#|\s*$)/ && !seen[$0]++' "${tmp_hosts}"* > "$hosts_file"
+    [ -n "$block_type" ] && sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
+    rm -f "${tmp_hosts}"* 2>/dev/null
+}
+
+function remove_hosts() {
+    cat "${tmp_hosts}"* | awk '!/^(\s*#|\s*$)/ {print $0}' | sort -u > "${tmp_hosts}"
+    cp -f "$hosts_file" "${tmp_hosts}0"
+    awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}" "${tmp_hosts}0" > "$hosts_file"
+    [ ! -s "$hosts_file" ] && echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file" && chmod 644 "$hosts_file"
+    sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
+    rm -f "${tmp_hosts}"* 2>/dev/null
+}
+
+function block_content() {
+    local block_type=$1
+    local status=$2
+    fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
+    if [ "$block_type" = "porn" ]; then
+        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
+        fetch "${tmp_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null
+    fi
+    if [ "$status" = 0 ]; then
+        remove_hosts
+    else
+        install_hosts
+    fi
 }
 
 function tolower() {
@@ -77,10 +99,14 @@ fetch() {
 }
 
 # Variables
+. /data/adb/Re-Malwack/config.sh # Read config
 domain="$2"
 temp=$(mktemp)
-hosts_file="/data/adb/modules/Re-Malwack/system/etc/hosts"
 MODDIR="/data/adb/modules/Re-Malwack"
+hosts_file="$MODDIR/system/etc/hosts"
+tmp_hosts="/data/local/tmp/hosts" 
+# tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
+# tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
 
 # Banner
 malvack_banner
@@ -89,7 +115,6 @@ malvack_banner
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
-
 
 # Main Logic
 case "$(tolower "$1")" in
@@ -101,98 +126,69 @@ case "$(tolower "$1")" in
         sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         echo "- Successfully reverted changes."
         ;;
-    --block-gambling|--block-fakenews)
+    --block-porn|--block-gambling|--block-fakenews)
         block_type=${1#--block-}
-        if ! nuke_if_we_dont_have_internet; then
-            abort "Internet connection is required to proceed. Please check your connection."
+        status=$2
+        if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
+            echo "- Unblocking ${block_type} sites."
+            block_content "$block_type" 0
+            echo "- Entries for blocking ${block_type} sites are removed successfully."
+        else
+            echo "- Downloading entries for ${block_type}."
+            block_content "$block_type"
+            echo "- Entries for blocking ${block_type} sites are added successfully."
         fi
-        echo "- Downloading entries for ${block_type}."
-        fetch /data/local/tmp/hosts https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
-        echo "- Applying entries..."
-        cat /data/local/tmp/hosts "$hosts_file" | grep -vE '^[[:space:]]*#' | grep -vE '^[[:space:]]*$' | sort | uniq > "$hosts_file"
-        rm /data/local/tmp/hosts
-        echo "- Entries for blocking ${block_type} sites are added successfully."
-        ;;
-    --block-porn)
-        block_type=${1#--block-}
-        if ! nuke_if_we_dont_have_internet; then
-            abort "Internet connection is required to proceed. Please check your connection."
-        fi        
-        echo "- Downloading entries for porn block"
-        fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
-        fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
-        fetch /data/local/tmp/hosts3 https://www.someonewhocares.org/hosts/hosts &>/dev/null
-        echo "- Applying entries..."
-        # Variables for downloaded files
-        downloaded_hosts=(
-        /data/local/tmp/hosts1
-        /data/local/tmp/hosts2
-        /data/local/tmp/hosts3
-        )
-        # Merge downloaded hosts files into the main hosts file
-        install_hosts
-        echo "- Entries for blocking porn sites are added successfully."
         ;;
     --whitelist)
-    [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-    # Check if the domain exists in the hosts file
-    if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
-        # Remove the line containing the domain
-        if sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file"; then
-            echo "- Whitelisted $domain."
+        [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
+        # Check if the domain exists in the hosts file
+        if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
+            # Remove the line containing the domain
+            if sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file"; then
+                echo "- Whitelisted $domain."
+            else
+                abort "Error: Failed to whitelist $domain. Please check the hosts file and permissions."
+            fi
         else
-            abort "Error: Failed to whitelist $domain. Please check the hosts file and permissions."
+            echo "- Domain $domain is not in the hosts file, nothing to whitelist."
+            exit 1
         fi
-    else
-        echo "- Domain $domain is not in the hosts file, nothing to whitelist."
-        exit 1
-    fi
-    ;;
+        ;;
     --blacklist)
-    [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
-    # Check if the domain is already blocked
-    if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
-        echo "- Domain $domain is already blocked."
-        exit 1
-    else
-        echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
-        # [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
-    fi
-    ;;
+        [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
+        # Check if the domain is already blocked
+        if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
+            echo "- Domain $domain is already blocked."
+            exit 1
+        else
+            echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
+            # [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
+        fi
+        ;;
     --update-hosts)
-        if ! nuke_if_we_dont_have_internet; then
-            abort "Internet connection is required to proceed. Please check your connection."
-        fi    
         echo "- Downloading updates, Please wait."
-        fetch /data/local/tmp/hosts1 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
-        fetch /data/local/tmp/hosts2 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
-        fetch /data/local/tmp/hosts3 https://o0.pages.dev/Pro/hosts.txt &>/dev/null
-        fetch /data/local/tmp/hosts4 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null
-        fetch /data/local/tmp/hosts5 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
-        fetch /data/local/tmp/hosts6 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
+        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
+        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
+        fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null
+        fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null
+        fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
+        fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
         echo "- Applying update."
-        # Variables for downloaded files
-        downloaded_hosts=(
-        /data/local/tmp/hosts1
-        /data/local/tmp/hosts2
-        /data/local/tmp/hosts3
-        /data/local/tmp/hosts4
-        /data/local/tmp/hosts5
-        /data/local/tmp/hosts6
-        )
-        # Merge downloaded hosts files into the main hosts file
         install_hosts
         string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
         sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
+        [ "$block_porn" = 1 ] && block_content "porn"
+        [ "$block_gambling" = 1 ] && block_content "gambling"
+        [ "$block_fakenews" = 1 ] && block_content "fakenews"
         echo "- Done."
         ;;
     --help|-h|*)
         echo ""
         echo "Usage: su -c rmlwk [--argument]"
         echo "--reset: Restore original hosts file."
-        echo "--block-porn: Block pornographic sites."
-        echo "--block-gambling: Block gambling sites."
-        echo "--block-fakenews: Block fake news sites."
+        echo "--block-porn <disable>: Block pornographic sites, use disable to unblock."
+        echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
+        echo "--block-fakenews <disable>: Block fake news sites, use disable to unblock."
         echo "--whitelist <domain>: Whitelist a domain."
         echo "--blacklist <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
