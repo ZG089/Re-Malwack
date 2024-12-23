@@ -6,6 +6,9 @@ const telegramLink = document.getElementById('telegram');
 const githubLink = document.getElementById('github');
 const xdaLink = document.getElementById('xda');
 const sponsorLink = document.getElementById('sponsor');
+const blockPornToggle = document.getElementById('block-porn-toggle');
+const blockGamblingToggle = document.getElementById('block-gambling-toggle');
+const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
 
 // Link redirect
 const links = [
@@ -71,10 +74,43 @@ async function getStatus() {
     }
 }
 
+// Function to check block porn sites status
+async function blockPornStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_porn=1' /data/adb/Re-Malwack/config.sh'");
+        blockPornToggle.checked = !result;
+    } catch (error) {
+        blockPornToggle.checked = false;
+        console.error('Error checking block porn status:', error);
+    }
+}
+
+// Function to check block gambling sites status
+async function blockGamblingStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_gambling=1' /data/adb/Re-Malwack/config.sh'");
+        blockGamblingToggle.checked = !result;
+    } catch (error) {
+        blockGamblingToggle.checked = false;
+        console.error('Error checking block gambling status:', error);
+    }
+}
+
+// Function to check block fakenews sites status
+async function blockFakenewsStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_fakenews=1' /data/adb/Re-Malwack/config.sh'");
+        blockFakenewsToggle.checked = !result;
+    } catch (error) {
+        blockFakenewsToggle.checked = false;
+        console.error('Error checking block fakenews status:', error);
+    }
+}
+
 // Function to handle peform script and output
 async function performAction(promptMessage, commandOption, errorPrompt, errorMessage) {
     try {
-        showPrompt(promptMessage);
+        showPrompt(promptMessage, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
         const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}'`;
         const output = await execCommand(command);
@@ -101,21 +137,51 @@ async function resetHostsFile() {
 
 // Function to block pornography sites
 async function blockPorn() {
-    await performAction("- Downloading entries for porn block...", "--block-porn", "- Failed to download porn block hosts", "Failed to download porn block hosts:");
+    let prompt_message;
+    let action;
+    if (blockPornToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-porn 0";
+    } else {
+        prompt_message = "- Downloading entries for porn sites block...";
+        action = "--block-porn";
+    }
+    await performAction(prompt_message, action, "- Failed to download porn block hosts", "Failed to download porn block hosts:");
+    blockPornStatus();
 }
 
 // Function to block gambling sites
 async function blockGambling() {
-    await performAction("- Downloading entries for gambling block...", "--block-gambling", "- Failed to download gambling block hosts", "Failed to download gambling block hosts:");
+    let prompt_message;
+    let action;
+    if (blockGamblingToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-gambling 0";
+    } else {
+        prompt_message = "- Downloading entries for gambling sites block...";
+        action = "--block-gambling";
+    }
+    await performAction(prompt_message, action, "- Failed to download gambling block hosts", "Failed to download gambling block hosts:");
+    blockGamblingStatus();
 }
 
 // Function to block fake news sites
 async function blockFakeNews() {
-    await performAction("- Downloading entries for fake news block...", "--block-fakenews", "- Failed to download fake news block hosts", "Failed to download fake news block hosts:");
+    let prompt_message;
+    let action;
+    if (blockFakenewsToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-fakenews 0";
+    } else {
+        prompt_message = "- Downloading entries for faknews sites block...";
+        action = "--block-fakenews";
+    }
+    await performAction(prompt_message, action, "- Failed to download fake news block hosts", "Failed to download fake news block hosts:");
+    blockFakenewsStatus();
 }
 
 // Function to show prompt
-function showPrompt(message, isSuccess = true) {
+function showPrompt(message, isSuccess = true, duration = 2000) {
     const prompt = document.getElementById('prompt');
     prompt.textContent = message;
     prompt.classList.toggle('error', !isSuccess);
@@ -125,11 +191,10 @@ function showPrompt(message, isSuccess = true) {
     setTimeout(() => {
         prompt.classList.add('visible');
         prompt.classList.remove('hidden');
-        const timeoutDuration = message.includes('Downloading') ? 20000 : 3000;
         window.promptTimeout = setTimeout(() => {
             prompt.classList.remove('visible');
             prompt.classList.add('hidden');
-        }, timeoutDuration);
+        }, duration);
     }, 100);
 }
 
@@ -232,4 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachAddButtonListeners();
     getVersion();
     getStatus();
+    blockPornStatus();
+    blockGamblingStatus()
+    blockFakenewsStatus()
 });

@@ -95,6 +95,14 @@ body.input-focused {
     text-align: left;
 }
 
+.logo-light {
+    display: inline-block;
+}
+
+.logo-dark {
+    display: none;
+}
+
 #module-name {
     padding-top: 5px;
     font-size: 28px;
@@ -118,7 +126,7 @@ body.input-focused {
 .link-icon {
     display:inline-block;
     font-style: normal;
-    padding: 5px 10px;
+    padding: 3px 10px;
     color: #fff;
     border-radius: 8px;
     margin-bottom: 5px;
@@ -203,6 +211,62 @@ body.input-focused {
     padding: 0;
     white-space: nowrap;
     text-align: left;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    margin-left: auto;
+    width: 40px;
+    height: 25px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 19px;
+    width: 19px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #D51200;
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #D51200;
+}
+
+input:checked+.slider:before {
+    transform: translateX(15px);
+}
+
+.slider.round {
+    border-radius: 25px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
 
 .control-icon {
@@ -303,12 +367,12 @@ li:last-child {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 15px;
-    padding: 5px 15px;
+    padding: 5px 10px;
     z-index: 1000;
     transform: translateY(100%);
     transition: transform 0.5s ease, background-color 0.2s ease;
     width: auto;
-    max-width: 88vw;
+    max-width: calc(100% - 40px);
     z-index: 1300;
 }
 
@@ -375,6 +439,14 @@ li:last-child {
         background-color: #343434;
     }
 
+    .logo-light {
+        display: none;
+    }
+
+    .logo-dark {
+        display: inline-block;
+    }
+    
     .category-container input {
         color: #fff;
         background-color: #232323;
