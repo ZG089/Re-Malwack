@@ -92,12 +92,22 @@ function ask() {
 }
 
 # Fallback to busybox wget if curl binary is not available
-fetch() {
+function fetch() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     if command -v curl >/dev/null 2>&1; then
         curl -o "$@" || abort "Failed to download hosts file."
     else
         busybox wget --no-check-certificate -O - "$@" || abort "Failed to download hosts file."
+    fi
+}
+
+function update_status() {
+    if grep -q '0.0.0.0' "$hosts_file"; then
+        string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
+    else
+        string="description=Status: Protection is disabled due to reset ❌"
+        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
     fi
 }
 
@@ -129,6 +139,7 @@ case "$(tolower "$1")" in
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
+        update_status
         echo "- Successfully reverted changes."
         ;;
     --block-porn|--block-gambling|--block-fakenews)
@@ -143,6 +154,7 @@ case "$(tolower "$1")" in
             block_content "$block_type"
             echo "- Entries for blocking ${block_type} sites are added successfully."
         fi
+        update_status
         ;;
     --whitelist)
         [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
@@ -168,6 +180,7 @@ case "$(tolower "$1")" in
         else
             echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
             # [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
+            update_status
         fi
         ;;
     --update-hosts)
@@ -183,6 +196,7 @@ case "$(tolower "$1")" in
         [ "$block_porn" = 1 ] && block_content "porn"
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
+        update_status
         echo "- Done."
         ;;
     --help|-h|*)
@@ -199,11 +213,3 @@ case "$(tolower "$1")" in
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts"
         ;;
 esac
-
-if grep -q '0.0.0.0' "$hosts_file"; then
-    string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
-    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
-else
-    string="description=Status: Protection is disabled due to reset ❌"
-    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
-fi
