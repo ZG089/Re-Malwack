@@ -122,8 +122,6 @@ case "$(tolower "$1")" in
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
-        string="description=Status: Protection is disabled due to reset ❌"
-        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         echo "- Successfully reverted changes."
         ;;
     --block-porn|--block-gambling|--block-fakenews)
@@ -175,8 +173,6 @@ case "$(tolower "$1")" in
         fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
         echo "- Applying update."
         install_hosts
-        string="description=Status: Protection is enabled ✅ | protection update date: $(date)"
-        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
         [ "$block_porn" = 1 ] && block_content "porn"
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
@@ -196,3 +192,11 @@ case "$(tolower "$1")" in
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts"
         ;;
 esac
+
+if grep -q '0.0.0.0' "$hosts_file"; then
+    string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
+else
+    string="description=Status: Protection is disabled due to reset ❌"
+    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
+fi
