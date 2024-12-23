@@ -38,25 +38,28 @@ function install_hosts() {
 }
 
 function remove_hosts() {
-    cat "${tmp_hosts}"* | awk '!/^(\s*#|\s*$)/ {print $0}' | sort -u > "${tmp_hosts}"
+    cat "${cache_hosts}"* | awk '!/^(\s*#|\s*$)/ {print $0}' | sort -u > "${tmp_hosts}"
     cp -f "$hosts_file" "${tmp_hosts}0"
     awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}" "${tmp_hosts}0" > "$hosts_file"
     [ ! -s "$hosts_file" ] && echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file" && chmod 644 "$hosts_file"
     sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
     rm -f "${tmp_hosts}"* 2>/dev/null
+    rm -rf "$persist_dir/cache/$block_type" 2>/dev/null
 }
 
 function block_content() {
     local block_type=$1
     local status=$2
-    fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
-    if [ "$block_type" = "porn" ]; then
-        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
-        fetch "${tmp_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null
-    fi
     if [ "$status" = 0 ]; then
         remove_hosts
     else
+        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
+        if [ "$block_type" = "porn" ]; then
+            fetch "${tmp_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
+            fetch "${tmp_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null
+        fi
+        mkdir -p "$persist_dir/cache/$block_type"
+        cp -f "${tmp_hosts}"* "$persist_dir/cache/$block_type"
         install_hosts
     fi
 }
@@ -99,14 +102,18 @@ fetch() {
 }
 
 # Variables
-. /data/adb/Re-Malwack/config.sh # Read config
+persist_dir="/data/adb/Re-Malwack"
+cache_hosts="$persist_dir/cache/$block_type/hosts"
 domain="$2"
 temp=$(mktemp)
 MODDIR="/data/adb/modules/Re-Malwack"
 hosts_file="$MODDIR/system/etc/hosts"
-tmp_hosts="/data/local/tmp/hosts" 
+tmp_hosts="/data/local/tmp/hosts"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
+
+# Read config
+. "$persist_dir/config.sh"
 
 # Banner
 malvack_banner
