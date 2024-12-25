@@ -50,7 +50,7 @@ function remove_hosts() {
 function block_content() {
     local block_type=$1
     local status=$2
-    if [ "$status" = 0 ]; then
+    if [ "$status" = 0 ] && [ -d "$persist_dir/cache/$block_type" ]; then
         remove_hosts
     else
         fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
@@ -60,7 +60,7 @@ function block_content() {
         fi
         mkdir -p "$persist_dir/cache/$block_type"
         cp -f "${tmp_hosts}"* "$persist_dir/cache/$block_type"
-        install_hosts
+        [ "$status" = 0 ] && remove_hosts || install_hosts
     fi
 }
 
@@ -148,11 +148,11 @@ case "$(tolower "$1")" in
         if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
             echo "- Unblocking ${block_type} sites."
             block_content "$block_type" 0
-            echo "- Entries for blocking ${block_type} sites are removed successfully."
+            echo "- Unblocked ${block_type} sites successfully."
         else
             echo "- Downloading entries for ${block_type}."
             block_content "$block_type"
-            echo "- Entries for blocking ${block_type} sites are added successfully."
+            echo "- Blocked ${block_type} sites successfully."
         fi
         update_status
         ;;
