@@ -113,7 +113,6 @@ function update_status() {
 
 # Variables
 persist_dir="/data/adb/Re-Malwack"
-cache_hosts="$persist_dir/cache/$block_type/hosts"
 domain="$2"
 temp=$(mktemp)
 MODDIR="/data/adb/modules/Re-Malwack"
@@ -145,6 +144,7 @@ case "$(tolower "$1")" in
     --block-porn|--block-gambling|--block-fakenews)
         block_type=${1#--block-}
         status=$2
+        cache_hosts="$persist_dir/cache/$block_type/hosts"
         if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
             echo "- Unblocking ${block_type} sites."
             block_content "$block_type" 0
