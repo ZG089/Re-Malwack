@@ -39,12 +39,33 @@ function install_hosts() {
 
 function remove_hosts() {
     cat "${cache_hosts}"* | awk '!/^(\s*#|\s*$)/ {print $0}' | sort -u > "${tmp_hosts}"
-    cp -f "$hosts_file" "${tmp_hosts}0"
-    awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}" "${tmp_hosts}0" > "$hosts_file"
-    [ ! -s "$hosts_file" ] && echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file" && chmod 644 "$hosts_file"
+    cp -f "$hosts_file" "${tmp_hosts}0".
+
+    # Ensure necessary files exist
+    if [[ ! -f "$tmp_hosts" || ! -f "${tmp_hosts}0" ]]; then
+        echo "- Error: Temporary hosts files missing."
+        return 1
+    fi
+
+    # Remove duplicates from the hosts file
+    awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "$tmp_hosts" "${tmp_hosts}0" > "${tmp_hosts}_cleaned"
+
+    # Overwrite the main hosts file with cleaned data
+    cp -f "${tmp_hosts}_cleaned" "$hosts_file"
+    chmod 644 "$hosts_file"
+
+    # Ensure the hosts file is valid (not empty)
+    if [[ ! -s "$hosts_file" ]]; then
+        echo "- Warning: Hosts file is empty. Restoring default entries."
+        echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+    fi
+
+    # Clean up temporary files
     sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
     rm -f "${tmp_hosts}"* 2>/dev/null
     rm -rf "$persist_dir/cache/$block_type" 2>/dev/null
+    echo "- Hosts file cleaned and updated successfully."
+    return 0
 }
 
 function block_content() {
