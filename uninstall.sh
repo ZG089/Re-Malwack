@@ -1,3 +1,5 @@
+[ -d "/data/adb/Re-Malwack" ] && rm -rf "/data/adb/Re-Malwack"
+
 # Don't modify anything after this
 if [ -f $INFO ]; then
   while read LINE; do
