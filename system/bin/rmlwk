@@ -30,57 +30,91 @@ function malvack_banner() {
     echo -e "\033[0;37m        ╚────────────────────────────────────────╝\033[0m"
 }
 
+# Variables
+persist_dir="/data/adb/Re-Malwack"
+temp=$(mktemp)
+MODDIR="/data/adb/modules/Re-Malwack"
+hosts_file="$MODDIR/system/etc/hosts"
+tmp_hosts="/data/local/tmp/hosts"
+# tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
+# tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
+
+# Read config
+. "$persist_dir/config.sh"
+
+# Banner
+malvack_banner
+
 function install_hosts() {
+    # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
-    awk '!/^(\s*#|\s*$)/ && !seen[$0]++' "${tmp_hosts}"* > "$hosts_file"
+
+    # Prepare blacklist
+    [ -z "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
+
+    # Update hosts
+    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
+    sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
+    
+    # Process whitelist
+    if [ -z "$persist_dir/whitelist.txt" ]; then
+        sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/whitelist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
+        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
+        cat "$tmp_hosts" > "$hosts_file"
+    fi
+
+    # Update config
     [ -n "$block_type" ] && sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
+
+    # Clean up
     rm -f "${tmp_hosts}"* 2>/dev/null
 }
 
 function remove_hosts() {
-    cat "${cache_hosts}"* | awk '!/^(\s*#|\s*$)/ {print $0}' | sort -u > "${tmp_hosts}"
-    cp -f "$hosts_file" "${tmp_hosts}0".
+    # Prepare original hosts
+    cp -f "$hosts_file" "${tmp_hosts}0"
 
-    # Ensure necessary files exist
-    if [[ ! -f "$tmp_hosts" || ! -f "${tmp_hosts}0" ]]; then
-        echo "- Error: Temporary hosts files missing."
-        return 1
-    fi
+    # Arrange cached hosts
+    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${cache_hosts}"* | sort -u > "${tmp_hosts}1"
 
-    # Remove duplicates from the hosts file
-    awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "$tmp_hosts" "${tmp_hosts}0" > "${tmp_hosts}_cleaned"
+    # Remove from hosts file
+    awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}1" "${tmp_hosts}0" > "$hosts_file"
 
-    # Overwrite the main hosts file with cleaned data
-    cp -f "${tmp_hosts}_cleaned" "$hosts_file"
-    chmod 644 "$hosts_file"
-
-    # Ensure the hosts file is valid (not empty)
-    if [[ ! -s "$hosts_file" ]]; then
+    # Restore to default entires if hosts file is empty
+    if [ ! -s "$hosts_file" ]; then
         echo "- Warning: Hosts file is empty. Restoring default entries."
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
 
-    # Clean up temporary files
+    # Update config
     sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
+
+    # Clean up
     rm -f "${tmp_hosts}"* 2>/dev/null
-    rm -rf "$persist_dir/cache/$block_type" 2>/dev/null
-    echo "- Hosts file cleaned and updated successfully."
-    return 0
 }
 
 function block_content() {
     local block_type=$1
     local status=$2
-    if [ "$status" = 0 ] && [ -d "$persist_dir/cache/$block_type" ]; then
+    cache_hosts="$persist_dir/cache/$block_type/hosts"
+
+    if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
         remove_hosts
     else
-        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
-        if [ "$block_type" = "porn" ]; then
-            fetch "${tmp_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null
-            fetch "${tmp_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null
+        # Download hosts only if no cached host found or during update
+        if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
+            mkdir -p "$persist_dir/cache/$block_type"
+            fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
+            if [ "$block_type" = "porn" ]; then
+                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null &
+                fetch "${cache_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null &
+                wait
+            fi
         fi
-        mkdir -p "$persist_dir/cache/$block_type"
-        cp -f "${tmp_hosts}"* "$persist_dir/cache/$block_type"
+
+        # Skip install for if called from hosts update
+        [ "$status" = "update" ] && return 0
+        cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts
     fi
 }
@@ -105,7 +139,7 @@ function ask() {
     local answer
     printf "- $question (y/n): "
     read -r answer
-    if [[ "$(tolower "$answer")" == "y" ]]; then
+    if [ "$(tolower "$answer")" = "y" ]; then
         return 0
     else
         return 1
@@ -132,22 +166,6 @@ function update_status() {
     fi
 }
 
-# Variables
-persist_dir="/data/adb/Re-Malwack"
-domain="$2"
-temp=$(mktemp)
-MODDIR="/data/adb/modules/Re-Malwack"
-hosts_file="$MODDIR/system/etc/hosts"
-tmp_hosts="/data/local/tmp/hosts"
-# tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
-# tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
-
-# Read config
-. "$persist_dir/config.sh"
-
-# Banner
-malvack_banner
-
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
@@ -163,57 +181,105 @@ case "$(tolower "$1")" in
         echo "- Successfully reverted changes."
         ;;
     --block-porn|--block-gambling|--block-fakenews)
-        block_type=${1#--block-}
-        status=$2
-        cache_hosts="$persist_dir/cache/$block_type/hosts"
+        local block_type=${1#--block-}
+        local status=$2
+        eval "block_toggle=\"\$block_${block_type}\""
+
         if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
-            echo "- Unblocking ${block_type} sites."
-            block_content "$block_type" 0
-            echo "- Unblocked ${block_type} sites successfully."
+            if [ "$block_toggle" = 0 ]; then
+                echo "- $block_type block is already disabled"
+            else
+                echo "- Removing block entries for ${block_type} sites."
+                block_content "$block_type" 0
+                echo "- Unblocked ${block_type} sites successfully."
+            fi
         else
-            echo "- Downloading entries for ${block_type}."
-            block_content "$block_type"
-            echo "- Blocked ${block_type} sites successfully."
+            if [ "$block_toggle" = 1 ]; then
+                echo "- $block_type block is already enabled"
+            else
+                echo "- Adding block entries for ${block_type} sites."
+                block_content "$block_type" 1
+                echo "- Blocked ${block_type} sites successfully."
+            fi
         fi
         update_status
         ;;
     --whitelist)
-        [[ -z "$domain" ]] && abort "Please provide a domain to whitelist."
-        # Check if the domain exists in the hosts file
-        if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
-            # Remove the line containing the domain
-            if sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file"; then
-                echo "- Whitelisted $domain."
-            else
-                abort "Error: Failed to whitelist $domain. Please check the hosts file and permissions."
-            fi
+        local option="$2"
+        local domain="$3"
+        
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
+            echo "usage: rmlwk --whitelist <add/remove> <domain>"
+            display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
+            [ ! -z "$display_whitelist" ] && echo "Current whitelist: $display_whitelist" || echo "Current whitelist: no saved whitelist"
         else
-            echo "- Domain $domain is not in the hosts file, nothing to whitelist."
-            exit 1
+            touch "$persist_dir/whitelist.txt"
+            if [ "$option" = "add" ]; then
+                # Add domain to whitelist.txt and remove from hosts
+                grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
+                sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" 2>/dev/null
+            else
+                # Remove domain from whitelist.txt if found
+                if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
+                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
+                    echo "- $domain removed from whitelist."
+                else
+                    echo "- $domain isn't in whitelist."
+                fi
+            fi
         fi
         ;;
     --blacklist)
-        [[ -z "$domain" ]] && abort "Please provide a domain to blacklist."
-        # Check if the domain is already blocked
-        if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
-            echo "- Domain $domain is already blocked."
-            exit 1
-        else
-            echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
-            # [[ $? -ne 0 ]] && abort "Error: Failed to blacklist $domain. Please check the hosts file and permissions."
-            update_status
+        local option="$2"
+        local domain="$3"
+
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
+            echo "usage: rmlwk --blacklist <add/remove> <domain>"
+            display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
+            [ ! -z "$display_blacklist" ] && echo "Current blacklist: $display_blacklist" || echo "Current blacklist: no saved blacklist"
+        else            
+            touch "$persist_dir/blacklist.txt"
+            if [ "$option" = "add" ]; then
+                # Add domain to blacklist.txt and add to hosts if it isn't there
+                grep -qx "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+                if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
+                    echo "- $domain is already blacklisted."
+                else
+                    echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
+                    update_status
+                fi
+            else
+                # Remove domain from blacklist.txt if found
+                if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
+                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt";
+                    echo "- $domain removed from blacklist."
+                else
+                    echo "- $domain isn't in blacklist."
+                fi
+            fi
         fi
         ;;
     --update-hosts)
         echo "- Downloading updates, Please wait."
-        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null
-        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null 
-        fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null
-        fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null
-        fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null
-        fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null
+
+        # Update re-makwack general hosts
+        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null &
+        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null &
+        fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null &
+        fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null &
+        fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null &
+        fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null &
+        
+        # Update hosts for custom block
+        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
+        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
+        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
+        wait
+
         echo "- Applying update."
         install_hosts
+
+        # Check config and apply update
         [ "$block_porn" = 1 ] && block_content "porn"
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
@@ -227,10 +293,10 @@ case "$(tolower "$1")" in
         echo "--block-porn <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews <disable>: Block fake news sites, use disable to unblock."
-        echo "--whitelist <domain>: Whitelist a domain."
-        echo "--blacklist <domain>: Blacklist a domain."
+        echo "--whitelist <add/remove> <domain>: Whitelist a domain."
+        echo "--blacklist <add/remove> <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
         echo "--help, -h: Display help."
-        echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts"
+        echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
 esac
