@@ -158,9 +158,13 @@ else
     sleep 0.5
 fi
 
+# Add a persistent directory to save configuration
+[ ! -d "/data/adb/Re-Malwack" ] && mkdir /data/adb/Re-Malwack && echo -e "block_porn=0\nblock_gambling=0\nblock_fakenews=0" > "/data/adb/Re-Malwack/config.sh"
+
 # set perms
 chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
 chmod 755 $MODPATH/action.sh
+chmod 755 "/data/adb/Re-Malwack/config.sh"
 # cleanup
 rm -rf $tempFileToStoreConflicts
