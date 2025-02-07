@@ -42,8 +42,8 @@ tmp_hosts="/data/local/tmp/hosts"
 # Read config
 . "$persist_dir/config.sh"
 
-# Banner
-malvack_banner
+# Skip banner if running from Magisk Manager
+[ -z "$MAGISKTMP" ] && malvack_banner
 
 function install_hosts() {
     # Prepare original hosts
@@ -166,11 +166,10 @@ function fetch() {
 function update_status() {
     if grep -q '0.0.0.0' "$hosts_file"; then
         string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
-        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
     else
         string="description=Status: Protection is disabled due to reset ❌"
-        sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
     fi
+    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
 }
 
 # Check Root
