@@ -31,6 +31,7 @@ body.input-focused {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     overflow: hidden;
+    user-select: none;
 }
 
 .festival {
@@ -93,6 +94,7 @@ body.input-focused {
     border: none;
     font-size: 18px;
     color: #ccc;
+    user-select: none;
 }
 
 .about-content {
@@ -110,19 +112,23 @@ body.input-focused {
 
 .logo-light {
     display: inline-block;
+    user-select: none;
 }
 
 .logo-dark {
     display: none;
+    user-select: none;
 }
 
 #module-name {
     padding-top: 5px;
     font-size: 28px;
+    user-select: none;
 }
 
 #author {
     font-size: 14px;
+    user-select: none;
 }
 
 #credits {
@@ -130,6 +136,7 @@ body.input-focused {
     padding-bottom: 5px;
     font-weight: bold;
     font-size: 20px;
+    user-select: none;
 }
 
 .link {
@@ -144,6 +151,9 @@ body.input-focused {
     border-radius: 8px;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
 }
 
 .link-icon object {
@@ -157,16 +167,8 @@ body.input-focused {
     background-color: #38A7ED;
 }
 
-#telegram:active {
-    background-color: #0B76BA;
-}
-
 #github {
     background-color: #606060;
-}
-
-#github:active {
-    background-color: #211C1C;
 }
 
 #xda {
@@ -174,17 +176,8 @@ body.input-focused {
     color: #fff;
 }
 
-#xda:active {
-    background-color: #A95400;
-    color: #fff;
-}
-
 #sponsor {
     background-color: #E7D705;
-}
-
-#sponsor:active {
-    background-color: #968B00;
 }
 
 #link-text {
@@ -193,7 +186,6 @@ body.input-focused {
 }
 
 .box {
-    position: relative;
     width: 85vw;
     max-width: 800px;
     background-color: #fff;
@@ -202,6 +194,9 @@ body.input-focused {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     transition: background-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
 }
 
 .box h2 {
@@ -209,10 +204,12 @@ body.input-focused {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
+    user-select: none;
 }
 
 #version-status {
     font-size: 14px;
+    user-select: none;
 }
 
 .toggle-container {
@@ -318,21 +315,8 @@ input:checked+.slider:before {
     justify-content: center;
     align-items: center;
     transition: background-color 0.2s ease;
-}
-
-.current-mode-text:active,
-.action-button:active,
-.category-container button:active {
-    background-color: #850B00;
-}
-
-.box:active {
-    background-color: #ccc;
-}
-
-#whitelist:active,
-#blacklist:active {
-    background-color: #fff;
+    position: relative;
+    overflow: hidden;
 }
 
 ul {
@@ -387,6 +371,7 @@ li:last-child {
     width: auto;
     max-width: calc(100% - 40px);
     z-index: 1300;
+    user-select: none;
 }
 
 .prompt.visible {
@@ -435,6 +420,26 @@ li:last-child {
     text-align: center;
 }
 
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 1;
+    animation: ripple-animation ease-out forwards;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.ripple.end {
+    opacity: 0;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(3);
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #121212;
@@ -445,8 +450,6 @@ li:last-child {
         border-bottom: 1px solid #6E6E6E;
     }
 
-    #whitelist:active,
-    #blacklist:active,
     .about-menu,
     .box {
         background-color: #343434;
@@ -470,7 +473,6 @@ li:last-child {
         fill: #fff;
     }
 
-    .box:active,
     .slider {
         background-color: #6E6E6E;
     }
