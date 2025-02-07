@@ -315,8 +315,19 @@ input:checked+.slider:before {
     justify-content: center;
     align-items: center;
     transition: background-color 0.2s ease;
-    position: relative;
-    overflow: hidden;
+}
+
+.delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: #D51200;
+    color: #fff;
 }
 
 ul {
@@ -329,7 +340,7 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 3px;
+    padding: 8px 5px;
     border-bottom: 1px solid #ccc;
 }
 
@@ -418,6 +429,11 @@ li:last-child {
     padding: 30px;
     position: relative;
     text-align: center;
+}
+
+.ripple-container {
+    position: relative;
+    overflow: hidden;
 }
 
 .ripple {

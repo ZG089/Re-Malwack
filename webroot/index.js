@@ -10,6 +10,13 @@ const blockPornToggle = document.getElementById('block-porn-toggle');
 const blockGamblingToggle = document.getElementById('block-gambling-toggle');
 const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
 
+const basePath = "/data/adb/Re-Malwack";
+
+const filePaths = {
+    blacklist: `${basePath}/blacklist.txt`,
+    whitelist: `${basePath}/whitelist.txt`,
+};
+
 // Link redirect
 const links = [
     { element: telegramLink, url: 'https://t.me/Re_Malwack', name: 'Telegram' },
@@ -19,7 +26,7 @@ const links = [
 ];
 
 // Ripple effect configuration
-const rippleClasses = ['.ripple-container', '.category-container button', '.link-icon'];
+const rippleClasses = ['.ripple-container', '.link-icon'];
 
 let isScrolling = false;
 let modeActive = false;
@@ -227,10 +234,11 @@ async function handleAdd(fileType) {
         return;
     }
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} ${inputValue}'`);
+        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} add ${inputValue}'`);
         console.log(`${fileType}ed "${inputValue}" successfully.`);
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
+        await loadFile(fileType);
         await getStatus();
     } catch (error) {
         console.log(`Fail to ${fileType} "${inputValue}": ${error}`);
@@ -283,7 +291,7 @@ inputs.forEach(input => {
 
 // Link redirect
 links.forEach(link => {
-    link.element.addEventListener('click', async () => {
+    link.element.addEventListener("click", async () => {
         try {
             await execCommand(`am start -a android.intent.action.VIEW -d ${link.url}`);
         } catch (error) {
@@ -354,6 +362,46 @@ function applyRippleEffect() {
     });
 }
 
+// Function to read a file and display its content in the UI
+async function loadFile(fileType) {
+    try {
+        const content = await execCommand(`cat ${filePaths[fileType]}`);
+        const lines = content
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith("#"));
+        const listElement = document.getElementById(`${fileType}-list`);
+        listElement.innerHTML = "";
+        lines.forEach(line => {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `
+                <span>${line}</span>
+                <button class="delete-btn ripple-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm72-144h72v-336h-72v336Zm120 0h72v-336h-72v336Z"/></svg>
+                </button>
+            `;
+            listElement.appendChild(listItem);
+            listItem.querySelector(".delete-btn").addEventListener("click", () => removeLine(fileType, line));
+        });
+        applyRippleEffect();
+    } catch (error) {
+        console.error(`Failed to load ${fileType} file:`, error);
+    }
+}
+
+// Function to remove a line from whitelist/blacklist
+async function removeLine(fileType, line) {
+    try {
+        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}'`);
+        showPrompt(`Removed ${line} from ${fileType}`, true);
+        await loadFile(fileType);
+        await getStatus();
+    } catch (error) {
+        console.error(`Failed to remove line from ${fileType}:`, error);
+        showPrompt(`Failed to remove ${line} from ${fileType}`, false);
+    }
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
@@ -369,4 +417,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     blockGamblingStatus();
     blockFakenewsStatus();
     applyRippleEffect();
+    await loadFile('whitelist');
+    await loadFile('blacklist');
 });
