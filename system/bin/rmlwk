@@ -50,15 +50,22 @@ function install_hosts() {
     cp -f "$hosts_file" "${tmp_hosts}0"
 
     # Prepare blacklist
-    [ -z "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
+    [ -s "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
 
     # Update hosts
     sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
     sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
     
     # Process whitelist
-    if [ -z "$persist_dir/whitelist.txt" ]; then
-        sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/whitelist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
+    if [ -s "$persist_dir/whitelist.txt" ]; then
+        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt" "$persist_dir/whitelist.txt")
+    elif [ -s "$persist_dir/cache/whitelist/whitelist.txt" ]; then
+        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt")
+    fi
+
+    # Filter whitelist
+    if [ -n "$whitelist" ]; then
+        echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
         cat "$tmp_hosts" > "$hosts_file"
     fi
@@ -150,9 +157,9 @@ function ask() {
 function fetch() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     if command -v curl >/dev/null 2>&1; then
-        curl -o "$@" || abort "Failed to download hosts file."
+        curl -o "$@" || abort "Failed to download $2."
     else
-        busybox wget --no-check-certificate -O - "$@" || abort "Failed to download hosts file."
+        busybox wget --no-check-certificate -O - "$@" || abort "Failed to download $2."
     fi
 }
 
@@ -270,6 +277,10 @@ case "$(tolower "$1")" in
         fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null &
         fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null &
         
+        # Update hosts for global whitelist
+        mkdir -p "$persist_dir/cache/whitelist"
+        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null &
+    
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
         [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
