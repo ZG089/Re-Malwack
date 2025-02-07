@@ -18,6 +18,12 @@ const links = [
     { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
 ];
 
+// Ripple effect configuration
+const rippleClasses = ['.ripple-container', '.category-container button', '.link-icon'];
+
+let isScrolling = false;
+let modeActive = false;
+
 // Function to handle about menu
 function aboutMenu() {
     const aboutOverlay = document.getElementById('about-overlay');
@@ -286,6 +292,68 @@ links.forEach(link => {
     });
 });
 
+// Function to apply ripple effect
+function applyRippleEffect() {
+    rippleClasses.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            if (element.dataset.rippleListener !== "true") {
+                element.addEventListener("pointerdown", function (event) {
+                    if (isScrolling) return;
+                    if (modeActive) return;
+
+                    const ripple = document.createElement("span");
+                    ripple.classList.add("ripple");
+
+                    // Calculate ripple size and position
+                    const rect = element.getBoundingClientRect();
+                    const width = rect.width;
+                    const size = Math.max(rect.width, rect.height);
+                    const x = event.clientX - rect.left - size / 2;
+                    const y = event.clientY - rect.top - size / 2;
+
+                    // Determine animation duration
+                    let duration = 0.3 + (width / 800) * 0.3;
+                    duration = Math.min(0.8, Math.max(0.2, duration));
+
+                    // Set ripple styles
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    ripple.style.animationDuration = `${duration}s`;
+                    ripple.style.transition = `opacity ${duration}s ease`;
+
+                    // Adaptive color
+                    const computedStyle = window.getComputedStyle(element);
+                    const bgColor = computedStyle.backgroundColor || "rgba(0, 0, 0, 0)";
+                    const textColor = computedStyle.color;
+                    const isDarkColor = (color) => {
+                        const rgb = color.match(/\d+/g);
+                        if (!rgb) return false;
+                        const [r, g, b] = rgb.map(Number);
+                        return (r * 0.299 + g * 0.587 + b * 0.114) < 96; // Luma formula
+                    };
+                    ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "";
+
+                    // Append ripple and handle cleanup
+                    element.appendChild(ripple);
+                    const handlePointerUp = () => {
+                        ripple.classList.add("end");
+                        setTimeout(() => {
+                            ripple.classList.remove("end");
+                            ripple.remove();
+                        }, duration * 1000);
+                        element.removeEventListener("pointerup", handlePointerUp);
+                        element.removeEventListener("pointercancel", handlePointerUp);
+                    };
+                    element.addEventListener("pointerup", handlePointerUp);
+                    element.addEventListener("pointercancel", handlePointerUp);
+                });
+                element.dataset.rippleListener = "true";
+            }
+        });
+    });
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
@@ -298,6 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getVersion();
     getStatus();
     blockPornStatus();
-    blockGamblingStatus()
-    blockFakenewsStatus()
+    blockGamblingStatus();
+    blockFakenewsStatus();
+    applyRippleEffect();
 });
