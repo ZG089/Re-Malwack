@@ -156,10 +156,10 @@ async function blockPorn() {
         prompt_message = "- Removing entries...";
         action = "--block-porn 0";
     } else {
-        prompt_message = "- Downloading entries for porn sites block...";
+        prompt_message = "- Applying block for porn sites...";
         action = "--block-porn";
     }
-    await performAction(prompt_message, action, "- Failed to download porn block hosts", "Failed to download porn block hosts:");
+    await performAction(prompt_message, action, "- Failed to apply block for porn sites", "Failed to apply block for porn sites:");
     blockPornStatus();
 }
 
@@ -171,10 +171,10 @@ async function blockGambling() {
         prompt_message = "- Removing entries...";
         action = "--block-gambling 0";
     } else {
-        prompt_message = "- Downloading entries for gambling sites block...";
+        prompt_message = "- Applying block for gambling sites...";
         action = "--block-gambling";
     }
-    await performAction(prompt_message, action, "- Failed to download gambling block hosts", "Failed to download gambling block hosts:");
+    await performAction(prompt_message, action, "- Failed to apply block for gambling sites", "Failed to apply block for gambling sites:");
     blockGamblingStatus();
 }
 
@@ -186,10 +186,10 @@ async function blockFakeNews() {
         prompt_message = "- Removing entries...";
         action = "--block-fakenews 0";
     } else {
-        prompt_message = "- Downloading entries for faknews sites block...";
+        prompt_message = "- Applying block for fake news sites...";
         action = "--block-fakenews";
     }
-    await performAction(prompt_message, action, "- Failed to download fake news block hosts", "Failed to download fake news block hosts:");
+    await performAction(prompt_message, action, "- Failed to apply block for fake news sites", "Failed to apply block for fake news sites:");
     blockFakenewsStatus();
 }
 
