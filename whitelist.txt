@@ -1,0 +1,3 @@
+# Re-Malwack hosts whitelist
+
+s.youtube.com
