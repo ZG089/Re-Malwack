@@ -269,7 +269,7 @@ case "$(tolower "$1")" in
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
 
-        # Update re-makwack general hosts
+        # Update Re-Malwack general hosts
         fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null &
         fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null &
         fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null &
