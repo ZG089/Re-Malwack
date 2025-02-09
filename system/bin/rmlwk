@@ -109,6 +109,7 @@ function block_content() {
         remove_hosts
     else
         # Download hosts only if no cached host found or during update
+        nuke_if_we_dont_have_internet
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             mkdir -p "$persist_dir/cache/$block_type"
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
@@ -137,8 +138,7 @@ function abort() {
 }
 
 function nuke_if_we_dont_have_internet() {
-    ping -w 1 google.com >/dev/null 2>&1
-    return $?
+    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "- Please check your internet connection and try again."
 }
 
 function ask() {
@@ -267,6 +267,7 @@ case "$(tolower "$1")" in
         ;;
     --update-hosts)
         echo "- Downloading updates, Please wait."
+        nuke_if_we_dont_have_internet
 
         # Update re-makwack general hosts
         fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null &
