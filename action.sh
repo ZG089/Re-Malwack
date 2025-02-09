@@ -14,8 +14,7 @@ echo "
 "
 sleep 0.5
 echo "- Upgrading Defenses 🛡️"
-ping -c 1 -w 5 google.com &>/dev/null || abort "- Failed to upgrade. Please check your internet connection."
-
+sleep 0.2
 echo "- Preparing New weapons 🔫"
 
 sh "$MODDIR/system/bin/rmlwk" --update-hosts || abort "- Failed to update hosts."
