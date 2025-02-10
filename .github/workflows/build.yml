@@ -30,8 +30,9 @@ jobs:
       id: setup
       run: |
         COMMIT_NUM=$(git rev-list --count HEAD)
+        COMMIT_HASH=$(git rev-parse --short HEAD)
         VERSION=$(jq -r .version update.json)
-        ZIP_NAME=Re-Malwack_$VERSION-$COMMIT_NUM
+        ZIP_NAME=Re-Malwack_$VERSION-$COMMIT_NUM-$COMMIT_HASH
 
         echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 

@@ -288,6 +288,7 @@ case "$(tolower "$1")" in
         wait
 
         echo "- Applying update."
+        echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts
 
         # Check config and apply update
