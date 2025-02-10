@@ -81,17 +81,21 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 	fi
 fi
 
-# check for conflicts
+# Check for conflicts
 pm list packages | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
 
 for module in /data/adb/modules/*; do
-    module_id="$(grep_prop id ${module}/module.prop)"
+    module_id="$(grep_prop id "${module}/module.prop")"
     # Skip our own module
     [ "$module_id" == "Re-Malwack" ] && continue
 
     # Check for conflict by looking for a hosts file in the module
     if [ -f "${module}/system/etc/hosts" ]; then
-        module_name="$(grep_prop name ${module}/module.prop)"
+        # Check if the module is already disabled
+        if [ -f "/data/adb/modules/$module_id/disable" ]; then
+            continue
+        fi
+        module_name="$(grep_prop name "${module}/module.prop")"
         ui_print "- Disabling conflicting module: $module_name"
         touch "/data/adb/modules/$module_id/disable"
     fi
