@@ -31,6 +31,7 @@ body.input-focused {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     overflow: hidden;
+    user-select: none;
 }
 
 .festival {
@@ -93,6 +94,7 @@ body.input-focused {
     border: none;
     font-size: 18px;
     color: #ccc;
+    user-select: none;
 }
 
 .about-content {
@@ -108,13 +110,25 @@ body.input-focused {
     text-align: left;
 }
 
+.logo-light {
+    display: inline-block;
+    user-select: none;
+}
+
+.logo-dark {
+    display: none;
+    user-select: none;
+}
+
 #module-name {
     padding-top: 5px;
     font-size: 28px;
+    user-select: none;
 }
 
 #author {
     font-size: 14px;
+    user-select: none;
 }
 
 #credits {
@@ -122,6 +136,7 @@ body.input-focused {
     padding-bottom: 5px;
     font-weight: bold;
     font-size: 20px;
+    user-select: none;
 }
 
 .link {
@@ -131,11 +146,14 @@ body.input-focused {
 .link-icon {
     display:inline-block;
     font-style: normal;
-    padding: 5px 10px;
+    padding: 3px 10px;
     color: #fff;
     border-radius: 8px;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
 }
 
 .link-icon object {
@@ -149,16 +167,8 @@ body.input-focused {
     background-color: #38A7ED;
 }
 
-#telegram:active {
-    background-color: #0B76BA;
-}
-
 #github {
     background-color: #606060;
-}
-
-#github:active {
-    background-color: #211C1C;
 }
 
 #xda {
@@ -166,17 +176,8 @@ body.input-focused {
     color: #fff;
 }
 
-#xda:active {
-    background-color: #A95400;
-    color: #fff;
-}
-
 #sponsor {
     background-color: #E7D705;
-}
-
-#sponsor:active {
-    background-color: #968B00;
 }
 
 #link-text {
@@ -185,7 +186,6 @@ body.input-focused {
 }
 
 .box {
-    position: relative;
     width: 85vw;
     max-width: 800px;
     background-color: #fff;
@@ -194,6 +194,9 @@ body.input-focused {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     transition: background-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
 }
 
 .box h2 {
@@ -201,10 +204,12 @@ body.input-focused {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
+    user-select: none;
 }
 
 #version-status {
     font-size: 14px;
+    user-select: none;
 }
 
 .toggle-container {
@@ -216,6 +221,62 @@ body.input-focused {
     padding: 0;
     white-space: nowrap;
     text-align: left;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    margin-left: auto;
+    width: 40px;
+    height: 25px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 19px;
+    width: 19px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #D51200;
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #D51200;
+}
+
+input:checked+.slider:before {
+    transform: translateX(15px);
+}
+
+.slider.round {
+    border-radius: 25px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
 
 .control-icon {
@@ -256,19 +317,17 @@ body.input-focused {
     transition: background-color 0.2s ease;
 }
 
-.current-mode-text:active,
-.action-button:active,
-.category-container button:active {
-    background-color: #850B00;
-}
-
-.box:active {
-    background-color: #ccc;
-}
-
-#whitelist:active,
-#blacklist:active {
-    background-color: #fff;
+.delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: #D51200;
+    color: #fff;
 }
 
 ul {
@@ -281,7 +340,7 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 3px;
+    padding: 8px 5px;
     border-bottom: 1px solid #ccc;
 }
 
@@ -316,13 +375,14 @@ li:last-child {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     color: white;
     font-size: 15px;
-    padding: 5px 15px;
+    padding: 5px 10px;
     z-index: 1000;
     transform: translateY(100%);
     transition: transform 0.5s ease, background-color 0.2s ease;
     width: auto;
-    max-width: 88vw;
+    max-width: calc(100% - 40px);
     z-index: 1300;
+    user-select: none;
 }
 
 .prompt.visible {
@@ -371,6 +431,31 @@ li:last-child {
     text-align: center;
 }
 
+.ripple-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 1;
+    animation: ripple-animation ease-out forwards;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.ripple.end {
+    opacity: 0;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(3);
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #121212;
@@ -381,13 +466,19 @@ li:last-child {
         border-bottom: 1px solid #6E6E6E;
     }
 
-    #whitelist:active,
-    #blacklist:active,
     .about-menu,
     .box {
         background-color: #343434;
     }
 
+    .logo-light {
+        display: none;
+    }
+
+    .logo-dark {
+        display: inline-block;
+    }
+    
     .category-container input {
         color: #fff;
         background-color: #232323;
@@ -398,7 +489,6 @@ li:last-child {
         fill: #fff;
     }
 
-    .box:active,
     .slider {
         background-color: #6E6E6E;
     }
