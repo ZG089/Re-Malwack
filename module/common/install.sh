@@ -137,9 +137,17 @@ cat /system/etc/hosts hosts* 2>/dev/null | sed -e '/^[[:space:]]*#/d' -e '/^[[:s
 ui_print "- Your device is now armed against ads, malware and more 🛡"
 
 # Add a persistent directory to save configuration
-if [ ! -f "/data/adb/Re-Malwack/config.sh" ]; then
-    mkdir /data/adb/Re-Malwack
-    echo -e "block_porn=0\nblock_gambling=0\nblock_fakenews=0" > "/data/adb/Re-Malwack/config.sh"
+config_file="/data/adb/Re-Malwack/config.sh"
+types="block_porn block_gambling block_fakenews block_social"
+if [ -f "$config_file" ]; then
+    for type in $types; do
+        grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
+    done
+else
+    mkdir -p "/data/adb/Re-Malwack"
+    for type in $types; do
+        echo "$type=0"
+    done > "$config_file"
 fi
 
 # set permissions
