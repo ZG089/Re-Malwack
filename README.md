@@ -109,12 +109,12 @@ Example command: su -c rmlwk --update-hosts
 ## Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
+- [@KOWX712](https://github.com/KOWX712) - WebUI + Contribution to Re-Malwack project
 - [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
 - [@hBlock](https://github.com/hectorm/hblock) - Hosts file
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
-- [@KOWX712](https://github.com/KOWX712) - WebUI + Fixing bugs
 - And Finally, YOU! For using my module :)
 
 ## Donations
