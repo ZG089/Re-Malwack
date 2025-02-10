@@ -80,9 +80,20 @@ async function getVersion() {
         const command = "grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2";
         const version = await execCommand(command);
         document.getElementById('version-text').textContent = `${version} | `;
+        getStatus();
     } catch (error) {
-        console.error("Failed to read version from module.prop:", error);
+        if (typeof ksu !== 'undefined' && ksu.mmrl) {
+            updateStatus("Please enable JavaScript API in MMRL settings:\n1. Settings\n2. Security\n3. Allow JavaScript API\n4. Bindhosts\n5. Enable both option");
+        } else {
+            updateStatus("Error reading description from module.prop");
+        }
     }
+}
+
+// Function to update the status text dynamically in the WebUI
+function updateStatus(statusText) {
+    const statusElement = document.getElementById('version-status');
+    statusElement.innerHTML = statusText.replace(/\n/g, '<br>');
 }
 
 // Function to get working status
@@ -91,7 +102,6 @@ async function getStatus() {
         await execCommand("grep -q '0.0.0.0' /system/etc/hosts");
         document.getElementById('status-text').textContent = "Protection is enabled ✅";
     } catch (error) {
-        console.error("Failed to check status:", error);
         document.getElementById('status-text').textContent = "Ready 🟡";
     }
 }
@@ -378,7 +388,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     attachAddButtonListeners();
     getVersion();
-    getStatus();
     for (const type of blockTypes) {
         await checkBlockStatus(type);
     }
