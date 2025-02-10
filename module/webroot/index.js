@@ -26,6 +26,14 @@ const links = [
     { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
 ];
 
+// Block types
+const blockTypes = [
+    { id: 'porn', toggle: blockPornToggle, name: 'porn sites', flag: '--block-porn' },
+    { id: 'gambling', toggle: blockGamblingToggle, name: 'gambling sites', flag: '--block-gambling' },
+    { id: 'fakenews', toggle: blockFakenewsToggle, name: 'fake news sites', flag: '--block-fakenews' },
+    { id: 'social', toggle: blockSocialToggle, name: 'social media sites', flag: '--block-social' }
+];
+
 // Ripple effect configuration
 const rippleClasses = ['.ripple-container', '.link-icon'];
 
@@ -88,43 +96,13 @@ async function getStatus() {
     }
 }
 
-// Function to check block porn sites status
-async function blockPornStatus() {
+// Function to check block status for different site categories
+async function checkBlockStatus(type) {
     try {
-        const result = await execCommand("su -c 'grep -q '^block_porn=1' /data/adb/Re-Malwack/config.sh'");
-        blockPornToggle.checked = !result;
+        const result = await execCommand(`su -c 'grep -q '^block_${type.id}=1' /data/adb/Re-Malwack/config.sh'`);
+        type.toggle.checked = !result;
     } catch (error) {
-        blockPornToggle.checked = false;
-    }
-}
-
-// Function to check block gambling sites status
-async function blockGamblingStatus() {
-    try {
-        const result = await execCommand("su -c 'grep -q '^block_gambling=1' /data/adb/Re-Malwack/config.sh'");
-        blockGamblingToggle.checked = !result;
-    } catch (error) {
-        blockGamblingToggle.checked = false;
-    }
-}
-
-// Function to check block fakenews sites status
-async function blockFakenewsStatus() {
-    try {
-        const result = await execCommand("su -c 'grep -q '^block_fakenews=1' /data/adb/Re-Malwack/config.sh'");
-        blockFakenewsToggle.checked = !result;
-    } catch (error) {
-        blockFakenewsToggle.checked = false;
-    }
-}
-
-// Function to check block social media sites status
-async function blockSocialStatus() {
-    try {
-        const result = await execCommand("su -c 'grep -q '^block_social=1' /data/adb/Re-Malwack/config.sh'");
-        blockSocialToggle.checked = !result;
-    } catch (error) {
-        blockSocialToggle.checked = false;
+        type.toggle.checked = false;
     }
 }
 
@@ -156,64 +134,29 @@ async function resetHostsFile() {
     await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
 }
 
-// Function to block pornography sites
-async function blockPorn() {
-    let prompt_message;
-    let action;
-    if (blockPornToggle.checked) {
-        prompt_message = "- Removing entries...";
-        action = "--block-porn 0";
-    } else {
-        prompt_message = "- Applying block for porn sites...";
-        action = "--block-porn";
-    }
-    await performAction(prompt_message, action, "- Failed to apply block for porn sites", "Failed to apply block for porn sites:");
-    blockPornStatus();
-}
+// Function to handle blocking/unblocking different site categories
+async function handleBlock(type) {
+    const isRemoving = type.toggle.checked;
+    const prompt_message = isRemoving ? "- Removing entries..." : `- Applying block for ${type.name}...`;
+    const action = isRemoving ? `${type.flag} 0` : type.flag;
+    const errorPrompt = `- Failed to apply block for ${type.name}`;
+    const errorMessage = `Failed to apply block for ${type.name}:`;
 
-// Function to block gambling sites
-async function blockGambling() {
-    let prompt_message;
-    let action;
-    if (blockGamblingToggle.checked) {
-        prompt_message = "- Removing entries...";
-        action = "--block-gambling 0";
-    } else {
-        prompt_message = "- Applying block for gambling sites...";
-        action = "--block-gambling";
+    try {
+        showPrompt(prompt_message, true, 50000);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${action}'`;
+        const output = await execCommand(command);
+        const lines = output.split("\n");
+        lines.forEach(line => {
+            showPrompt(line, true);
+        });
+        await getStatus();
+        await checkBlockStatus(type);
+    } catch (error) {
+        console.error(errorMessage, error);
+        showPrompt(errorPrompt, false);
     }
-    await performAction(prompt_message, action, "- Failed to apply block for gambling sites", "Failed to apply block for gambling sites:");
-    blockGamblingStatus();
-}
-
-// Function to block fake news sites
-async function blockFakeNews() {
-    let prompt_message;
-    let action;
-    if (blockFakenewsToggle.checked) {
-        prompt_message = "- Removing entries...";
-        action = "--block-fakenews 0";
-    } else {
-        prompt_message = "- Applying block for fake news sites...";
-        action = "--block-fakenews";
-    }
-    await performAction(prompt_message, action, "- Failed to apply block for fake news sites", "Failed to apply block for fake news sites:");
-    blockFakenewsStatus();
-}
-
-// Function to block social media sites
-async function blockSocial() {
-    let prompt_message;
-    let action;
-    if (blockSocialToggle.checked) {
-        prompt_message = "- Removing entries...";
-        action = "--block-social 0";
-    } else {
-        prompt_message = "- Applying block for social media sites...";
-        action = "--block-social";
-    }
-    await performAction(prompt_message, action, "- Failed to apply block for social media sites", "Failed to apply block for social media sites:");
-    blockSocialStatus();
 }
 
 // Function to show prompt
@@ -430,17 +373,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
-    document.getElementById("block-porn").addEventListener("click", blockPorn);
-    document.getElementById("block-gambling").addEventListener("click", blockGambling);
-    document.getElementById("block-fake").addEventListener("click", blockFakeNews);
-    document.getElementById("block-social").addEventListener("click", blockSocial);
+    blockTypes.forEach(type => {
+        document.getElementById(`block-${type.id}`).addEventListener("click", () => handleBlock(type));
+    });
     attachAddButtonListeners();
     getVersion();
     getStatus();
-    blockPornStatus();
-    blockGamblingStatus();
-    blockFakenewsStatus();
-    blockSocialStatus();
+    for (const type of blockTypes) {
+        await checkBlockStatus(type);
+    }
     applyRippleEffect();
     await loadFile('whitelist');
     await loadFile('blacklist');
