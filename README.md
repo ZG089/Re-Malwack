@@ -109,7 +109,6 @@ Example command: su -c rmlwk --update-hosts
 ## Credits
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
-- [@Zackptg5](https://github.com/Zackptg5/MMT-Extended) - MMTE Template
 - [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
 - [@hBlock](https://github.com/hectorm/hblock) - Hosts file
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
