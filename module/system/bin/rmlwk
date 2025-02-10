@@ -138,7 +138,7 @@ function abort() {
 }
 
 function nuke_if_we_dont_have_internet() {
-    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "- Please check your internet connection and try again."
+    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "Please check your internet connection and try again."
 }
 
 function ask() {
