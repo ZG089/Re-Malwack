@@ -9,6 +9,7 @@ const sponsorLink = document.getElementById('sponsor');
 const blockPornToggle = document.getElementById('block-porn-toggle');
 const blockGamblingToggle = document.getElementById('block-gambling-toggle');
 const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
+const blockSocialToggle = document.getElementById('block-social-toggle');
 
 const basePath = "/data/adb/Re-Malwack";
 
@@ -94,7 +95,6 @@ async function blockPornStatus() {
         blockPornToggle.checked = !result;
     } catch (error) {
         blockPornToggle.checked = false;
-        console.error('Error checking block porn status:', error);
     }
 }
 
@@ -105,7 +105,6 @@ async function blockGamblingStatus() {
         blockGamblingToggle.checked = !result;
     } catch (error) {
         blockGamblingToggle.checked = false;
-        console.error('Error checking block gambling status:', error);
     }
 }
 
@@ -116,7 +115,16 @@ async function blockFakenewsStatus() {
         blockFakenewsToggle.checked = !result;
     } catch (error) {
         blockFakenewsToggle.checked = false;
-        console.error('Error checking block fakenews status:', error);
+    }
+}
+
+// Function to check block social media sites status
+async function blockSocialStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_social=1' /data/adb/Re-Malwack/config.sh'");
+        blockSocialToggle.checked = !result;
+    } catch (error) {
+        blockSocialToggle.checked = false;
     }
 }
 
@@ -191,6 +199,21 @@ async function blockFakeNews() {
     }
     await performAction(prompt_message, action, "- Failed to apply block for fake news sites", "Failed to apply block for fake news sites:");
     blockFakenewsStatus();
+}
+
+// Function to block social media sites
+async function blockSocial() {
+    let prompt_message;
+    let action;
+    if (blockSocialToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-social 0";
+    } else {
+        prompt_message = "- Applying block for social media sites...";
+        action = "--block-social";
+    }
+    await performAction(prompt_message, action, "- Failed to apply block for social media sites", "Failed to apply block for social media sites:");
+    blockSocialStatus();
 }
 
 // Function to show prompt
@@ -410,12 +433,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("block-porn").addEventListener("click", blockPorn);
     document.getElementById("block-gambling").addEventListener("click", blockGambling);
     document.getElementById("block-fake").addEventListener("click", blockFakeNews);
+    document.getElementById("block-social").addEventListener("click", blockSocial);
     attachAddButtonListeners();
     getVersion();
     getStatus();
     blockPornStatus();
     blockGamblingStatus();
     blockFakenewsStatus();
+    blockSocialStatus();
     applyRippleEffect();
     await loadFile('whitelist');
     await loadFile('blacklist');

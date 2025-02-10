@@ -186,7 +186,7 @@ case "$(tolower "$1")" in
         update_status
         echo "- Successfully reverted changes."
         ;;
-    --block-porn|--block-gambling|--block-fakenews)
+    --block-porn|--block-gambling|--block-fakenews|--block-social)
         local block_type=${1#--block-}
         local status=$2
         eval "block_toggle=\"\$block_${block_type}\""
@@ -304,6 +304,7 @@ case "$(tolower "$1")" in
         echo "--block-porn <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews <disable>: Block fake news sites, use disable to unblock."
+        echo "--block-social <disable>: Block social media sites, use disable to unblock."
         echo "--whitelist <add/remove> <domain>: Whitelist a domain."
         echo "--blacklist <add/remove> <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
