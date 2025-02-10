@@ -6,6 +6,16 @@ const telegramLink = document.getElementById('telegram');
 const githubLink = document.getElementById('github');
 const xdaLink = document.getElementById('xda');
 const sponsorLink = document.getElementById('sponsor');
+const blockPornToggle = document.getElementById('block-porn-toggle');
+const blockGamblingToggle = document.getElementById('block-gambling-toggle');
+const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
+
+const basePath = "/data/adb/Re-Malwack";
+
+const filePaths = {
+    blacklist: `${basePath}/blacklist.txt`,
+    whitelist: `${basePath}/whitelist.txt`,
+};
 
 // Link redirect
 const links = [
@@ -14,6 +24,12 @@ const links = [
     { element: xdaLink, url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
     { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
 ];
+
+// Ripple effect configuration
+const rippleClasses = ['.ripple-container', '.link-icon'];
+
+let isScrolling = false;
+let modeActive = false;
 
 // Function to handle about menu
 function aboutMenu() {
@@ -71,10 +87,43 @@ async function getStatus() {
     }
 }
 
+// Function to check block porn sites status
+async function blockPornStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_porn=1' /data/adb/Re-Malwack/config.sh'");
+        blockPornToggle.checked = !result;
+    } catch (error) {
+        blockPornToggle.checked = false;
+        console.error('Error checking block porn status:', error);
+    }
+}
+
+// Function to check block gambling sites status
+async function blockGamblingStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_gambling=1' /data/adb/Re-Malwack/config.sh'");
+        blockGamblingToggle.checked = !result;
+    } catch (error) {
+        blockGamblingToggle.checked = false;
+        console.error('Error checking block gambling status:', error);
+    }
+}
+
+// Function to check block fakenews sites status
+async function blockFakenewsStatus() {
+    try {
+        const result = await execCommand("su -c 'grep -q '^block_fakenews=1' /data/adb/Re-Malwack/config.sh'");
+        blockFakenewsToggle.checked = !result;
+    } catch (error) {
+        blockFakenewsToggle.checked = false;
+        console.error('Error checking block fakenews status:', error);
+    }
+}
+
 // Function to handle peform script and output
 async function performAction(promptMessage, commandOption, errorPrompt, errorMessage) {
     try {
-        showPrompt(promptMessage);
+        showPrompt(promptMessage, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
         const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}'`;
         const output = await execCommand(command);
@@ -101,21 +150,51 @@ async function resetHostsFile() {
 
 // Function to block pornography sites
 async function blockPorn() {
-    await performAction("- Downloading entries for porn block...", "--block-porn", "- Failed to download porn block hosts", "Failed to download porn block hosts:");
+    let prompt_message;
+    let action;
+    if (blockPornToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-porn 0";
+    } else {
+        prompt_message = "- Applying block for porn sites...";
+        action = "--block-porn";
+    }
+    await performAction(prompt_message, action, "- Failed to apply block for porn sites", "Failed to apply block for porn sites:");
+    blockPornStatus();
 }
 
 // Function to block gambling sites
 async function blockGambling() {
-    await performAction("- Downloading entries for gambling block...", "--block-gambling", "- Failed to download gambling block hosts", "Failed to download gambling block hosts:");
+    let prompt_message;
+    let action;
+    if (blockGamblingToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-gambling 0";
+    } else {
+        prompt_message = "- Applying block for gambling sites...";
+        action = "--block-gambling";
+    }
+    await performAction(prompt_message, action, "- Failed to apply block for gambling sites", "Failed to apply block for gambling sites:");
+    blockGamblingStatus();
 }
 
 // Function to block fake news sites
 async function blockFakeNews() {
-    await performAction("- Downloading entries for fake news block...", "--block-fakenews", "- Failed to download fake news block hosts", "Failed to download fake news block hosts:");
+    let prompt_message;
+    let action;
+    if (blockFakenewsToggle.checked) {
+        prompt_message = "- Removing entries...";
+        action = "--block-fakenews 0";
+    } else {
+        prompt_message = "- Applying block for fake news sites...";
+        action = "--block-fakenews";
+    }
+    await performAction(prompt_message, action, "- Failed to apply block for fake news sites", "Failed to apply block for fake news sites:");
+    blockFakenewsStatus();
 }
 
 // Function to show prompt
-function showPrompt(message, isSuccess = true) {
+function showPrompt(message, isSuccess = true, duration = 2000) {
     const prompt = document.getElementById('prompt');
     prompt.textContent = message;
     prompt.classList.toggle('error', !isSuccess);
@@ -125,11 +204,10 @@ function showPrompt(message, isSuccess = true) {
     setTimeout(() => {
         prompt.classList.add('visible');
         prompt.classList.remove('hidden');
-        const timeoutDuration = message.includes('Downloading') ? 20000 : 3000;
         window.promptTimeout = setTimeout(() => {
             prompt.classList.remove('visible');
             prompt.classList.add('hidden');
-        }, timeoutDuration);
+        }, duration);
     }, 100);
 }
 
@@ -156,10 +234,11 @@ async function handleAdd(fileType) {
         return;
     }
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} ${inputValue}'`);
+        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} add ${inputValue}'`);
         console.log(`${fileType}ed "${inputValue}" successfully.`);
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
+        await loadFile(fileType);
         await getStatus();
     } catch (error) {
         console.log(`Fail to ${fileType} "${inputValue}": ${error}`);
@@ -212,7 +291,7 @@ inputs.forEach(input => {
 
 // Link redirect
 links.forEach(link => {
-    link.element.addEventListener('click', async () => {
+    link.element.addEventListener("click", async () => {
         try {
             await execCommand(`am start -a android.intent.action.VIEW -d ${link.url}`);
         } catch (error) {
@@ -220,6 +299,108 @@ links.forEach(link => {
         }
     });
 });
+
+// Function to apply ripple effect
+function applyRippleEffect() {
+    rippleClasses.forEach(selector => {
+        document.querySelectorAll(selector).forEach(element => {
+            if (element.dataset.rippleListener !== "true") {
+                element.addEventListener("pointerdown", function (event) {
+                    if (isScrolling) return;
+                    if (modeActive) return;
+
+                    const ripple = document.createElement("span");
+                    ripple.classList.add("ripple");
+
+                    // Calculate ripple size and position
+                    const rect = element.getBoundingClientRect();
+                    const width = rect.width;
+                    const size = Math.max(rect.width, rect.height);
+                    const x = event.clientX - rect.left - size / 2;
+                    const y = event.clientY - rect.top - size / 2;
+
+                    // Determine animation duration
+                    let duration = 0.3 + (width / 800) * 0.3;
+                    duration = Math.min(0.8, Math.max(0.2, duration));
+
+                    // Set ripple styles
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    ripple.style.animationDuration = `${duration}s`;
+                    ripple.style.transition = `opacity ${duration}s ease`;
+
+                    // Adaptive color
+                    const computedStyle = window.getComputedStyle(element);
+                    const bgColor = computedStyle.backgroundColor || "rgba(0, 0, 0, 0)";
+                    const textColor = computedStyle.color;
+                    const isDarkColor = (color) => {
+                        const rgb = color.match(/\d+/g);
+                        if (!rgb) return false;
+                        const [r, g, b] = rgb.map(Number);
+                        return (r * 0.299 + g * 0.587 + b * 0.114) < 96; // Luma formula
+                    };
+                    ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "";
+
+                    // Append ripple and handle cleanup
+                    element.appendChild(ripple);
+                    const handlePointerUp = () => {
+                        ripple.classList.add("end");
+                        setTimeout(() => {
+                            ripple.classList.remove("end");
+                            ripple.remove();
+                        }, duration * 1000);
+                        element.removeEventListener("pointerup", handlePointerUp);
+                        element.removeEventListener("pointercancel", handlePointerUp);
+                    };
+                    element.addEventListener("pointerup", handlePointerUp);
+                    element.addEventListener("pointercancel", handlePointerUp);
+                });
+                element.dataset.rippleListener = "true";
+            }
+        });
+    });
+}
+
+// Function to read a file and display its content in the UI
+async function loadFile(fileType) {
+    try {
+        const content = await execCommand(`cat ${filePaths[fileType]}`);
+        const lines = content
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith("#"));
+        const listElement = document.getElementById(`${fileType}-list`);
+        listElement.innerHTML = "";
+        lines.forEach(line => {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `
+                <span>${line}</span>
+                <button class="delete-btn ripple-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm72-144h72v-336h-72v336Zm120 0h72v-336h-72v336Z"/></svg>
+                </button>
+            `;
+            listElement.appendChild(listItem);
+            listItem.querySelector(".delete-btn").addEventListener("click", () => removeLine(fileType, line));
+        });
+        applyRippleEffect();
+    } catch (error) {
+        console.error(`Failed to load ${fileType} file:`, error);
+    }
+}
+
+// Function to remove a line from whitelist/blacklist
+async function removeLine(fileType, line) {
+    try {
+        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}'`);
+        showPrompt(`Removed ${line} from ${fileType}`, true);
+        await loadFile(fileType);
+        await getStatus();
+    } catch (error) {
+        console.error(`Failed to remove line from ${fileType}:`, error);
+        showPrompt(`Failed to remove ${line} from ${fileType}`, false);
+    }
+}
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -232,4 +413,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachAddButtonListeners();
     getVersion();
     getStatus();
+    blockPornStatus();
+    blockGamblingStatus();
+    blockFakenewsStatus();
+    applyRippleEffect();
+    await loadFile('whitelist');
+    await loadFile('blacklist');
 });
