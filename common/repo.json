@@ -1,9 +1,9 @@
 {
 	"license": "GPL-3.0",
-	"support": "https://github.com/Magisk-Modules-Alt-Repo/Re-Malwack/issues",
+	"support": "https://t.me/Re_Malwack",
 	"donate": "http://buymeacoffee.com/ZG089",
-	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/Add-Text-11-22-12-57-45.png",
-	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/20240828-173916-0000-modified.png",
+	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/banner.png",
+	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/icon.png",
 	"categories": [
         "Adblocking and Hosts Files",
         "APatch",
