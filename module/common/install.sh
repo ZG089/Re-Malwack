@@ -82,7 +82,6 @@ if [ "$DO_WE_REALLY_NEED_ADDONS" == "true" ]; then
 fi
 
 # check for conflicts
-ui_print "- Checking for conflicts"
 pm list packages | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
 
 for module in /data/adb/modules/*; do
@@ -104,7 +103,6 @@ if [ "$DO_WE_HAVE_ANYTHING_TO_EXTRACT" == "true" ]; then
 fi
 
 # let's check do we have internet or not.
-ui_print "- Checking internet connection"
 ping -c 1 -w 5 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Download hosts files
