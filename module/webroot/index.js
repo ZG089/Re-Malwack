@@ -96,6 +96,22 @@ function updateStatus(statusText) {
     statusElement.innerHTML = statusText.replace(/\n/g, '<br>');
 }
 
+// Function to check if running in MMRL
+function checkMMRL() {
+    if (typeof ksu !== 'undefined' && ksu.mmrl) {
+        // Request API permission
+        // Require MMRL version code 33045 or higher
+        try {
+            $Re_Malwack.requestAdvancedKernelSUAPI();
+            $Re_Malwack.requestFileSystemAPI();
+        } catch (error) {
+            console.log("Error requesting API:", error);
+        }
+    } else {
+        console.log("Not running in MMRL environment.");
+    }
+}
+
 // Function to get working status
 async function getStatus() {
     try {
@@ -380,6 +396,7 @@ async function removeLine(fileType, line) {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
+    checkMMRL();
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
