@@ -56,14 +56,6 @@ s.youtube.com
 web.stytch.com  
 groq.com  
 
-# Meta
-edge.mqtt.facebook.com  
-graph.facebook.com  
-b-graph.facebook.com  
-mqtt-mini.facebook.com  
-web.facebook.com  
-graph.instagram.com  
-
 # NordVPN  
 launches.appsflyer.com  
 
@@ -87,12 +79,6 @@ supercell.com
 tidal.com  
 spotify.app.link  
 
-# Twitter / X  
-t.co  
 
 # Sites  
 html-load.com  
-
-# WhatsApp  
-whatsapp.com  
-whatsapp.net
