@@ -280,13 +280,13 @@ case "$(tolower "$1")" in
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
         fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null &
+        fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt &>/dev/null &
     
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
         [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
-        wait
         wait
 
         echo "- Applying update."
