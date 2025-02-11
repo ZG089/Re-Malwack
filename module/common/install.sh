@@ -152,6 +152,8 @@ else
     done > "$config_file"
 fi
 
+mkdir /sdcard/Re-Malwack
+
 # set permissions
 chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
