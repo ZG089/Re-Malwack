@@ -285,6 +285,8 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
         [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
+        [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
+        wait
         wait
 
         echo "- Applying update."
@@ -295,6 +297,7 @@ case "$(tolower "$1")" in
         [ "$block_porn" = 1 ] && block_content "porn"
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
+        [ "$block_social" = 1 ] && block_content "social"
         update_status
         echo "- Done."
         ;;
