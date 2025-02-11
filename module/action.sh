@@ -13,8 +13,6 @@ echo "
 ╚────────────────────────────────────────╝
 "
 sleep 0.5
-echo "- Upgrading Defenses 🛡️"
-sleep 0.2
 echo "- Preparing New weapons 🔫"
 
 sh "$MODDIR/system/bin/rmlwk" --update-hosts || abort "- Failed to update hosts."
