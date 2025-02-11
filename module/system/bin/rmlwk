@@ -63,9 +63,33 @@ function install_hosts() {
         whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt")
     fi
 
+    # Process Social whitelist
+    if [ -s "$persist_dir/social_whitelist.txt" ]; then
+        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt" "$persist_dir/social_whitelist.txt")
+    elif [ -s "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
+        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt")
+    fi
+
     # Filter whitelist
     if [ -n "$whitelist" ]; then
         echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
+        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
+        cat "$tmp_hosts" > "$hosts_file"
+    fi
+
+    # Filter Social Whitelist
+    if [ "$block_social" -eq 1 ]; then
+        # Skip filtering social whitelist
+    else
+        if [ -n "$social_whitelist" ]; then
+            echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
+            awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
+            cat "$tmp_hosts" > "$hosts_file"
+        fi
+    fi
+
+    if [ -n "$social_whitelist" ]; then
+        echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
         cat "$tmp_hosts" > "$hosts_file"
     fi
@@ -297,7 +321,6 @@ case "$(tolower "$1")" in
         [ "$block_porn" = 1 ] && block_content "porn"
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
-        [ "$block_social" = 1 ] && block_content "social"
         update_status
         echo "- Done."
         ;;
