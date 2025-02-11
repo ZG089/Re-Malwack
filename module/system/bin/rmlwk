@@ -1,5 +1,11 @@
 #!/system/bin/sh
 
+# Define a logging function
+function log_message() {
+    local message="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> "/sdcard/Re-Malwack/logs.txt"
+}
+
 # Define functions
 function malvack_banner() {
     clear
@@ -46,6 +52,7 @@ tmp_hosts="/data/local/tmp/hosts"
 [ -z "$MAGISKTMP" ] && malvack_banner
 
 function install_hosts() {
+    log_message "Starting to install hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
@@ -88,20 +95,16 @@ function install_hosts() {
         fi
     fi
 
-    if [ -n "$social_whitelist" ]; then
-        echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
-        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-        cat "$tmp_hosts" > "$hosts_file"
-    fi
-
     # Update config
     [ -n "$block_type" ] && sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
 
     # Clean up
     rm -f "${tmp_hosts}"* 2>/dev/null
+    log_message "Successfully installed hosts."
 }
 
 function remove_hosts() {
+    log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
@@ -111,7 +114,7 @@ function remove_hosts() {
     # Remove from hosts file
     awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}1" "${tmp_hosts}0" > "$hosts_file"
 
-    # Restore to default entires if hosts file is empty
+    # Restore to default entries if hosts file is empty
     if [ ! -s "$hosts_file" ]; then
         echo "- Warning: Hosts file is empty. Restoring default entries."
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -122,6 +125,7 @@ function remove_hosts() {
 
     # Clean up
     rm -f "${tmp_hosts}"* 2>/dev/null
+    log_message "Successfully removed hosts."
 }
 
 function block_content() {
@@ -136,9 +140,10 @@ function block_content() {
         nuke_if_we_dont_have_internet
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             mkdir -p "$persist_dir/cache/$block_type"
+            log_message "Downloading hosts for $block_type."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
             if [ "$block_type" = "porn" ]; then
-                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null &
+                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null & 
                 fetch "${cache_hosts}3" https://www.someonewhocares.org/hosts/hosts &>/dev/null &
                 wait
             fi
@@ -156,6 +161,7 @@ function tolower() {
 }
 
 function abort() {
+    log_message "Aborting: $1"
     echo "- $1"
     sleep 0.5
     exit 1
@@ -181,19 +187,22 @@ function ask() {
 function fetch() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     if command -v curl >/dev/null 2>&1; then
-        curl -o "$@" || abort "Failed to download $2."
+        curl -o "$@" || { log_message "Failed to download $2."; abort "Failed to download $2."; }
     else
-        busybox wget --no-check-certificate -O - "$@" || abort "Failed to download $2."
+        busybox wget --no-check-certificate -O - "$@" || { log_message "Failed to download $2."; abort "Failed to download $2."; }
     fi
 }
 
 function update_status() {
     if grep -q '0.0.0.0' "$hosts_file"; then
         string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+        status="Protection is enabled ✅ | Last updated: $(date)"
     else
         string="description=Status: Protection is disabled due to reset ❌"
+        status="Protection is disabled due to reset ❌"
     fi
     sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
+    log_message "$status"
 }
 
 # Check Root
@@ -204,11 +213,12 @@ fi
 # Main Logic
 case "$(tolower "$1")" in
     --reset)
+        log_message "Reverting the changes."
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
         update_status
-        echo "- Successfully reverted changes."
+        log_message "Successfully reverted changes." && echo "- Successfully reverted changes."
         ;;
     --block-porn|--block-gambling|--block-fakenews|--block-social)
         local block_type=${1#--block-}
@@ -221,7 +231,7 @@ case "$(tolower "$1")" in
             else
                 echo "- Removing block entries for ${block_type} sites."
                 block_content "$block_type" 0
-                echo "- Unblocked ${block_type} sites successfully."
+                log_message "Unblocked ${block_type} sites successfully." && echo "- Unblocked ${block_type} sites successfully."
             fi
         else
             if [ "$block_toggle" = 1 ]; then
@@ -229,7 +239,7 @@ case "$(tolower "$1")" in
             else
                 echo "- Adding block entries for ${block_type} sites."
                 block_content "$block_type" 1
-                echo "- Blocked ${block_type} sites successfully."
+                log_message "Blocked ${block_type} sites successfully." && echo "- Blocked ${block_type} sites successfully."
             fi
         fi
         update_status
@@ -248,11 +258,12 @@ case "$(tolower "$1")" in
                 # Add domain to whitelist.txt and remove from hosts
                 grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
                 sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" 2>/dev/null
+                log_message "Added $domain to whitelist."
             else
                 # Remove domain from whitelist.txt if found
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
-                    echo "- $domain removed from whitelist."
+                    log_message "Removed $domain from whitelist." && echo "- $domain removed from whitelist."
                 else
                     echo "- $domain isn't in whitelist."
                 fi
@@ -277,12 +288,13 @@ case "$(tolower "$1")" in
                 else
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
                     update_status
+                    log_message "Blacklisted $domain."
                 fi
             else
                 # Remove domain from blacklist.txt if found
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt";
-                    echo "- $domain removed from blacklist."
+                    log_message "Removed $domain from blacklist." && echo "- $domain removed from blacklist."
                 else
                     echo "- $domain isn't in blacklist."
                 fi
@@ -290,21 +302,30 @@ case "$(tolower "$1")" in
         fi
         ;;
     --update-hosts)
+        log_message "Starting to update hosts."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
 
         # Update Re-Malwack general hosts
         fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null &
+        log_message "Downloading hosts1."
         fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null &
+        log_message "Downloading hosts2."
         fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null &
+        log_message "Downloading hosts3."
         fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null &
+        log_message "Downloading hosts4."
         fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null &
+        log_message "Downloading hosts5."
         fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null &
+        log_message "Downloading hosts6."
         
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
         fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null &
+        log_message "Downloading whitelist."
         fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt &>/dev/null &
+        log_message "Downloading social whitelist."
     
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
@@ -322,6 +343,7 @@ case "$(tolower "$1")" in
         [ "$block_gambling" = 1 ] && block_content "gambling"
         [ "$block_fakenews" = 1 ] && block_content "fakenews"
         update_status
+        log_message "Successfully updated hosts."
         echo "- Done."
         ;;
     --help|-h|*)
