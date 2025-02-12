@@ -117,6 +117,8 @@ function remove_hosts() {
     # Restore to default entries if hosts file is empty
     if [ ! -s "$hosts_file" ]; then
         echo "- Warning: Hosts file is empty. Restoring default entries."
+        log_message "Detected empty hosts file"
+        log_message "Restoring default entries..."
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
 
@@ -246,7 +248,7 @@ case "$(tolower "$1")" in
                 # Add domain to whitelist.txt and remove from hosts
                 grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
                 sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" 2>/dev/null
-                log_message "Added $domain to whitelist."
+                log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
             else
                 # Remove domain from whitelist.txt if found
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
@@ -290,7 +292,7 @@ case "$(tolower "$1")" in
         fi
         ;;
     --update-hosts)
-        log_message "Starting to update hosts."
+        log_message "Starting to update hosts..."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
 
@@ -311,9 +313,9 @@ case "$(tolower "$1")" in
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
         fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null &
-        log_message "Downloading whitelist."
+        log_message "Downloading whitelist..."
         fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt &>/dev/null &
-        log_message "Downloading social whitelist."
+        log_message "Downloading social whitelist..."
     
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
@@ -327,9 +329,9 @@ case "$(tolower "$1")" in
         install_hosts
 
         # Check config and apply update
-        [ "$block_porn" = 1 ] && block_content "porn"
-        [ "$block_gambling" = 1 ] && block_content "gambling"
-        [ "$block_fakenews" = 1 ] && block_content "fakenews"
+        [ "$block_porn" = 1 ] && block_content "porn" && log_message "Updating porn sites blocklist..."
+        [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Updating gambling sites blocklist..."
+        [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         update_status
         log_message "Successfully updated hosts."
         echo "- Done."
