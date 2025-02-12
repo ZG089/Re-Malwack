@@ -171,18 +171,6 @@ function nuke_if_we_dont_have_internet() {
     ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "Please check your internet connection and try again."
 }
 
-function ask() {
-    local question="$1"
-    local answer
-    printf "- $question (y/n): "
-    read -r answer
-    if [ "$(tolower "$answer")" = "y" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 # Fallback to busybox wget if curl binary is not available
 function fetch() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
