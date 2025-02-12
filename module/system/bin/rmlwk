@@ -140,7 +140,7 @@ function block_content() {
         nuke_if_we_dont_have_internet
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             mkdir -p "$persist_dir/cache/$block_type"
-            log_message "Downloading hosts for $block_type."
+            log_message "Downloading hosts for $block_type." && echo "- Downloading hosts for $block_type."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
             if [ "$block_type" = "porn" ]; then
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null & 
@@ -169,18 +169,6 @@ function abort() {
 
 function nuke_if_we_dont_have_internet() {
     ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "Please check your internet connection and try again."
-}
-
-function ask() {
-    local question="$1"
-    local answer
-    printf "- $question (y/n): "
-    read -r answer
-    if [ "$(tolower "$answer")" = "y" ]; then
-        return 0
-    else
-        return 1
-    fi
 }
 
 # Fallback to busybox wget if curl binary is not available
