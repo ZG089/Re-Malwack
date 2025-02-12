@@ -142,7 +142,7 @@ function block_content() {
         nuke_if_we_dont_have_internet
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             mkdir -p "$persist_dir/cache/$block_type"
-            log_message "Downloading hosts for $block_type." && echo "- Downloading hosts for $block_type."
+            echo "- Downloading hosts for $block_type."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
             if [ "$block_type" = "porn" ]; then
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null & 
@@ -332,6 +332,7 @@ case "$(tolower "$1")" in
         [ "$block_porn" = 1 ] && block_content "porn" && log_message "Updating porn sites blocklist..."
         [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Updating gambling sites blocklist..."
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
+        [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
         update_status
         log_message "Successfully updated hosts."
         echo "- Done."
