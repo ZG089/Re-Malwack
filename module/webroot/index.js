@@ -99,6 +99,13 @@ function updateStatus(statusText) {
 // Function to check if running in MMRL
 function checkMMRL() {
     if (typeof ksu !== 'undefined' && ksu.mmrl) {
+        // Set status bars theme based on device theme
+        try {
+            $Re_Malwack.setLightStatusBars(!window.matchMedia('(prefers-color-scheme: dark)').matches)
+        } catch (error) {
+            console.log("Error setting status bars theme:", error)
+        }
+
         // Request API permission
         // Require MMRL version code 33045 or higher
         try {
