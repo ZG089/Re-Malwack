@@ -10,7 +10,8 @@
         "KernelSU",
         "Magisk",
 		"Built Different",
-		"Protection"
+		"Protection",
+		"WebUI"
     ],
 	"require": [],
 	"screenshots": [],
