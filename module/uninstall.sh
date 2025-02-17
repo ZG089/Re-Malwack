@@ -1,3 +1,11 @@
+# Logging function
+function log_message() {
+    local message="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> "/sdcard/Re-Malwack/logs.txt"
+}
+
+log_message "Re-Malwack has been uninstalled successfully, Thanks for Choosing Re-Malwack!"
+
 # Don't modify anything after this
 if [ -f $INFO ]; then
   while read LINE; do
