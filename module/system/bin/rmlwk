@@ -203,7 +203,7 @@ fi
 # Main Logic
 case "$(tolower "$1")" in
     --reset)
-        log_message "Reverting the changes and resetting blocklist values."
+        log_message "Reverting the changes."
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
@@ -300,27 +300,19 @@ case "$(tolower "$1")" in
         nuke_if_we_dont_have_internet
 
         # Update Re-Malwack general hosts
-        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null &
-        log_message "Downloading hosts1."
-        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null &
-        log_message "Downloading hosts2."
-        fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null &
-        log_message "Downloading hosts3."
-        fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null &
-        log_message "Downloading hosts4."
-        fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null &
-        log_message "Downloading hosts5."
-        fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null &
-        log_message "Downloading hosts6."
-        fetch "${tmp_hosts}7" https://hblock.molinero.dev/hosts &>/dev/null &
-        log_message "Downloading hosts7."
+        fetch "${tmp_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts &>/dev/null && log_message "hosts1 downloaded successfully." || log_message "Failed to download hosts1."
+        fetch "${tmp_hosts}2" https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt &>/dev/null && log_message "hosts2 downloaded successfully." || log_message "Failed to download hosts2."
+        fetch "${tmp_hosts}3" https://o0.pages.dev/Pro/hosts.txt &>/dev/null && log_message "hosts3 downloaded successfully." || log_message "Failed to download hosts3."
+        fetch "${tmp_hosts}4" https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt &>/dev/null && log_message "hosts4 downloaded successfully." || log_message "Failed to download hosts4."
+        fetch "${tmp_hosts}5" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt &>/dev/null && log_message "hosts5 downloaded successfully." || log_message "Failed to download hosts5."
+        fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null && log_message "hosts6 downloaded successfully." || log_message "Failed to download hosts6."
+        fetch "${tmp_hosts}7" https://hblock.molinero.dev/hosts &>/dev/null && log_message "hosts7 downloaded successfully." || log_message "Failed to download hosts7."
         
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
-        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null &
-        log_message "Downloading whitelist..."
-        fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt &>/dev/null &
-        log_message "Downloading social whitelist..."
+        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt &>/dev/null && log_message "Whitelist downloaded successfully." || log_message "Failed to download whitelist."
+        fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt &>/dev/null && log_message "Social whitelist downloaded successfully." || log_message "Failed to download social whitelist."
+
     
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
