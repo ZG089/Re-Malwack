@@ -23,6 +23,7 @@ https://o0.pages.dev/Pro/hosts.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
+https://hblock.molinero.dev/hosts
 "
 
 ui_print "
