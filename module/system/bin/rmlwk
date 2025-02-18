@@ -309,6 +309,8 @@ case "$(tolower "$1")" in
         log_message "Downloading hosts5."
         fetch "${tmp_hosts}6" https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt &>/dev/null &
         log_message "Downloading hosts6."
+        fetch "${tmp_hosts}7" https://hblock.molinero.dev/hosts &>/dev/null &
+        log_message "Downloading hosts7."
         
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
