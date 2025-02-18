@@ -86,7 +86,7 @@ function install_hosts() {
 
     # Filter Social Whitelist
     if [ "$block_social" -eq 1 ]; then
-        # Skip filtering social whitelist
+        log_message "Social Block enable triggered, Social Whitelist won't be applied"
     else
         if [ -n "$social_whitelist" ]; then
             echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
