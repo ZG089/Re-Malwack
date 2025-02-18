@@ -203,10 +203,13 @@ fi
 # Main Logic
 case "$(tolower "$1")" in
     --reset)
-        log_message "Reverting the changes."
+        log_message "Reverting the changes and resetting blocklist values."
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
+
+        # Reset blocklist values to 0
+        sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
         update_status
         log_message "Successfully reverted changes." && echo "- Successfully reverted changes."
         ;;
