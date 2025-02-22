@@ -15,7 +15,7 @@ else
 fi
 
 # let's store the url links here to make the installation easier.
-# we have uhhh, 6 links now..
+# we have uhhh, 7 links now..
 hostsFileURL="
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
