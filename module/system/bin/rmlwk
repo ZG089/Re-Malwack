@@ -57,13 +57,16 @@ function install_hosts() {
     cp -f "$hosts_file" "${tmp_hosts}0"
 
     # Prepare blacklist
+    log_message "Preparing Blacklist..."
     [ -s "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
 
     # Update hosts
+    log_message "Updating hosts..."
     sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
     sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
     
     # Process whitelist
+    log_message "Processing Whitelist..."
     if [ -s "$persist_dir/whitelist.txt" ]; then
         whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt" "$persist_dir/whitelist.txt")
     elif [ -s "$persist_dir/cache/whitelist/whitelist.txt" ]; then
@@ -71,6 +74,7 @@ function install_hosts() {
     fi
 
     # Process Social whitelist
+    log_message "Processing Social Whitelist..."
     if [ -s "$persist_dir/social_whitelist.txt" ]; then
         social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt" "$persist_dir/social_whitelist.txt")
     elif [ -s "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
@@ -78,6 +82,7 @@ function install_hosts() {
     fi
 
     # Filter whitelist
+    log_message "Filtering Whitelist..."
     if [ -n "$whitelist" ]; then
         echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
@@ -85,6 +90,7 @@ function install_hosts() {
     fi
 
     # Filter Social Whitelist
+    log_message "Filtering Social Whitelist..."
     if [ "$block_social" -eq 1 ]; then
         log_message "Social Block enable triggered, Social Whitelist won't be applied"
     else
@@ -96,9 +102,11 @@ function install_hosts() {
     fi
 
     # Update config
+    log_message "Updating Config..."
     [ -n "$block_type" ] && sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
 
     # Clean up
+    log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully installed hosts."
 }
@@ -123,9 +131,11 @@ function remove_hosts() {
     fi
 
     # Update config
+    log_message "Updating Config..."
     sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
 
     # Clean up
+    log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully removed hosts."
 }
@@ -143,6 +153,7 @@ function block_content() {
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             mkdir -p "$persist_dir/cache/$block_type"
             echo "- Downloading hosts for $block_type."
+            log_message "Downloading hosts for $block_type."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts &>/dev/null
             if [ "$block_type" = "porn" ]; then
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &>/dev/null & 
