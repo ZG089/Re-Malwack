@@ -45,6 +45,11 @@ tmp_hosts="/data/local/tmp/hosts"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
 
+# Checking hosts writability
+if [ ! -w $hosts_file ] ; then
+	echo "Hosts file is unwritable!"
+return 1
+
 # Read config
 . "$persist_dir/config.sh"
 
