@@ -3,7 +3,7 @@
 # Define a logging function
 function log_message() {
     local message="$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')]- $message" >> "/sdcard/Re-Malwack/logs.txt"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "/sdcard/Re-Malwack/logs.txt"
 }
 
 # Define functions
