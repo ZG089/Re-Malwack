@@ -2,7 +2,6 @@
   
 <a href="https://ibb.co/cX89yGnf"><img src="https://i.ibb.co/h1dNgPzQ/Re-Malwack-2.png" alt="Re-Malwack" border="0"></a>
 </div>
-<h1 align="center">Re-Malwack</h1>
 <h2 align="center">Protection-maxxing magisk module 🗿</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Regularly-green?style=for-the-badge)
