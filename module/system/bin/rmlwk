@@ -242,8 +242,10 @@ case "$(tolower "$1")" in
         # Reset blocklist values to 0
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
         update_status
-        log_message "Successfully reverted changes." && echo "- Successfully reverted changes."
+        log_message "Successfully reverted changes."
+	echo "- Successfully reverted changes."
         ;;
+
     --block-porn|--block-gambling|--block-fakenews|--block-social)
         block_type=${1#--block-}
         status="$2"
@@ -268,6 +270,7 @@ case "$(tolower "$1")" in
         fi
         update_status
         ;;
+
     --whitelist)
         option="$2"
         domain="$3"
@@ -294,6 +297,7 @@ case "$(tolower "$1")" in
             fi
         fi
         ;;
+
     --blacklist)
         option="$2"
         domain="$3"
@@ -329,59 +333,49 @@ case "$(tolower "$1")" in
 
     --add-additional-sources)
         # Capture all URL argument(s)
-        cust_urls="${@:2}"
+        cust_urls=("${@:2}")
         [ -z "$cust_urls" ] && abort "No URL(s) provided"
 
-        # log and type shit to screen
+        # Log and notify the user
         log_message "Updating host(s)..."
         echo "- Updating host(s)..."
         nuke_if_we_dont_have_internet
 
-        # Fetch additional host lists
-        fetch "$persist_dir/cache/cust_hosts" "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/cust_hosts"
-
-        # Ensure the file is not empty before processing
-        [ ! -s "$persist_dir/cache/cust_hosts" ] && touch "$persist_dir/cache/cust_hosts"
-        tmp_custom_list="$persist_dir/cache/cust_hosts_new"
-        cp "$persist_dir/cache/cust_hosts" "$tmp_custom_list"
+        # Temporary list to store new entries
+        tmp_custom_list="${persist_dir}/cache/tmp_custom_list"
+        rm "$tmp_custom_list"
+        touch $tmp_custom_list
 
         # Process each URL provided by the user
-        for url in $cust_urls; do
+        count_me_in=0
+        for url in "${cust_urls[@]}"; do
+            count_me_in=$((count_me_in + 1))
             log_message "Fetching user-provided hosts: $url"
             echo "Fetching: $url"
-            fetch "${tmp_hosts}_custom" "$url"
+            fetch "${tmp_hosts}_custom_${count_me_in}" "$url"
 
-            # Append new entries from downloaded file to cache
-            while IFS= read -r new_host; do
-                # Add new entry only if it's not already in the cache
-                if ! grep -qxF "$new_host" "$tmp_custom_list"; then
-                    echo "$new_host" >> "$tmp_custom_list"
-                else
-                    log_message "Skipped duplicate entry: $new_host"
-                    echo "Ignored duplicate: $new_host"
+            # Read the downloaded file and store unique entries
+            while IFS= read -r entry; do
+                # Ensure entry is not empty and not a duplicate
+                if [[ -n "$entry" && ! $(grep -qxF "$entry" "$tmp_custom_list") ]]; then
+                    echo "$entry" >> "$tmp_custom_list"
+                    log_message "Added to custom list: $entry"
                 fi
-            done < "${tmp_hosts}_custom"
+            done < "${tmp_hosts}_custom_${count_me_in}"
         done
 
-        # Replace old host list with updated list
-        mv "$tmp_custom_list" "$persist_dir/cache/cust_hosts"
-        log_message "Custom sources updated successfully."
-        echo "- Custom sources updated successfully."
-
-        # Now, write everything from `cust_hosts` to `$hosts_file` if it’s not already there
+        # Ensure new entries are added to the main hosts file if not already present
         log_message "Checking for new entries to add to hosts..."
-        tmp_hosts_file="${hosts_file}_new"
-        cp "$hosts_file" "$tmp_hosts_file"
-
         while IFS= read -r entry; do
-            if ! grep -qxF "$entry" "$hosts_file"; then
-                echo "$entry" >> "$tmp_hosts_file"
+            # Ensure entry is not empty and not already in the hosts file
+            if [[ -n "$entry" && ! $(grep -qxF "$entry" "$hosts_file") ]]; then
+                echo "$entry" >> "$hosts_file"
                 log_message "Added new entry: $entry"
             fi
-        done < "$persist_dir/cache/cust_hosts"
+        done < "$tmp_custom_list"
 
-        # Overwrite `$hosts_file` with the updated version
-        mv "$tmp_hosts_file" "$hosts_file"
+        # Cleanup temporary file
+        rm -f "$tmp_custom_list"
         log_message "Updated host file successfully."
         echo "- Updated host file successfully."
         ;;
@@ -429,6 +423,7 @@ case "$(tolower "$1")" in
         log_message "Successfully updated hosts."
         echo "- Done."
         ;;
+
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument]"
