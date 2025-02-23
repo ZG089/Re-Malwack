@@ -440,7 +440,7 @@ case "$(tolower "$1")" in
         echo "--whitelist <add/remove> <domain>: Whitelist a domain."
         echo "--blacklist <add/remove> <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
-        echo "--add-additional-sources: Add your preferred *hosts*"
+        echo -e "--add-additional-sources: <domain(s)>: Add your preferred *hosts* you can add plenty of hosts into this module and\nit only gets added if it's not already present in the module source"
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
