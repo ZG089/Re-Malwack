@@ -381,12 +381,13 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts)
+        nzxt_chinchilla="/sdcard/Re-Malwack/custom-hosts.txt"
         log_message "Starting to update hosts..."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
 
         # Update Re-Malwack general hosts 
-        if [ "$(grep "versionCode" "/data/adb/modules/Re-Malwack/module.prop" | awk -F= '{print $2}')" == "530"  ]; then # only works on vc530 of this module
+        if [ ! -f "$nzxt_chinchilla" ]; then
             for i in $(seq 1 7); do
                 for links in "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt" \
                     "https://o0.pages.dev/Pro/hosts.txt" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt" \
@@ -396,6 +397,28 @@ case "$(tolower "$1")" in
                         fetch "${tmp_hosts}${i}" "${links}"
                     done
             done
+        else
+            echo "- Custom hosts is found, adding your custom url(s) from it...."
+            log_message "Adding things from custom hosts..."
+            cat $hosts_file > ${hosts_file}__bckp
+            cat ${hosts_file}__bckp > ${hosts_file}__bckp1
+            for slave_file_lists__ in $(grep -oP 'https?://[^\s"]+' $nzxt_chinchilla); do
+                if ! grep -qxF "${slave_file_lists__}" ${hosts_file}; then
+                    echo "- Adding $slave_file_lists__"
+                    log_message "Adding $slave_file_lists__"
+                    echo "${slave_file_lists__}" >> ${hosts_file}__bckp1
+                else
+                    echo "- Skipping $slave_file_lists__ because it's already present in the main module package"
+                    log_message "Skipping $slave_file_lists__ because it's already present in the main module package"
+                fi
+            done
+            if mv ${hosts_file}__bckp1 $hosts_file; then
+                log_message "Succssfully merged things to the main source.."
+                echo "- Succssfully merged things to the main source.."
+            else
+                log_message "Failed to add url(s) from the custom hosts provided by the user"
+                abort "Failed to add url(s) please try again"
+            fi
         fi
 
         # Update hosts for global whitelist
