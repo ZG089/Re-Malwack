@@ -161,6 +161,17 @@ async function resetHostsFile() {
     await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
 }
 
+// Function to export logs
+async function exportLogs() {
+    try {
+        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_$(date +%Y-%m-%d_%H:%M).tar.gz --exclude='/data/adb/Re-Malwack' -C /data/adb/Re-Malwack logs`);
+        showPrompt("Logs saved to /sdcard/Download", true);
+    } catch (error) {
+        console.error("Failed to export logs:", error);
+        showPrompt("Failed to export logs", false);
+    }
+}
+
 // Function to handle blocking/unblocking different site categories
 async function handleBlock(type) {
     const isRemoving = type.toggle.checked;
@@ -405,6 +416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
+    document.getElementById("export-logs").addEventListener("click", exportLogs);
     blockTypes.forEach(type => {
         document.getElementById(`block-${type.id}`).addEventListener("click", () => handleBlock(type));
     });
