@@ -34,18 +34,12 @@ rm -rf /sdcard/Re-Malwack/*.txt /sdcard/Re-Malwack/*.log # let's wipe old logs
 
 # Variables
 persist_dir="/data/adb/Re-Malwack"
-temp=$(mktemp)
-MODDIR="/data/adb/modules/Re-Malwack"
+MODDIR="${0%/*}"
 hosts_file="$MODDIR/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 LOGFILE="/sdcard/Re-Malwack/$(date +%B_%d_%Y__%I:%M%p)___remalwack.log"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
-
-# Checking hosts writability
-if [ ! -w $hosts_file ] ; then
-	echo "Hosts file is unwritable!"
-return 1
 
 # Read config
 . "$persist_dir/config.sh"
