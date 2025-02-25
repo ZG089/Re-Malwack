@@ -75,38 +75,22 @@ function install_hosts() {
     
     # Process whitelist
     log_message "Processing Whitelist..."
-    if [ -s "$persist_dir/whitelist.txt" ]; then
-        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt" "$persist_dir/whitelist.txt")
-    elif [ -s "$persist_dir/cache/whitelist/whitelist.txt" ]; then
-        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt")
-    fi
-
-    # Process Social whitelist
-    log_message "Processing Social Whitelist..."
-    if [ -s "$persist_dir/social_whitelist.txt" ]; then
-        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt" "$persist_dir/social_whitelist.txt")
-    elif [ -s "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
-        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt")
-    fi
+    [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$persist_dir/whitelist.txt"
+    [ -s "$persist_dir/cache/whitelist/whitelist.txt" ] && whitelist_file="$persist_dir/cache/whitelist/whitelist.txt $whitelist_file"
+    [ -s "$persist_dir/cache/whitelist/social_whitelist.txt" ] && social_whitelist="$persist_dir/cache/whitelist/social_whitelist.txt"
 
     # Filter whitelist
     log_message "Filtering Whitelist..."
+    if [ "$block_social" -eq 1 ]; then
+        log_message "Social Block enable triggered, Whitelist won't be applied"
+    else
+        whitelist_file="$social_whitelist $whitelist_file"
+    fi
+    whitelist=$(cat "$whitelist_file")
     if [ -n "$whitelist" ]; then
         echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
         cat "$tmp_hosts" > "$hosts_file"
-    fi
-
-    # Filter Social Whitelist
-    log_message "Filtering Social Whitelist..."
-    if [ "$block_social" -eq 1 ]; then
-        log_message "Social Block enable triggered, Social Whitelist won't be applied"
-    else
-        if [ -n "$social_whitelist" ]; then
-            echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
-            awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-            cat "$tmp_hosts" > "$hosts_file"
-        fi
     fi
 
     # Update config
