@@ -5,7 +5,7 @@
 <h2 align="center">Protection-maxxing magisk module 🗿</h2>
 
 ![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Regularly-green?style=for-the-badge)
-![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-green?style=for-the-badge)
+![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-red?style=for-the-badge)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?style=for-the-badge&color=gray&logo=telegram)](https://t.me/Re_Malwack)
