@@ -417,6 +417,7 @@ case "$(tolower "$1")" in
             done
             for paper_planes in ${temporary_hosts__}-0*; do
                 cat "${paper_planes}" >> ${hosts_file}__bckp1
+		rm ${paper_planes} &>/dev/null
             done
             if mv ${hosts_file}__bckp1 $hosts_file; then
                 log_message "Succssfully merged things to the main source.."
