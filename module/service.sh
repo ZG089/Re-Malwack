@@ -1,14 +1,19 @@
-#!/system/bin/sh
+#!/bin/sh
+
+MODDIR="${0%/*}"
+HOSTS_FILE="/system/etc/hosts"
+string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+persist_dir="/data/adb/Re-Malwack"
+
+mkdir -p "$persist_dir/logs"
+rm -rf "$persist_dir/logs/"*
 
 # Logging function
 function log_message() {
     local message="$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "/sdcard/Re-Malwack/logs.txt"
+    touch "$persist_dir/logs/service.log"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "$persist_dir/logs/service.log"
 }
-# Variables
-MODDIR="/data/adb/modules/Re-Malwack"
-HOSTS_FILE="/system/etc/hosts"
-string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
 
 # Check if hosts file contains blocked entries
 if grep -q '0.0.0.0' "$HOSTS_FILE"; then
