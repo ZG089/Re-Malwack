@@ -14,6 +14,6 @@ echo "
 "
 sleep 0.5
 echo "- Upgrading weapons 🔫"
-sh "$MODDIR/system/bin/rmlwk" --update-hosts || abort "- Failed to update hosts."
+sh "$MODDIR/rmlwk.sh" --update-hosts || abort "- Failed to update hosts."
 
 echo "- Everthing is fine now, Enjoy 😉"

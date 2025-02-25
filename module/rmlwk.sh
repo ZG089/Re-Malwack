@@ -90,6 +90,7 @@ function install_hosts() {
     fi
 
     # Clean up
+    chmod 644 "$hosts_file"
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}*" 2>/dev/null
     log_message "Successfully installed hosts."
