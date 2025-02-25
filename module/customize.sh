@@ -11,7 +11,7 @@ ui_print " ----------------------------------"
 ui_print "                                   \ "
 ui_print ""
 sleep 0.2
-ui_print "- ⚙ Module Version: $(grep_prop version $TMPDIR/module.prop)"
+ui_print "- ⚙ Module Version: $(grep_prop version $MODPATH/module.prop)"
 sleep 0.2
 ui_print "- 📱 Device Brand: $(getprop ro.product.brand)"
 sleep 0.2
@@ -29,8 +29,11 @@ sleep 0.2
 ui_print "                                    /"
 ui_print " ----------------------------------"
 ui_print " "
-ui_print "[INSTALLATION BEGINS]"
-sleep 0.2
+if [ -d /data/adb/modules/Re-Malwack ]; then
+    ui_print "[UPDATE BEGINS]"
+else
+    ui_print "[INSTALLATION BEGINS]"
+fi
 
 # abort in recovery
 if ! $BOOTMODE; then
@@ -74,8 +77,6 @@ else
     done > "$config_file"
 fi
 
-mkdir /sdcard/Re-Malwack
-
 # set permissions
 chmod 644 $MODPATH/system/etc/hosts
 chmod 755 $MODPATH/system/bin/rmlwk
@@ -87,6 +88,12 @@ ui_print "- Preparing Shields 🛡️"
 mkdir -p $MODPATH/system/etc
 
 ui_print "- Preparing weapons to kill malware 🔫"
-sh $MODPATH/system/bin/rmlwk --update-hosts
+rm -rf /data/adb/Re-Malwack/logs/*
+sh $MODPATH/system/bin/rmlwk --update-hosts &>/dev/null || {
+    ui_print "- Failed to initialize hosts files"
+    ui_print "- Log saved in /sdcard/Download"
+    tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H:%M).tar.gz --exclude='/data/adb/Re-Malwack' -C /data/adb/Re-Malwack logs
+    abort
+}
 
 ui_print "- Your device is now armed against ads, malware and more 🛡"
