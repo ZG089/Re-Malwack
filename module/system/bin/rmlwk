@@ -89,10 +89,6 @@ function install_hosts() {
         cat "$tmp_hosts" > "$hosts_file"
     fi
 
-    # Update config
-    log_message "Updating Config..."
-    [ -z "$block_type" ] || sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
-
     # Clean up
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}*" 2>/dev/null
@@ -118,10 +114,6 @@ function remove_hosts() {
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
 
-    # Update config
-    log_message "Updating Config..."
-    sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
-
     # Clean up
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
@@ -135,6 +127,8 @@ function block_content() {
 
     if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
         remove_hosts
+        # Update config
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
     else
         # Download hosts only if no cached host found or during update
         nuke_if_we_dont_have_internet
@@ -149,8 +143,10 @@ function block_content() {
                 wait
             fi
         fi
+        # Update config
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
 
-        # Skip install for if called from hosts update
+        # Skip install if called from hosts update
         [ "$status" = "update" ] && return 0
         cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts

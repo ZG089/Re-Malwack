@@ -16,6 +16,7 @@ const basePath = "/data/adb/Re-Malwack";
 const filePaths = {
     blacklist: `${basePath}/blacklist.txt`,
     whitelist: `${basePath}/whitelist.txt`,
+    "custom-source": `${basePath}/custom-source.txt`,
 };
 
 // Link redirect
@@ -211,9 +212,13 @@ function attachAddButtonListeners() {
     document.getElementById("blacklist-input").addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleAdd("blacklist");
     });
+    document.getElementById("custom-source-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("custom-source");
+    });
 
     document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
     document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
+    document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
 }
 
 // Function to handle add whitelist/blacklist
@@ -381,7 +386,7 @@ async function loadFile(fileType) {
     }
 }
 
-// Function to remove a line from whitelist/blacklist
+// Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
     try {
         await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}'`);
@@ -411,4 +416,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyRippleEffect();
     await loadFile('whitelist');
     await loadFile('blacklist');
+    await loadFile('custom-source');
 });
