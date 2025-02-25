@@ -385,7 +385,6 @@ case "$(tolower "$1")" in
         log_message "Starting to update hosts..."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
-        let_go=$(mktemp)
         temporary_hosts__=/sdcard/Re-Malwack/ayyo_chill_tf_up
 
         # Update Re-Malwack general hosts 
