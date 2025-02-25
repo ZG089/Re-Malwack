@@ -179,12 +179,12 @@ function fetch() {
     local url="$2"
 
     if command -v curl >/dev/null 2>&1; then
-        curl -sL -o "$output_file" "$url" || { 
+        curl -sL -o "$output_file" "$url" && log_message "Downloaded $url" || { 
             log_message "Failed to download $url with curl"; 
             abort "Failed to download $url"; 
         }
     elif command -v wget >/dev/null 2>&1; then
-        wget --no-check-certificate -q -O "$output_file" "$url" || { 
+        wget --no-check-certificate -q -O "$output_file" "$url" && log_message "Downloaded $url" || { 
             log_message "Failed to download $url with wget"; 
             abort "Failed to download $url"; 
         }
