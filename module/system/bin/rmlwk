@@ -243,7 +243,7 @@ case "$(tolower "$1")" in
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
         update_status
         log_message "Successfully reverted changes."
-	echo "- Successfully reverted changes."
+	    echo "- Successfully reverted changes."
         ;;
 
     --block-porn|--block-gambling|--block-fakenews|--block-social)
@@ -385,6 +385,8 @@ case "$(tolower "$1")" in
         log_message "Starting to update hosts..."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
+        let_go=$(mktemp)
+        temporary_hosts__=/sdcard/Re-Malwack/ayyo_chill_tf_up
 
         # Update Re-Malwack general hosts 
         if [ ! -f "$nzxt_chinchilla" ]; then
@@ -402,15 +404,20 @@ case "$(tolower "$1")" in
             log_message "Adding things from custom hosts..."
             cat $hosts_file > ${hosts_file}__bckp
             cat ${hosts_file}__bckp > ${hosts_file}__bckp1
+            count=0
             for slave_file_lists__ in $(grep -oP 'https?://[^\s"]+' $nzxt_chinchilla); do
                 if ! grep -qxF "${slave_file_lists__}" ${hosts_file}; then
+                    count="$((count + 1))"
                     echo "- Adding $slave_file_lists__"
                     log_message "Adding $slave_file_lists__"
-                    echo "${slave_file_lists__}" >> ${hosts_file}__bckp1
+                    fetch "${temporary_hosts__}-0${count}" "${slave_file_lists__}"
                 else
                     echo "- Skipping $slave_file_lists__ because it's already present in the main module package"
                     log_message "Skipping $slave_file_lists__ because it's already present in the main module package"
                 fi
+            done
+            for paper_planes in ${temporary_hosts__}-0*; do
+                cat "${paper_planes}" >> ${hosts_file}__bckp1
             done
             if mv ${hosts_file}__bckp1 $hosts_file; then
                 log_message "Succssfully merged things to the main source.."
