@@ -44,7 +44,7 @@ jobs:
       - name: Create ZIP
         run: |
           cd module
-          zip -r "../$ZIP_NAME" ./*
+          zip -r "../$ZIP_NAME.zip" ./*
           cd ..
 
       - name: Check Commit Info
