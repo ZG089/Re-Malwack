@@ -32,7 +32,7 @@ jobs:
           COMMIT_NUM=$(git rev-list --count HEAD)
           COMMIT_HASH=$(git rev-parse --short HEAD)
           VERSION=$(jq -r .version update.json)
-          ZIP_NAME="Re-Malwack_${VERSION}-${COMMIT_NUM}-${COMMIT_HASH}.zip"
+          ZIP_NAME="Re-Malwack_${VERSION}-${COMMIT_NUM}-${COMMIT_HASH}"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: Upload artifact
@@ -64,7 +64,7 @@ jobs:
         run: |
           curl -F chat_id="-1002271023118" \
                -F message_thread_id="1314" \
-               -F document=@"${{ env.ZIP_NAME }}" \
+               -F document=@"${{ env.ZIP_NAME }}.zip" \
                -F caption="⚙️ *New test release!*
           Commit: \`${{ github.event.head_commit.message }}\`
           [View Commit](${{ github.event.head_commit.url }})
