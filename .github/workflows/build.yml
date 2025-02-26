@@ -33,8 +33,14 @@ jobs:
           COMMIT_HASH=$(git rev-parse --short HEAD)
           VERSION=$(jq -r .version update.json)
           ZIP_NAME=Re-Malwack_$VERSION-$COMMIT_NUM-$COMMIT_HASH.zip
+          ZIP_PATH="./$ZIP_NAME"
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "ZIP_PATH=$ZIP_PATH" >> $GITHUB_ENV
+
+      - name: Create Zip
+        run: |
+          zip -r "$ZIP_PATH" module/
 
       - name: Check Commit Info
         id: check_commit
@@ -51,17 +57,22 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          curl -F chat_id="-1002271023118" \
-               -F message_thread_id="1314" \
-               -F document=@"$ZIP_NAME" \
-               -F caption="⚙️ *New test release!*
-          Commit: \`${{ github.event.head_commit.message }}\`
-          [View Commit](${{ github.event.head_commit.url }})
-          " -F parse_mode="Markdown" \
-          "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+          if [ -f "$ZIP_PATH" ]; then
+            curl -F chat_id="-1002271023118" \
+                 -F message_thread_id="1314" \
+                 -F document=@"$ZIP_PATH" \
+                 -F caption="⚙️ *New test release!*
+            Commit: \`${{ github.event.head_commit.message }}\`
+            [View Commit](${{ github.event.head_commit.url }})
+            " -F parse_mode="Markdown" \
+            "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+          else
+            echo "❌ zip file not found: $ZIP_PATH"
+            exit 1
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_NAME }}
-          path: module/
+          path: ${{ env.ZIP_PATH }}
