@@ -51,7 +51,7 @@ jobs:
         id: check_commit
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
-          if echo "$COMMIT_MSG" | grep -qiE "release|version"; then
+          if echo "$COMMIT_MSG" | grep -qiE "release|version|readme|workflow"; then
             echo "SKIP=true" >> $GITHUB_ENV
           else
             echo "SKIP=false" >> $GITHUB_ENV
