@@ -21,23 +21,47 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Set variables
-      id: setup
-      run: |
-        COMMIT_NUM=$(git rev-list --count HEAD)
-        COMMIT_HASH=$(git rev-parse --short HEAD)
-        VERSION=$(jq -r .version update.json)
-        ZIP_NAME=Re-Malwack_$VERSION-$COMMIT_NUM-$COMMIT_HASH
+      - name: Set variables
+        id: setup
+        run: |
+          COMMIT_NUM=$(git rev-list --count HEAD)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          VERSION=$(jq -r .version update.json)
+          ZIP_NAME=Re-Malwack_$VERSION-$COMMIT_NUM-$COMMIT_HASH.zip
 
-        echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.ZIP_NAME }}
-        path: module/
+      - name: Check Commit Info
+        id: check_commit
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if echo "$COMMIT_MSG" | grep -qiE "release|version"; then
+            echo "SKIP=true" >> $GITHUB_ENV
+          else
+            echo "SKIP=false" >> $GITHUB_ENV
+          fi
+
+      - name: Send Release
+        if: env.SKIP == 'false'
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -F chat_id="-1002271023118" \
+               -F message_thread_id="1314" \
+               -F document=@"$ZIP_NAME" \
+               -F caption="⚙️ *New test release!*
+          Commit: \`${{ github.event.head_commit.message }}\`
+          [View Commit](${{ github.event.head_commit.url }})
+          " -F parse_mode="Markdown" \
+          "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: module/
