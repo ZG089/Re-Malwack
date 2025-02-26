@@ -62,8 +62,8 @@ jobs:
                  -F message_thread_id="1314" \
                  -F document=@"$ZIP_PATH" \
                  -F caption="⚙️ *New test release!*
-            Commit: \`${{ github.event.head_commit.message }}\`
-            [View Commit](${{ github.event.head_commit.url }})
+          Commit: \`${{ github.event.head_commit.message }}\`
+          [View Commit](${{ github.event.head_commit.url }})
             " -F parse_mode="Markdown" \
             "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
           else
