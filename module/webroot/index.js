@@ -78,8 +78,7 @@ function aboutMenu() {
 // Get module version from module.prop
 async function getVersion() {
     try {
-        const command = "grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2";
-        const version = await execCommand(command);
+        const version = await execCommand("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
         document.getElementById('version-text').textContent = `${version} | `;
         getStatus();
     } catch (error) {
@@ -126,7 +125,7 @@ async function getStatus() {
 // Function to check block status for different site categories
 async function checkBlockStatus(type) {
     try {
-        const result = await execCommand(`su -c 'grep -q '^block_${type.id}=1' /data/adb/Re-Malwack/config.sh'`);
+        const result = await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
         type.toggle.checked = !result;
     } catch (error) {
         type.toggle.checked = false;
@@ -138,8 +137,7 @@ async function performAction(promptMessage, commandOption, errorPrompt, errorMes
     try {
         showPrompt(promptMessage, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}'`;
-        const output = await execCommand(command);
+        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}`);
         const lines = output.split("\n");
         lines.forEach(line => {
             showPrompt(line, true);
@@ -164,7 +162,7 @@ async function resetHostsFile() {
 // Function to export logs
 async function exportLogs() {
     try {
-        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_$(date +%Y-%m-%d_%H:%M).tar.gz --exclude='/data/adb/Re-Malwack' -C /data/adb/Re-Malwack logs`);
+        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_$(date +%Y-%m-%d_%H:%M).tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs`);
         showPrompt("Logs saved to /sdcard/Download", true);
     } catch (error) {
         console.error("Failed to export logs:", error);
@@ -183,8 +181,7 @@ async function handleBlock(type) {
     try {
         showPrompt(prompt_message, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${action}'`;
-        const output = await execCommand(command);
+        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/system/bin/rmlwk ${action}`);
         const lines = output.split("\n");
         lines.forEach(line => {
             showPrompt(line, true);
@@ -242,7 +239,7 @@ async function handleAdd(fileType) {
         return;
     }
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} add ${inputValue}'`);
+        await execCommand(`sh /data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} add ${inputValue}`);
         console.log(`${fileType}ed "${inputValue}" successfully.`);
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
@@ -398,7 +395,7 @@ async function loadFile(fileType) {
 // Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}'`);
+        await execCommand(`sh /data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}`);
         showPrompt(`Removed ${line} from ${fileType}`, true);
         await loadFile(fileType);
         await getStatus();
