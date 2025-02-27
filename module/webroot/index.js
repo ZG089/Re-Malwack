@@ -16,6 +16,7 @@ const basePath = "/data/adb/Re-Malwack";
 const filePaths = {
     blacklist: `${basePath}/blacklist.txt`,
     whitelist: `${basePath}/whitelist.txt`,
+    "custom-source": `${basePath}/custom-source.txt`,
 };
 
 // Link redirect
@@ -77,8 +78,7 @@ function aboutMenu() {
 // Get module version from module.prop
 async function getVersion() {
     try {
-        const command = "grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2";
-        const version = await execCommand(command);
+        const version = await execCommand("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
         document.getElementById('version-text').textContent = `${version} | `;
         getStatus();
     } catch (error) {
@@ -125,7 +125,7 @@ async function getStatus() {
 // Function to check block status for different site categories
 async function checkBlockStatus(type) {
     try {
-        const result = await execCommand(`su -c 'grep -q '^block_${type.id}=1' /data/adb/Re-Malwack/config.sh'`);
+        const result = await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
         type.toggle.checked = !result;
     } catch (error) {
         type.toggle.checked = false;
@@ -137,8 +137,7 @@ async function performAction(promptMessage, commandOption, errorPrompt, errorMes
     try {
         showPrompt(promptMessage, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${commandOption}'`;
-        const output = await execCommand(command);
+        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${commandOption}`);
         const lines = output.split("\n");
         lines.forEach(line => {
             showPrompt(line, true);
@@ -160,6 +159,17 @@ async function resetHostsFile() {
     await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
 }
 
+// Function to export logs
+async function exportLogs() {
+    try {
+        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_logs_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs`);
+        showPrompt("Logs saved to /sdcard/Download/Re-Malwack_logs_$(date +%Y-%m-%d_%H%M%S).tar.gz", true);
+    } catch (error) {
+        console.error("Failed to export logs:", error);
+        showPrompt("Failed to export logs", false);
+    }
+}
+
 // Function to handle blocking/unblocking different site categories
 async function handleBlock(type) {
     const isRemoving = type.toggle.checked;
@@ -171,8 +181,7 @@ async function handleBlock(type) {
     try {
         showPrompt(prompt_message, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const command = `su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk ${action}'`;
-        const output = await execCommand(command);
+        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${action}`);
         const lines = output.split("\n");
         lines.forEach(line => {
             showPrompt(line, true);
@@ -211,9 +220,13 @@ function attachAddButtonListeners() {
     document.getElementById("blacklist-input").addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleAdd("blacklist");
     });
+    document.getElementById("custom-source-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("custom-source");
+    });
 
     document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
     document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
+    document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
 }
 
 // Function to handle add whitelist/blacklist
@@ -226,7 +239,7 @@ async function handleAdd(fileType) {
         return;
     }
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} add ${inputValue}'`);
+        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`);
         console.log(`${fileType}ed "${inputValue}" successfully.`);
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
@@ -260,25 +273,23 @@ async function execCommand(command) {
     });
 }
 
-// Function to handle input focus
-function handleFocus(event) {
-    setTimeout(() => {
-        document.body.classList.add(focusClass);
-        event.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-}
-
-// Function to handle input blur
-function handleBlur() {
-    setTimeout(() => {
-        document.body.classList.remove(focusClass);
-    }, 100);
-}
-
-// Add event listeners to each input
+// Prevent input box blocked by keyboard
 inputs.forEach(input => {
-    input.addEventListener('focus', handleFocus);
-    input.addEventListener('blur', handleBlur);
+    input.addEventListener('focus', event => {
+        document.body.classList.add(focusClass);
+        setTimeout(() => {
+            const offsetAdjustment = window.innerHeight * 0.1;
+            const targetPosition = event.target.getBoundingClientRect().top + window.scrollY;
+            const adjustedPosition = targetPosition - (window.innerHeight / 2) + offsetAdjustment;
+            window.scrollTo({
+                top: adjustedPosition,
+                behavior: 'smooth',
+            });
+        }, 100);
+    });
+    input.addEventListener('blur', () => {
+        document.body.classList.remove(focusClass);
+    });
 });
 
 // Link redirect
@@ -381,10 +392,10 @@ async function loadFile(fileType) {
     }
 }
 
-// Function to remove a line from whitelist/blacklist
+// Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
     try {
-        await execCommand(`su -c '/data/adb/modules/Re-Malwack/system/bin/rmlwk --${fileType} remove ${line}'`);
+        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`);
         showPrompt(`Removed ${line} from ${fileType}`, true);
         await loadFile(fileType);
         await getStatus();
@@ -400,6 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
+    document.getElementById("export-logs").addEventListener("click", exportLogs);
     blockTypes.forEach(type => {
         document.getElementById(`block-${type.id}`).addEventListener("click", () => handleBlock(type));
     });
@@ -411,4 +423,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyRippleEffect();
     await loadFile('whitelist');
     await loadFile('blacklist');
+    await loadFile('custom-source');
 });

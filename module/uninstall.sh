@@ -1,25 +1,3 @@
-# Logging function
-function log_message() {
-    local message="$1"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" >> "/sdcard/Re-Malwack/logs.txt"
-}
-
-log_message "Re-Malwack has been uninstalled successfully, Thanks for Choosing Re-Malwack!"
-
-# Don't modify anything after this
-if [ -f $INFO ]; then
-  while read LINE; do
-    if [ "$(echo -n $LINE | tail -c 1)" == "~" ]; then
-      continue
-    elif [ -f "$LINE~" ]; then
-      mv -f $LINE~ $LINE
-    else
-      rm -f $LINE
-      while true; do
-        LINE=$(dirname $LINE)
-        [ "$(ls -A $LINE 2>/dev/null)" ] && break 1 || rm -rf $LINE
-      done
-    fi
-  done < $INFO
-  rm -f $INFO
-fi
+rm -rf /data/adb/Re-Malwack
+rm -f /data/adb/ksud/bin/rmlwk
+rm -f /data/adb/apd/bin/rmlwk

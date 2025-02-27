@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Re-Malwack</title>
-    <link rel="stylesheet" href="/styles.css" type="text/css">
+    <link rel="stylesheet" href="styles.css" type="text/css">
     <link rel="stylesheet" type="text/css" href="/mmrl/insets.css" />
-    <script type="module" crossorigin src="/index.js"></script>
+    <script type="module" crossorigin src="index.js"></script>
 </head>
 
 <body>
@@ -14,7 +14,7 @@
         <!-- Header -->
         <div class="header" id="info-box">
             <i class="logo" id="logo">
-                <object data="/assets/logo-transparent.svg" type="image/svg+xml"></object>
+                <object data="assets/logo-transparent.svg" type="image/svg+xml"></object>
             </i>
             Re-Malwack
             <i class="about" id="about-button">
@@ -26,7 +26,7 @@
             </p>
             <!--
 			<div class="festival" id="christmas-limited-edition">
-				<img src="/assets/snowflakes.png" alt="Christmas Limited Edition Logo">
+				<img src="assets/snowflakes.png" alt="Christmas Limited Edition Logo">
 			</div>
 			-->
         </div>
@@ -131,7 +131,28 @@
             </div>
             <ul id="blacklist-list"></ul>
         </div>
+
+        <!-- Custom Sources -->
+        <div class="box" id="custom-sources">
+            <h2>Custom Sources</h2>
+            <div class="category-container">
+                <input id="custom-source-input" type="text" placeholder="https://example.com/hosts.txt" />
+                <button class="ripple-container" id="custom-source-add" onclick="handleAdd('custom-source')">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M440-240h80v-120h120v-80H520v-120h-80v120H320v80h120v120ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>            </button>
+            </div>
+            <ul id="custom-source-list"></ul>
+        </div>
+
+        <!-- Export logs -->
+        <div class="box ripple-container">
+            <div class="toggle-container" id="export-logs">
+                <i class="control-icon" id="export-logs-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-200q66 0 113-47t47-113v-160q0-66-47-113t-113-47q-66 0-113 47t-47 113v160q0 66 47 113t113 47Zm-80-120h160v-80H400v80Zm0-160h160v-80H400v80Zm80 40Zm0 320q-65 0-120.5-32T272-240H160v-80h84q-3-20-3.5-40t-.5-40h-80v-80h80q0-20 .5-40t3.5-40h-84v-80h112q14-23 31.5-43t40.5-35l-64-66 56-56 86 86q28-9 57-9t57 9l88-86 56 56-66 66q23 15 41.5 34.5T688-640h112v80h-84q3 20 3.5 40t.5 40h80v80h-80q0 20-.5 40t-3.5 40h84v80H688q-32 56-87.5 88T480-120Z"/></svg>                </i>
+                <ul id="export-logs-text">Export logs</ul>
+            </div>
+        </div>
     </div>
+    <!-- End of content -->
 
     <!-- About -->
     <div id="about-overlay" class="about-overlay">
@@ -139,8 +160,8 @@
             <button id="close-about" class="close-about">&#x2715;</button>
             <div class="about-content">
                 <i class="about-logo">
-                    <object class="logo-light" data="/assets/logo-red.svg" type="image/svg+xml"></object>
-                    <object class="logo-dark" data="/assets/logo-white.svg" type="image/svg+xml"></object>
+                    <object class="logo-light" data="assets/logo-red.svg" type="image/svg+xml"></object>
+                    <object class="logo-dark" data="assets/logo-white.svg" type="image/svg+xml"></object>
                 </i>
                 <p id="module-name">Re-Malwack</p>
                 <p id="author">by ZG089<br>WebUI by KOWX712</p>
@@ -148,19 +169,19 @@
                 <p>
                 <div class="link">
                     <i class="link-icon" id="telegram">
-                        <object data="/assets/telegram.svg" type="image/svg+xml"></object>
+                        <object data="assets/telegram.svg" type="image/svg+xml"></object>
                         <span id="link-text">Telegram Support group</span>
                     </i>
                     <i class="link-icon" id="github">
-                        <object data="/assets/github.svg" type="image/svg+xml"></object>
+                        <object data="assets/github.svg" type="image/svg+xml"></object>
                         <span id="link-text">GitHub</span>
                     </i>
                     <i class="link-icon" id="xda">
-                        <object data="/assets/comment.svg" type="image/svg+xml"></object>
+                        <object data="assets/comment.svg" type="image/svg+xml"></object>
                         <span id="link-text">XDA Thread</span>
                     </i>
                     <i class="link-icon" id="sponsor">
-                        <object data="/assets/coffee.svg" type="image/svg+xml"></object>
+                        <object data="assets/coffee.svg" type="image/svg+xml"></object>
                         <span id="link-text">Support Us</span>
                     </i>
                 </div>
