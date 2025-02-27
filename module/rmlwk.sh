@@ -36,7 +36,7 @@ hosts_file="$MODDIR/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
-LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H:%M).log"
+LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 
 mkdir -p "$persist_dir/logs"
 

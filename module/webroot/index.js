@@ -162,8 +162,8 @@ async function resetHostsFile() {
 // Function to export logs
 async function exportLogs() {
     try {
-        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_$(date +%Y-%m-%d_%H:%M).tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs`);
-        showPrompt("Logs saved to /sdcard/Download", true);
+        await execCommand(`tar -czvf /sdcard/Download/Re-Malwack_logs_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs`);
+        showPrompt("Logs saved to /sdcard/Download/Re-Malwack_logs_$(date +%Y-%m-%d_%H%M%S).tar.gz", true);
     } catch (error) {
         console.error("Failed to export logs:", error);
         showPrompt("Failed to export logs", false);
