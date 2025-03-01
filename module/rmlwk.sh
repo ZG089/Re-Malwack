@@ -54,7 +54,8 @@ function log_message() {
 }
 
 function install_hosts() {
-    log_message "Starting to install hosts."
+    type="$1"
+    log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
@@ -150,7 +151,7 @@ function block_content() {
         # Skip install if called from hosts update
         [ "$status" = "update" ] && return 0
         cp -f "${cache_hosts}"* "/data/local/tmp"
-        [ "$status" = 0 ] && remove_hosts || install_hosts
+        [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
 }
 
@@ -375,7 +376,7 @@ case "$(tolower "$1")" in
 
         echo "- Applying update."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
-        install_hosts
+        install_hosts "base"
 
         # Check config and apply update
         [ "$block_porn" = 1 ] && block_content "porn" && log_message "Updating porn sites blocklist..."
