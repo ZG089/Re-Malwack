@@ -2,10 +2,12 @@ body {
     background-color: #FFF2F1;
     padding-top: var(--window-inset-top);
     padding-bottom: var(--window-inset-bottom);
+    transition: padding-bottom 0.2s ease;
+    margin: 0;
 }
 
 body.input-focused {
-    padding-bottom: 300px;
+    padding-bottom: 50vh;
 }
 
 .content {
@@ -24,7 +26,7 @@ body.input-focused {
     background-color: #D51200;
     align-items: center;
     position: relative;
-    width: 85vw;
+    width: calc(90vw - 30px);
     max-width: 800px;
     border: none;
     border-radius: 15px;
@@ -67,20 +69,18 @@ body.input-focused {
 }
 
 .about-menu {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 80vw;
+    position: relative;
+    width: calc(90vw - 60px);
     max-width: 600px;
-    transform: translate(-50%, -50%);
+    max-height: 90vh;
+    overflow-y: scroll;
     background: #FFF2F1;
     border-radius: 12px;
-    padding: 35px 20px;
+    padding: 30px;
     z-index: 1200;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     opacity: 0;
     display: flex;
-    align-items: center;
     justify-content: center;
     gap: 15px;
     transition: opacity 0.2s ease;
@@ -99,6 +99,28 @@ body.input-focused {
 
 .about-content {
     text-align: center;
+    max-height: calc(95vh - 60px);
+    overflow-y: auto;
+}
+
+.about-logo-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.about-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+    width: 80px;
+    border-radius: 15px;
+    background-color: #d51200;
+}
+
+.about-logo svg {
+    fill: #FFFFFF;
 }
 
 .about-content p {
@@ -108,16 +130,6 @@ body.input-focused {
 
 .credit-list {
     text-align: left;
-}
-
-.logo-light {
-    display: inline-block;
-    user-select: none;
-}
-
-.logo-dark {
-    display: none;
-    user-select: none;
 }
 
 #module-name {
@@ -186,7 +198,7 @@ body.input-focused {
 }
 
 .box {
-    width: 85vw;
+    width: calc(90vw - 30px);
     max-width: 800px;
     background-color: #fff;
     border: none;
@@ -194,8 +206,6 @@ body.input-focused {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
     transition: background-color 0.2s ease;
-    position: relative;
-    overflow: hidden;
     user-select: none;
 }
 
@@ -219,7 +229,6 @@ body.input-focused {
     font-weight: bold;
     background-color: transparent;
     padding: 0;
-    white-space: nowrap;
     text-align: left;
 }
 
@@ -227,6 +236,7 @@ body.input-focused {
     position: relative;
     display: inline-block;
     margin-left: auto;
+    flex-shrink: 0;
     width: 40px;
     height: 25px;
 }
@@ -297,6 +307,8 @@ input:checked+.slider:before {
     border-radius: 8px;
     border: 1px solid #ccc;
     box-sizing: border-box;
+    outline-color: #D51200;
+    background-color: #F5F5F5;
     width: calc(100% - 35px);
     height: 35px;
     padding-left: 10px;
@@ -471,14 +483,14 @@ li:last-child {
         background-color: #343434;
     }
 
-    .logo-light {
-        display: none;
+    .about-logo {
+        background-color: #FFFFFF;
     }
 
-    .logo-dark {
-        display: inline-block;
+    .about-logo svg {
+        fill: #d51200;
     }
-    
+
     .category-container input {
         color: #fff;
         background-color: #232323;
