@@ -83,7 +83,7 @@ async function getVersion() {
         getStatus();
     } catch (error) {
         if (typeof ksu !== 'undefined' && ksu.mmrl) {
-            updateStatus("Please enable JavaScript API in MMRL settings:\n1. Settings\n2. Security\n3. Allow JavaScript API\n4. Re-Malwack\n5. Enable both option");
+            updateStatus("Please enable JavaScript API in MMRL settings:\n1. Settings\n2. Security\n3. Allow JavaScript API\n4. Re-Malwack\n5. Enable Advanced KernelSU API");
         } else {
             updateStatus("Error reading description from module.prop");
         }
@@ -103,7 +103,6 @@ function checkMMRL() {
         // Require MMRL version code 33045 or higher
         try {
             $Re_Malwack.requestAdvancedKernelSUAPI();
-            $Re_Malwack.requestFileSystemAPI();
         } catch (error) {
             console.log("Error requesting API:", error);
         }
