@@ -29,23 +29,16 @@ function malvack_banner() {
     echo -e "\033[0;37m        ╚────────────────────────────────────────╝\033[0m"
 }
 
-# luna here >3
-rm -rf /sdcard/Re-Malwack/*.txt /sdcard/Re-Malwack/*.log # let's wipe old logs
-
 # Variables
 persist_dir="/data/adb/Re-Malwack"
-temp=$(mktemp)
-MODDIR="/data/adb/modules/Re-Malwack"
+MODDIR="${0%/*}"
 hosts_file="$MODDIR/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
-LOGFILE="/sdcard/Re-Malwack/$(date +%B_%d_%Y__%I:%M%p)___remalwack.log"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
+LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 
-# Checking hosts writability
-if [ ! -w $hosts_file ] ; then
-	echo "Hosts file is unwritable!"
-return 1
+mkdir -p "$persist_dir/logs"
 
 # Read config
 . "$persist_dir/config.sh"
@@ -56,11 +49,13 @@ return 1
 # Define a logging function
 function log_message() {
     local message="$1"
+    [ -f "$LOGFILE" ] || touch "$LOGFILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
 }
 
 function install_hosts() {
-    log_message "Starting to install hosts."
+    type="$1"
+    log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
@@ -75,47 +70,30 @@ function install_hosts() {
     
     # Process whitelist
     log_message "Processing Whitelist..."
-    if [ -s "$persist_dir/whitelist.txt" ]; then
-        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt" "$persist_dir/whitelist.txt")
-    elif [ -s "$persist_dir/cache/whitelist/whitelist.txt" ]; then
-        whitelist=$(cat "$persist_dir/cache/whitelist/whitelist.txt")
-    fi
-
-    # Process Social whitelist
-    log_message "Processing Social Whitelist..."
-    if [ -s "$persist_dir/social_whitelist.txt" ]; then
-        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt" "$persist_dir/social_whitelist.txt")
-    elif [ -s "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
-        social_whitelist=$(cat "$persist_dir/cache/whitelist/social_whitelist.txt")
-    fi
+    social_whitelist="$persist_dir/cache/whitelist/social_whitelist.txt"
+    whitelist_file="$persist_dir/cache/whitelist/whitelist.txt"
+    [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
 
     # Filter whitelist
     log_message "Filtering Whitelist..."
+    if [ "$block_social" -eq 1 ]; then
+        log_message "Social Block enable triggered, Whitelist won't be applied"
+    else
+        whitelist_file="$whitelist_file $social_whitelist"
+    fi
+    
+    # Read and sort whitelist entries from all files
+    whitelist=$(cat $whitelist_file | sort -u)
     if [ -n "$whitelist" ]; then
         echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
         cat "$tmp_hosts" > "$hosts_file"
     fi
 
-    # Filter Social Whitelist
-    log_message "Filtering Social Whitelist..."
-    if [ "$block_social" -eq 1 ]; then
-        log_message "Social Block enable triggered, Social Whitelist won't be applied"
-    else
-        if [ -n "$social_whitelist" ]; then
-            echo "$social_whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
-            awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-            cat "$tmp_hosts" > "$hosts_file"
-        fi
-    fi
-
-    # Update config
-    log_message "Updating Config..."
-    [ -n "$block_type" ] && sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
-
     # Clean up
+    chmod 644 "$hosts_file"
     log_message "Cleaning up..."
-    rm -f "${tmp_hosts}*" 2>/dev/null
+    rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully installed hosts."
 }
 
@@ -138,10 +116,6 @@ function remove_hosts() {
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
 
-    # Update config
-    log_message "Updating Config..."
-    sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
-
     # Clean up
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
@@ -155,6 +129,8 @@ function block_content() {
 
     if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
         remove_hosts
+        # Update config
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
     else
         # Download hosts only if no cached host found or during update
         nuke_if_we_dont_have_internet
@@ -169,11 +145,13 @@ function block_content() {
                 wait
             fi
         fi
+        # Update config
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
 
-        # Skip install for if called from hosts update
+        # Skip install if called from hosts update
         [ "$status" = "update" ] && return 0
         cp -f "${cache_hosts}"* "/data/local/tmp"
-        [ "$status" = 0 ] && remove_hosts || install_hosts
+        [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
 }
 
@@ -199,12 +177,12 @@ function fetch() {
     local url="$2"
 
     if command -v curl >/dev/null 2>&1; then
-        curl -sL -o "$output_file" "$url" || { 
+        curl -sL -o "$output_file" "$url" && log_message "Downloaded $url" || { 
             log_message "Failed to download $url with curl"; 
             abort "Failed to download $url"; 
         }
     elif command -v wget >/dev/null 2>&1; then
-        wget --no-check-certificate -q -O "$output_file" "$url" || { 
+        wget --no-check-certificate -q -O "$output_file" "$url" && log_message "Downloaded $url" || { 
             log_message "Failed to download $url with wget"; 
             abort "Failed to download $url"; 
         }
@@ -278,7 +256,7 @@ case "$(tolower "$1")" in
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --whitelist <add/remove> <domain>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
-            [ ! -z "$display_whitelist" ] && echo "Current whitelist: $display_whitelist" || echo "Current whitelist: no saved whitelist"
+            [ ! -z "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
         else
             touch "$persist_dir/whitelist.txt"
             if [ "$option" = "add" ]; then
@@ -305,7 +283,7 @@ case "$(tolower "$1")" in
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --blacklist <add/remove> <domain>"
             display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
-            [ ! -z "$display_blacklist" ] && echo "Current blacklist: $display_blacklist" || echo "Current blacklist: no saved blacklist"
+            [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
         else            
             touch "$persist_dir/blacklist.txt"
             if [ "$option" = "add" ]; then
@@ -331,107 +309,63 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-    --add-additional-sources)
-        # Capture all URL argument(s)
-        cust_urls=("${@:2}")
-        [ -z "$cust_urls" ] && abort "No URL(s) provided"
+    --custom-source)
+        option="$2"
+        domain="$3"
 
-        # Log and notify the user
-        log_message "Updating host(s)..."
-        echo "- Updating host(s)..."
-        nuke_if_we_dont_have_internet
-
-        # Temporary list to store new entries
-        tmp_custom_list="${persist_dir}/cache/tmp_custom_list"
-        rm "$tmp_custom_list"
-        touch $tmp_custom_list
-
-        # Process each URL provided by the user
-        count_me_in=0
-        for url in "${cust_urls[@]}"; do
-            count_me_in=$((count_me_in + 1))
-            log_message "Fetching user-provided hosts: $url"
-            echo "Fetching: $url"
-            fetch "${tmp_hosts}_custom_${count_me_in}" "$url"
-
-            # Read the downloaded file and store unique entries
-            while IFS= read -r entry; do
-                # Ensure entry is not empty and not a duplicate
-                if [[ -n "$entry" && ! $(grep -qxF "$entry" "$tmp_custom_list") ]]; then
-                    echo "$entry" >> "$tmp_custom_list"
-                    log_message "Added to custom list: $entry"
-                fi
-            done < "${tmp_hosts}_custom_${count_me_in}"
-        done
-
-        # Ensure new entries are added to the main hosts file if not already present
-        log_message "Checking for new entries to add to hosts..."
-        while IFS= read -r entry; do
-            # Ensure entry is not empty and not already in the hosts file
-            if [[ -n "$entry" && ! $(grep -qxF "$entry" "$hosts_file") ]]; then
-                echo "$entry" >> "$hosts_file"
-                log_message "Added new entry: $entry"
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
+            echo "usage: rmlwk --custom-source <add/remove> <domain>"
+            display_custom_sources=$(cat "$persist_dir/custom-source.txt" 2>/dev/null)
+            [ ! -z "$display_custom_sources" ] && echo -e "Current custom sources:\n$display_custom_sources" || echo "Current custom sources: no saved custom sources"
+        else
+            touch "$persist_dir/custom-source.txt"
+            if [ "$option" = "add" ]; then
+                grep -qx "$domain" "$persist_dir/custom-source.txt" && echo "$domain is already in custom sources" || echo "$domain" >> "$persist_dir/custom-source.txt"
+                log_message "Added $domain to custom source."
+                echo "- Added $domain to custom source."
+            else
+                sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"
+                log_message "Removed $domain from custom source."
+                echo "- $domain removed from custom source."
             fi
-        done < "$tmp_custom_list"
-
-        # Cleanup temporary file
-        rm -f "$tmp_custom_list"
-        log_message "Updated host file successfully."
-        echo "- Updated host file successfully."
+        fi
         ;;
 
     --update-hosts)
-        nzxt_chinchilla="/sdcard/Re-Malwack/custom-hosts.txt"
         log_message "Starting to update hosts..."
         echo "- Downloading updates, Please wait."
         nuke_if_we_dont_have_internet
-        temporary_hosts__=/sdcard/Re-Malwack/ayyo_chill_tf_up
 
-        # Update Re-Malwack general hosts 
-        if [ ! -f "$nzxt_chinchilla" ]; then
-            for i in $(seq 1 7); do
-                for links in "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt" \
-                    "https://o0.pages.dev/Pro/hosts.txt" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt" \
-                    "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt" \
-                    "https://hblock.molinero.dev/hosts"; do
-                        log_message "Updating hosts${i}...."
-                        fetch "${tmp_hosts}${i}" "${links}"
-                    done
-            done
+        # Re-Malwack general hosts
+        general_hosts="
+        https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
+        https://o0.pages.dev/Pro/hosts.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
+        https://hblock.molinero.dev/hosts
+        "
+
+        # custom source
+        if [ -s "$persist_dir/custom-source.txt" ]; then
+            custom_hosts=$(cat "$persist_dir/custom-source.txt")
         else
-            echo "- Custom hosts is found, adding your custom url(s) from it...."
-            log_message "Adding things from custom hosts..."
-            cat $hosts_file > ${hosts_file}__bckp
-            cat ${hosts_file}__bckp > ${hosts_file}__bckp1
-            count=0
-            for slave_file_lists__ in $(grep -oP 'https?://[^\s"]+' $nzxt_chinchilla); do
-                if ! grep -qxF "${slave_file_lists__}" ${hosts_file}; then
-                    count="$((count + 1))"
-                    echo "- Adding $slave_file_lists__"
-                    log_message "Adding $slave_file_lists__"
-                    fetch "${temporary_hosts__}-0${count}" "${slave_file_lists__}"
-                else
-                    echo "- Skipping $slave_file_lists__ because it's already present in the main module package"
-                    log_message "Skipping $slave_file_lists__ because it's already present in the main module package"
-                fi
-            done
-            for paper_planes in ${temporary_hosts__}-0*; do
-                cat "${paper_planes}" >> ${hosts_file}__bckp1
-		rm ${paper_planes} &>/dev/null
-            done
-            if mv ${hosts_file}__bckp1 $hosts_file; then
-                log_message "Succssfully merged things to the main source.."
-                echo "- Succssfully merged things to the main source.."
-            else
-                log_message "Failed to add url(s) from the custom hosts provided by the user"
-                abort "Failed to add url(s) please try again"
-            fi
+            custom_hosts=""
         fi
+
+        # Download hosts in parallel
+        hosts_list=$(echo "$general_hosts $custom_hosts" | sort -u)
+        for host in $hosts_list; do
+            counter="$((counter + 1))"
+            fetch "${tmp_hosts}${counter}" "$host" &
+        done
+        wait
 
         # Update hosts for global whitelist
         mkdir -p "$persist_dir/cache/whitelist"
         fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
-        fetch "$persist_dir/cache/whitelist/social-whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social-whitelist.txt
+        fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
 
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
@@ -442,7 +376,7 @@ case "$(tolower "$1")" in
 
         echo "- Applying update."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
-        install_hosts
+        install_hosts "base"
 
         # Check config and apply update
         [ "$block_porn" = 1 ] && block_content "porn" && log_message "Updating porn sites blocklist..."
@@ -465,7 +399,7 @@ case "$(tolower "$1")" in
         echo "--whitelist <add/remove> <domain>: Whitelist a domain."
         echo "--blacklist <add/remove> <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
-        echo -e "--add-additional-sources: <domain(s)>: Add your preferred *hosts* you can add plenty of hosts into this module and\nit only gets added if it's not already present in the module source"
+        echo "--custom-source <add/remove> <domain>: Add your preferred hosts source."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
