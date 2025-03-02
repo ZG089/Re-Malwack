@@ -332,8 +332,12 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts)
-        log_message "Starting to update hosts..."
-        echo "- Downloading updates, Please wait."
+        if [ -d /data/adb/modules/Re-Malwack ]; then
+            log_message "Starting to update hosts..."
+            echo "- Upgrading protection fortress 🏰🛡"
+        else
+            echo "- Building protection fortress 🏰🛡"   
+        fi     
         nuke_if_we_dont_have_internet
 
         # Re-Malwack general hosts
@@ -374,7 +378,7 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
 
-        echo "- Applying update."
+        echo "- Training the ad-killer army..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
@@ -384,8 +388,12 @@ case "$(tolower "$1")" in
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
         update_status
-        log_message "Successfully updated hosts."
-        echo "- Done."
+        if [ -d /data/adb/modules/Re-Malwack ]; then
+            log_message "Successfully updated hosts."
+            echo "- All done!"
+        else
+            return 0
+        fi
         ;;
 
     --help|-h|*)
