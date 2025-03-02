@@ -83,16 +83,11 @@ chmod 755 $MODPATH/action.sh
 chmod 755 "/data/adb/Re-Malwack/config.sh"
 
 # Initialize hosts files
-ui_print "- Preparing Shields 🛡️"
 mkdir -p $MODPATH/system/etc
-
-ui_print "- Preparing weapons to kill malware 🔫"
 rm -rf /data/adb/Re-Malwack/logs/*
-sh $MODPATH/rmlwk.sh --update-hosts &>/dev/null || {
+sh $MODPATH/rmlwk.sh --update-hosts || {
     ui_print "- Failed to initialize hosts files"
     ui_print "- Log saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
     tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude='/data/adb/Re-Malwack' -C /data/adb/Re-Malwack logs
     abort
 }
-
-ui_print "- Your device is now armed against ads, malware and more 🛡"
