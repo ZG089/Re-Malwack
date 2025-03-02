@@ -1,14 +1,30 @@
-#!/system/bin/sh
+#!/bin/sh
+
+MODDIR="${0%/*}"
+HOSTS_FILE="/system/etc/hosts"
+string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+persist_dir="/data/adb/Re-Malwack"
+
+mkdir -p "$persist_dir/logs"
+rm -rf "$persist_dir/logs/"*
 
 # Logging function
 function log_message() {
     local message="$1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "/sdcard/Re-Malwack/logs.txt"
+    touch "$persist_dir/logs/service.log"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "$persist_dir/logs/service.log"
 }
-# Variables
-MODDIR="/data/adb/modules/Re-Malwack"
-HOSTS_FILE="/system/etc/hosts"
-string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
+
+# symlink rmlwk to manager path
+if [ "$KSU" = "true" ]; then
+    [ -L "/data/adb/ksud/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/ksud/bin/rmlwk"
+elif [ "$APATCH" = "true" ]; then
+    [ -L "/data/adb/apd/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/apd/bin/rmlwk"
+else
+    [ -w /sbin ] && magisktmp=/sbin
+    [ -w /debug_ramdisk ] && magisktmp=/debug_ramdisk
+    ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
+fi
 
 # Check if hosts file contains blocked entries
 if grep -q '0.0.0.0' "$HOSTS_FILE"; then
