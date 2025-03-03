@@ -37,12 +37,12 @@ jobs:
         run: |
           sed -E '/^#|^$/d' hosts/raw_hosts.txt | sort -u > hosts/hosts.txt
 
-      - name: Commit and Push Changes
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add hosts/hosts.txt
-          git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" || exit 0
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/ZG089/Re-Malwack.git
+          - name: Commit and Push Changes
+          env:
+            GH_PAT: ${{ secrets.GH_PAT }}
+          run: |
+            git config --global user.name "ZG089"
+            git config --global user.email "your-email@example.com"
+            git add hosts/hosts.txt
+            git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" || exit 0
+            git push https://ZG089:${{ secrets.GH_PAT }}@github.com/ZG089/Re-Malwack.git        
