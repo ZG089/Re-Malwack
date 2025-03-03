@@ -204,6 +204,49 @@ function update_status() {
     log_message "$status"
 }
 
+function enable_auto_update() {
+    sed -i 's/^daily_update=.*/daily_update=1/' "$CONFIG_FILE"
+    log_message "Auto-update enabled in config.sh."
+
+    # Check if busybox crontab is available
+    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
+        log_message "BusyBox crontab detected. Using crontab for scheduling."
+
+        # Define cron job
+        CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
+
+        # Add cron job if not already set
+        if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
+            (busybox crontab -l 2>/dev/null; echo "$CRON_JOB") | busybox crontab -
+            log_message "Cron job added."
+        else
+            log_message "Cron job already exists."
+        fi
+
+        # Start crond if not running
+        if ! pgrep -f "busybox crond" >/dev/null; then
+            busybox crond -b
+            log_message "Started busybox crond."
+        fi
+    else
+        log_message "BusyBox crontab not found. Auto-update will not work."
+        log_message "Suggestion: Install a BusyBox module to enable auto-update."
+    fi
+}
+
+# Function to disable auto-update
+function disable_auto_update() {
+    sed -i 's/^daily_update=.*/daily_update=0/' "$CONFIG_FILE"
+    log_message "Auto-update disabled in config.sh."
+
+    # Remove cron job if it exists
+    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
+        CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
+        busybox crontab -l 2>/dev/null | grep -vF "$CRON_JOB" | busybox crontab -
+        log_message "Cron job removed."
+    fi
+}
+
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
@@ -331,6 +374,23 @@ case "$(tolower "$1")" in
         fi
         ;;
 
+        --auto-update)
+        case "$2" in
+            enable)
+                enable_auto_update
+                echo "✅ Auto-update enabled."
+                ;;
+            disable)
+                disable_auto_update
+                echo "❌ Auto-update disabled."
+                ;;
+            *)
+                echo "❌ Invalid option for --auto-update"
+                echo "Usage: rmlwk --auto-update <enable|disable>"
+                ;;
+        esac
+        ;;
+
     --update-hosts)
         if [ -d /data/adb/modules/Re-Malwack ]; then
             log_message "Starting to update hosts..."
@@ -378,7 +438,7 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
 
-        echo "- Training the ad-killer army..."
+        echo "- Training the ad-killer army ⚔"
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
@@ -409,6 +469,7 @@ case "$(tolower "$1")" in
         echo "--update-hosts: Update the hosts file."
         echo "--custom-source <add/remove> <domain>: Add your preferred hosts source."
         echo "--help, -h: Display help."
+        echo "--auto-update <enable|disable>: Toggle auto hosts update"
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
 esac
