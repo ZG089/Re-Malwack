@@ -2,7 +2,7 @@ name: Update Hosts
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # Runs every 24 hours at midnight UTC
+    - cron: "0 0 * * *"  # Runs every 24 hours
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
@@ -28,7 +28,6 @@ jobs:
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
             "https://hblock.molinero.dev/hosts"
           )
-
           for url in "${sources[@]}"; do
             curl -sL "$url" >> hosts/raw_hosts.txt
             echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
@@ -39,9 +38,11 @@ jobs:
           sed -E '/^#|^$/d' hosts/raw_hosts.txt | sort -u > hosts/hosts.txt
 
       - name: Commit and Push Changes
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add hosts/hosts.txt
           git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" || exit 0
-          git push
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/ZG089/Re-Malwack.git
