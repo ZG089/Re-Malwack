@@ -48,16 +48,29 @@ fi
 CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
 # Check if daily_update is enabled
 if [[ "$daily_update" == "1" ]]; then
-    # Check if the cron job already exists
-    if ! crontab -l | grep -qF "$CRON_JOB"; then
-        # Add the cron job
-        (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-        log_message "Cron job added."
+    # Check if busybox crontab is available
+    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
+        log_message "BusyBox crontab detected. Using crontab for scheduling."
+
+        # Check if the cron job is already set
+        if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
+            (busybox crontab -l 2>/dev/null; echo "$CRON_JOB") | busybox crontab -
+            log_message "Cron job added."
+        else
+            log_message "Cron job already exists."
+        fi
+
+        # Start crond if not running
+        if ! pgrep -f "busybox crond" >/dev/null; then
+            busybox crond -b
+            log_message "Started busybox crond."
+        fi
     else
-        log_message "Can't add Cron job, already exists."
+        # Disable auto-update in config.sh
+        sed -i 's/^daily_update=.*/daily_update=0/' "$CONFIG_FILE"
+        log_message "BusyBox crontab not found. Auto-update has been disabled in config.sh."
+
+        # Suggest installing a BusyBox module
+        log_message "Suggestion: Install a BusyBox module to be able to use auto-update."
     fi
-else
-    # Remove the cron job if it exists
-    crontab -l | grep -vF "$CRON_JOB" | crontab -
-    log_message "Cron job removed."
 fi
