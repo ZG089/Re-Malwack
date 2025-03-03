@@ -28,7 +28,6 @@ jobs:
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
             "https://hblock.molinero.dev/hosts"
           )
-
           for url in "${sources[@]}"; do
             curl -sL "$url" >> hosts/raw_hosts.txt
             echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
@@ -36,7 +35,10 @@ jobs:
 
       - name: Clean and Merge Hosts
         run: |
-          sed -E '/^#|^$/d' hosts/raw_hosts.txt | sort -u > hosts/hosts.txt
+          echo "Cleaning hosts..."
+          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
+          sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
+          rm -f hosts/tmp_hosts.txt  # Remove temp file
 
       - name: Commit and Push Changes
         run: |
