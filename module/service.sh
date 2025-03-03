@@ -4,7 +4,7 @@ MODDIR="${0%/*}"
 HOSTS_FILE="/system/etc/hosts"
 string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
 persist_dir="/data/adb/Re-Malwack"
-
+source $persist_dir/config.sh
 mkdir -p "$persist_dir/logs"
 rm -rf "$persist_dir/logs/"*
 
@@ -43,4 +43,21 @@ else
         sed -i "s/^description=.*/description=Status: Protection disabled due to no blocked entries ❌/g" "$MODDIR/module.prop"
         log_message "Status: Protection disabled due to no blocked entries"
     fi
+fi
+
+CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
+# Check if daily_update is enabled
+if [[ "$daily_update" == "1" ]]; then
+    # Check if the cron job already exists
+    if ! crontab -l | grep -qF "$CRON_JOB"; then
+        # Add the cron job
+        (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+        log_message "Cron job added."
+    else
+        log_message "Can't add Cron job, already exists."
+    fi
+else
+    # Remove the cron job if it exists
+    crontab -l | grep -vF "$CRON_JOB" | crontab -
+    log_message "Cron job removed."
 fi
