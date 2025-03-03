@@ -207,7 +207,8 @@ function update_status() {
 function enable_auto_update() {
     sed -i 's/^daily_update=.*/daily_update=1/' "$CONFIG_FILE"
     log_message "Auto-update enabled in config.sh."
-
+    # DEFINE PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Check if busybox crontab is available
     if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         log_message "BusyBox crontab detected. Using crontab for scheduling."
@@ -238,7 +239,8 @@ function enable_auto_update() {
 function disable_auto_update() {
     sed -i 's/^daily_update=.*/daily_update=0/' "$CONFIG_FILE"
     log_message "Auto-update disabled in config.sh."
-
+    # DEFINE PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Remove cron job if it exists
     if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
