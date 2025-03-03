@@ -48,6 +48,8 @@ fi
 CRON_JOB="0 */12 * * * PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:\$PATH; rmlwk --update-hosts"
 # Check if daily_update is enabled
 if [[ "$daily_update" == "1" ]]; then
+    # DEFINE PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Check if busybox crontab is available
     if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         log_message "BusyBox crontab detected. Using crontab for scheduling."
