@@ -45,7 +45,7 @@ else
     fi
 fi
 
-CRON_JOB="0 */12 * * * PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:\$PATH; rmlwk --update-hosts"
+CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
 # Check if daily_update is enabled
 if [[ "$daily_update" == "1" ]]; then
     # DEFINE PATH
