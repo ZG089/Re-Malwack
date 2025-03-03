@@ -214,7 +214,7 @@ function enable_auto_update() {
         log_message "BusyBox crontab detected. Using crontab for scheduling."
 
         # Define cron job
-        CRON_JOB="0 */12 * * * PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:\$PATH; rmlwk --update-hosts"
+        CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
 
         # Add cron job if not already set
         if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
