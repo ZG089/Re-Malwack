@@ -205,33 +205,19 @@ function update_status() {
 }
 
 function enable_auto_update() {
-    sed -i 's/^daily_update=.*/daily_update=1/' "$CONFIG_FILE"
+    sed -i 's/^daily_update=.*/daily_update=1/' "$persist_dir/config.sh"
     log_message "Auto-update enabled in config.sh."
     # DEFINE PATH
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    # Check if busybox crontab is available
-    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
-        log_message "BusyBox crontab detected. Using crontab for scheduling."
+    # Define cron job
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
 
-        # Define cron job
-        CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
-
-        # Add cron job if not already set
-        if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
-            (busybox crontab -l 2>/dev/null; echo "$CRON_JOB") | busybox crontab -
-            log_message "Cron job added."
-        else
-            log_message "Cron job already exists."
-        fi
-
-        # Start crond if not running
-        if ! pgrep -f "busybox crond" >/dev/null; then
-            busybox crond -b
-            log_message "Started busybox crond."
-        fi
+    # Add cron job if not already set
+    if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
+        (busybox crontab -l 2>/dev/null; echo "$CRON_JOB") | busybox crontab -
+        log_message "Cron job added."
     else
-        log_message "BusyBox crontab not found. Auto-update will not work."
-        log_message "Suggestion: Install a BusyBox module to enable auto-update."
+        log_message "Cron job already exists."
     fi
 }
 
@@ -242,11 +228,9 @@ function disable_auto_update() {
     # DEFINE PATH
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Remove cron job if it exists
-    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
-        CRON_JOB="0 */12 * * * su -c rmlwk --update-hosts"
-        busybox crontab -l 2>/dev/null | grep -vF "$CRON_JOB" | busybox crontab -
-        log_message "Cron job removed."
-    fi
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
+    busybox crontab -l 2>/dev/null | grep -vF "$CRON_JOB" | busybox crontab -
+    log_message "Cron job removed."
 }
 
 # Check Root
