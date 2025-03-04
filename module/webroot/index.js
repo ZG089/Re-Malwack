@@ -6,6 +6,7 @@ const telegramLink = document.getElementById('telegram');
 const githubLink = document.getElementById('github');
 const xdaLink = document.getElementById('xda');
 const sponsorLink = document.getElementById('sponsor');
+const dailyUpdateToggle = document.getElementById('daily-update-toggle');
 const blockPornToggle = document.getElementById('block-porn-toggle');
 const blockGamblingToggle = document.getElementById('block-gambling-toggle');
 const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
@@ -125,9 +126,19 @@ async function getStatus() {
 async function checkBlockStatus(type) {
     try {
         const result = await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
-        type.toggle.checked = !result;
+        type.toggle.checked = true;
     } catch (error) {
         type.toggle.checked = false;
+    }
+}
+
+// Function to check daily update status
+async function checkDailyUpdateStatus() {
+    try {
+        const result = await execCommand(`grep -q '^daily_update=1' ${basePath}/config.sh`);
+        dailyUpdateToggle.checked = true;
+    } catch (error) {
+        dailyUpdateToggle.checked = false;
     }
 }
 
@@ -156,6 +167,19 @@ async function updateHostsFile() {
 // Function to reset hosts
 async function resetHostsFile() {
     await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
+}
+
+// Function to enable/disable daily update
+async function toggleDailyUpdate() {
+    const isEnabled = dailyUpdateToggle.checked;
+    try {
+        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "enable" : "disable"}`);
+        showPrompt(`Daily update ${isEnabled ? "enabled" : "disabled"}`, true);
+        checkDailyUpdateStatus();
+    } catch (error) {
+        console.error("Failed to toggle daily update:", error);
+        showPrompt("Failed to toggle daily update", false);
+    }
 }
 
 // Function to export logs
@@ -413,6 +437,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkMMRL();
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
+    document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
     blockTypes.forEach(type => {
@@ -420,6 +445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     attachAddButtonListeners();
     getVersion();
+    checkDailyUpdateStatus();
     for (const type of blockTypes) {
         await checkBlockStatus(type);
     }

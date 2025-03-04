@@ -32,6 +32,16 @@
         </div>
 
         <!-- rmlwk function box -->
+        <!-- reset -->
+        <div class="box ripple-container">
+            <div class="toggle-container" id="reset">
+                <i class="control-icon" id="reset-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z" /></svg>
+                </i>
+                <ul id="reset-text">Restore original hosts file</ul>
+            </div>
+        </div>
+
         <!-- update -->
         <div class="box ripple-container">
             <div class="toggle-container" id="update">
@@ -42,13 +52,16 @@
             </div>
         </div>
 
-        <!-- reset -->
+        <!-- daily update -->
         <div class="box ripple-container">
-            <div class="toggle-container" id="reset">
-                <i class="control-icon" id="reset-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z" /></svg>
-                </i>
-                <ul id="reset-text">Restore original hosts file</ul>
+            <div class="toggle-container" id="daily-update">
+                <i class="control-icon" id="daily-update-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="21px" viewBox="0 -960 960 960" width="21px"><path d="M480-144q-70 0-131.13-26.6-61.14-26.6-106.4-71.87-45.27-45.26-71.87-106.4Q144-410 144-480t26.6-131.13q26.6-61.14 71.87-106.4 45.26-45.27 106.4-71.87Q410-816 480-816q81 0 149.5 35T744-686v-130h72v240H576v-72h107q-35.91-44.8-88.45-70.4Q542-744 480-744q-109 0-186.5 77.5T216-480q0 109 77.5 186.5T480-216q109 0 186.5-77.5T744-480h72q0 140-98 238t-238 98Zm100-200L444-480v-192h72v162l115 115-51 51Z"/></svg>                </i>
+                <ul id="daily-update-text">Daily update hosts file</ul>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="daily-update-toggle" disabled>
+                    <span class="slider round"></span>
+                </label>
             </div>
         </div>
 
