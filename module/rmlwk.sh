@@ -145,11 +145,10 @@ function block_content() {
                 wait
             fi
         fi
-        # Update config
-        sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
 
         # Skip install if called from hosts update
         [ "$status" = "update" ] && return 0
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
         cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
@@ -445,6 +444,9 @@ case "$(tolower "$1")" in
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument]"
+        echo "--update-hosts: Update the hosts file."
+        echo "--auto-update <enable|disable>: Toggle auto hosts update"
+        echo "--custom-source <add|remove> <domain>: Add your preferred hosts source."
         echo "--reset: Restore original hosts file."
         echo "--block-porn <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
@@ -452,10 +454,7 @@ case "$(tolower "$1")" in
         echo "--block-social <disable>: Block social media sites, use disable to unblock."
         echo "--whitelist <add|remove> <domain>: Whitelist a domain."
         echo "--blacklist <add|remove> <domain>: Blacklist a domain."
-        echo "--update-hosts: Update the hosts file."
-        echo "--custom-source <add|remove> <domain>: Add your preferred hosts source."
         echo "--help, -h: Display help."
-        echo "--auto-update <enable|disable>: Toggle auto hosts update"
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
 esac
