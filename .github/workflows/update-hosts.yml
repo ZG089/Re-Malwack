@@ -33,12 +33,22 @@ jobs:
             echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
           done
 
+          - name: Download Whitelist
+          run: |
+            curl -sL "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" -o hosts/whitelist.txt
+  
       - name: Clean and Merge Hosts
         run: |
-          echo "Cleaning hosts..."
-          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
-          sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
-          rm -f hosts/tmp_hosts.txt  # Remove temp file
+            echo "Cleaning hosts..."
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
+            sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
+            rm -f hosts/tmp_hosts.txt  # Remove temp file
+  
+      - name: Remove Whitelisted Domains
+        run: |
+            echo "Filtering whitelist..."
+            grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt
+            mv hosts/tmp_hosts.txt hosts/hosts.txt
 
       - name: Commit and Push Changes
         run: |
