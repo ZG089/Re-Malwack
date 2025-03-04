@@ -66,16 +66,11 @@ ping -c 1 -w 5 google.com &>/dev/null || abort "- This module requires internet 
 # Add a persistent directory to save configuration
 config_file="/data/adb/Re-Malwack/config.sh"
 types="block_porn block_gambling block_fakenews block_social daily_update"
-if [ -f "$config_file" ]; then
-    for type in $types; do
-        grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
-    done
-else
-    mkdir -p "/data/adb/Re-Malwack"
-    for type in $types; do
-        echo "$type=0"
-    done > "$config_file"
-fi
+mkdir -p "/data/adb/Re-Malwack"
+touch "$config_file"
+for type in $types; do
+    grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
+done
 
 # set permissions
 chmod 755 $MODPATH/rmlwk.sh
