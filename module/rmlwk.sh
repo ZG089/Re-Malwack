@@ -203,7 +203,19 @@ function update_status() {
     log_message "$status"
 }
 
+function run_crond() {
+    # DEFINE PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+	[ ! -d "$persist_dir/crontabs" ] && {
+		mkdir "$persist_dir/crontabs"
+		log_message "Running crond..."
+		busybox crond -bc "$persist_dir/crontabs" -L /dev/null
+	}
+}
+
+
 function enable_auto_update() {
+    run_crond
     sed -i 's/^daily_update=.*/daily_update=1/' "$persist_dir/config.sh"
     log_message "Auto-update enabled in config.sh."
     # DEFINE PATH
