@@ -223,7 +223,7 @@ function enable_auto_update() {
 
 # Function to disable auto-update
 function disable_auto_update() {
-    sed -i 's/^daily_update=.*/daily_update=0/' "$CONFIG_FILE"
+    sed -i 's/^daily_update=.*/daily_update=0/' "$persist_dir/config.sh"
     log_message "Auto-update disabled in config.sh."
     # DEFINE PATH
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
@@ -360,7 +360,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-        --auto-update)
+    --auto-update)
         case "$2" in
             enable)
                 enable_auto_update
@@ -450,10 +450,10 @@ case "$(tolower "$1")" in
         echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews <disable>: Block fake news sites, use disable to unblock."
         echo "--block-social <disable>: Block social media sites, use disable to unblock."
-        echo "--whitelist <add/remove> <domain>: Whitelist a domain."
-        echo "--blacklist <add/remove> <domain>: Blacklist a domain."
+        echo "--whitelist <add|remove> <domain>: Whitelist a domain."
+        echo "--blacklist <add|remove> <domain>: Blacklist a domain."
         echo "--update-hosts: Update the hosts file."
-        echo "--custom-source <add/remove> <domain>: Add your preferred hosts source."
+        echo "--custom-source <add|remove> <domain>: Add your preferred hosts source."
         echo "--help, -h: Display help."
         echo "--auto-update <enable|disable>: Toggle auto hosts update"
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
