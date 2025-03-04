@@ -46,9 +46,14 @@ jobs:
   
       - name: Remove Whitelisted Domains
         run: |
-            echo "Filtering whitelist..."
-            grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt
-            mv hosts/tmp_hosts.txt hosts/hosts.txt
+              echo "Filtering whitelist..."
+              if [ -s hosts/whitelist.txt ]; then
+                grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt || true
+                mv hosts/tmp_hosts.txt hosts/hosts.txt
+              else
+                echo "Whitelist is empty or missing. Skipping..."
+              fi
+          
 
       - name: Commit and Push Changes
         run: |
