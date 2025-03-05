@@ -173,8 +173,8 @@ async function resetHostsFile() {
 async function toggleDailyUpdate() {
     const isEnabled = dailyUpdateToggle.checked;
     try {
-        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "enable" : "disable"}`);
-        showPrompt(`Daily update ${isEnabled ? "enabled" : "disabled"}`, true);
+        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
+        showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
         checkDailyUpdateStatus();
     } catch (error) {
         console.error("Failed to toggle daily update:", error);
