@@ -203,46 +203,68 @@ function update_status() {
     log_message "$status"
 }
 
-function run_crond() {
-    # DEFINE PATH
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-	[ ! -d "$persist_dir/crontabs" ] && {
-		mkdir "$persist_dir/crontabs"
-		log_message "Running crond..."
-		busybox crond -bc "$persist_dir/crontabs" -L /dev/null
-	}
-}
 
+# Enable cron job for auto-update
+function enable_cron() {
+    JOB_DIR="/data/adb/Re-Malwack/auto_update"
+    JOB_FILE="$JOB_DIR/root"
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update." >> /data/adb/Re-Malwack/logs/auto_update.log"
 
-function enable_auto_update() {
-    run_crond
-    sed -i 's/^daily_update=.*/daily_update=1/' "$persist_dir/config.sh"
-    log_message "Auto-update enabled in config.sh."
-    # DEFINE PATH
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    # Define cron job
-    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
+    # Create directory and file if they don't exist
+    mkdir -p "$JOB_DIR"
+    touch "$JOB_FILE"
 
-    # Add cron job if not already set
-    if ! busybox crontab -l 2>/dev/null | grep -qF "$CRON_JOB"; then
-        (busybox crontab -l 2>/dev/null; echo "$CRON_JOB") | busybox crontab -
-        log_message "Cron job added."
+    # Check if cron job already exists
+    if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
+        log_message "Cron job already exists. Auto-update is already enabled."
+        echo "- Auto-update is already enabled."
     else
-        log_message "Cron job already exists."
+        echo "$CRON_JOB" >> "$JOB_FILE"
+        busybox crontab "$JOB_FILE" -c "$JOB_DIR"
+        log_message "Cron job added."
+        crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+        sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
+        log_message "Auto-update has been enabled."
+        echo "- Auto-update enabled."
     fi
 }
 
 # Function to disable auto-update
-function disable_auto_update() {
-    sed -i 's/^daily_update=.*/daily_update=0/' "$persist_dir/config.sh"
-    log_message "Auto-update disabled in config.sh."
-    # DEFINE PATH
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    # Remove cron job if it exists
-    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts"
-    busybox crontab -l 2>/dev/null | grep -vF "$CRON_JOB" | busybox crontab -
-    log_message "Cron job removed."
+# Disable cron job for auto-update
+function disable_cron() {
+    JOB_DIR="/data/adb/Re-Malwack/Auto Update"
+    JOB_FILE="$JOB_DIR/root"
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
+
+    # Check if cron job exists
+    if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
+        # Remove the cron job
+        sed -i "\|$CRON_JOB|d" "$JOB_FILE"
+
+        # Remove job file if empty
+        if [ ! -s "$JOB_FILE" ]; then
+            rm -f "$JOB_FILE"
+        fi
+
+        busybox crontab -r -c "/data/adb/Re-Malwack/crontabs"
+        log_message "Cron job removed."
+
+        # Stop crond if no jobs remain
+        if [ ! -f "$JOB_FILE" ]; then
+            busybox pkill crond
+            log_message "Crond process stopped."
+        fi
+
+        # Disable auto-update
+        sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
+        log_message "Auto-update has been disabled."
+        echo "- Auto-update disabled."
+    else
+        log_message "No auto-update cron job found."
+        echo "- Auto-update is already disabled."
+    fi
 }
+
 
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
@@ -374,7 +396,7 @@ case "$(tolower "$1")" in
     --auto-update)
         case "$2" in
             enable)
-                enable_auto_update
+                enable_cron
                 echo "✅ Auto-update enabled."
                 ;;
             disable)
