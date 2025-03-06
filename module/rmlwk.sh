@@ -208,7 +208,7 @@ function update_status() {
 function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
-    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update." >> /data/adb/Re-Malwack/logs/auto_update.log"
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Create directory and file if they don't exist
     mkdir -p "$JOB_DIR"
@@ -225,14 +225,13 @@ function enable_cron() {
         crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
         sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been enabled."
-        echo "- Auto-update enabled."
     fi
 }
 
 # Function to disable auto-update
 # Disable cron job for auto-update
 function disable_cron() {
-    JOB_DIR="/data/adb/Re-Malwack/Auto Update"
+    JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
@@ -258,7 +257,7 @@ function disable_cron() {
         # Disable auto-update
         sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been disabled."
-        echo "- Auto-update disabled."
+        echo "❌ Auto-update disabled."
     else
         log_message "No auto-update cron job found."
         echo "- Auto-update is already disabled."
@@ -401,7 +400,6 @@ case "$(tolower "$1")" in
                 ;;
             disable)
                 disable_cron
-                echo "❌ Auto-update disabled."
                 ;;
             *)
                 echo "❌ Invalid option for --auto-update"
