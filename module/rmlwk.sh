@@ -209,7 +209,7 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update." >> /data/adb/Re-Malwack/logs/auto_update.log"
-
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Create directory and file if they don't exist
     mkdir -p "$JOB_DIR"
     touch "$JOB_FILE"
@@ -235,7 +235,7 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/Auto Update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
-
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Check if cron job exists
     if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
         # Remove the cron job
