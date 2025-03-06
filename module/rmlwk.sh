@@ -237,14 +237,8 @@ function disable_cron() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     # Check if cron job exists
     if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
-        # Remove the cron job
-        sed -i "\|$CRON_JOB|d" "$JOB_FILE"
-
-        # Remove job file if empty
-        if [ ! -s "$JOB_FILE" ]; then
-            rm -f "$JOB_FILE"
-        fi
-
+    
+        rm -f "$JOB_FILE"
         busybox crontab -r -c "/data/adb/Re-Malwack/crontabs"
         log_message "Cron job removed."
 
