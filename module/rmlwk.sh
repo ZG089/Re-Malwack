@@ -400,7 +400,7 @@ case "$(tolower "$1")" in
                 echo "✅ Auto-update enabled."
                 ;;
             disable)
-                disable_auto_update
+                disable_cron
                 echo "❌ Auto-update disabled."
                 ;;
             *)
