@@ -208,53 +208,49 @@ function update_status() {
 function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
-    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
+    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo "[AUTO UPDATE TIME!!!]" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    # Create directory and file if they don't exist
-    mkdir -p "$JOB_DIR"
-    touch "$JOB_FILE"
-
-    # Check if cron job already exists
-    if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
-        log_message "Cron job already exists. Auto-update is already enabled."
-        echo "- Auto-update is already enabled."
-    else
+    
+    if [ -d "$JOB_DIR" ]; then
+        echo "- Auto update is already enabled"
+    else    
+        # Create directory and file if they don't exist
+        mkdir -p "$JOB_DIR"
+        touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
         busybox crontab "$JOB_FILE" -c "$JOB_DIR"
         log_message "Cron job added."
         crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
         sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been enabled."
+        echo "✅ Auto-update enabled."
     fi
 }
 
 # Function to disable auto-update
-# Disable cron job for auto-update
 function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    # Check if cron job exists
-    if grep -Fxq "$CRON_JOB" "$JOB_FILE"; then
-    
-        rm -f "$JOB_FILE"
-        busybox crontab -r -c "/data/adb/Re-Malwack/crontabs"
-        log_message "Cron job removed."
+    # Kill cron lore
+    busybox pkill crond > /dev/null 2>&1
+    busybox pkill busybox crond > /dev/null 2>&1
+    busybox pkill busybox crontab > /dev/null 2>&1
+    busybox pkill crontab > /dev/null 2>&1
+    log_message "Cron processes stopped."
 
-        # Stop crond if no jobs remain
-        if [ ! -f "$JOB_FILE" ]; then
-            busybox pkill crond
-            log_message "Crond process stopped."
-        fi
+    # Check if cron job exists
+    if [ ! -d "$JOB_DIR" ]; then
+        echo "- Auto update is already disabled"
+    else    
+        rm -rf "$JOB_DIR"
+        log_message "Cron job removed."
 
         # Disable auto-update
         sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been disabled."
         echo "❌ Auto-update disabled."
-    else
-        log_message "No auto-update cron job found."
-        echo "- Auto-update is already disabled."
     fi
 }
 
@@ -390,7 +386,6 @@ case "$(tolower "$1")" in
         case "$2" in
             enable)
                 enable_cron
-                echo "✅ Auto-update enabled."
                 ;;
             disable)
                 disable_cron
