@@ -430,16 +430,16 @@ case "$(tolower "$1")" in
         rm -rf "$tmp_dir"
         mkdir -p "$tmp_dir"
 
-        # Re-Malwack general hosts - moved to array for better handling
-        general_hosts=(
-            "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-            "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt"
-            "https://o0.pages.dev/Pro/hosts.txt"
-            "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
-            "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
-            "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
-            "https://hblock.molinero.dev/hosts"
-        )
+        # Re-Malwack general hosts
+        general_hosts="
+        https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+        https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
+        https://o0.pages.dev/Pro/hosts.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
+        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
+        https://hblock.molinero.dev/hosts
+        "
 
         # Add custom sources if available
         if [ -s "$persist_dir/custom-source.txt" ]; then
