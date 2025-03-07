@@ -53,49 +53,72 @@ function log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
 }
 
-function install_hosts() {
+install_hosts() {
     type="$1"
     log_message "Starting to install $type hosts."
-    # Prepare original hosts
+
+    # Backup original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
-    # Prepare blacklist
-    log_message "Preparing Blacklist..."
-    [ -s "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
+    # Merge all enabled blocklists
+    log_message "Merging Enabled Blocklists..."
+    tmp_hosts_all="${tmp_hosts}all"
+    : > "$tmp_hosts_all"  # Clear file before appending
 
-    # Update hosts
-    log_message "Updating hosts..."
-    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
-    sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
-    
+    # Check enabled blocklists before appending
+    for blocklist in "$persist_dir/blocklists/"*; do
+        blocklist_name=$(basename "$blocklist")
+        enabled_var="block_${blocklist_name%.*}"  # Convert filename to variable name (e.g., block_porn=1)
+        
+        # Check if the blocklist is enabled
+        if eval "[ \"\${$enabled_var}\" -eq 1 ]" 2>/dev/null; then
+            log_message "Adding $blocklist_name..."
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$blocklist" | awk '{print "0.0.0.0 " $0}' >> "$tmp_hosts_all"
+        else
+            log_message "Skipping disabled blocklist: $blocklist_name"
+        fi
+    done
+
+    # Process blacklist
+    log_message "Applying Blacklist..."
+    [ -s "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' >> "$tmp_hosts_all"
+
+    # Sort and deduplicate the merged blocklists
+    log_message "Sorting and removing duplicates..."
+    sort -u "$tmp_hosts_all" > "$tmp_hosts"
+
     # Process whitelist
     log_message "Processing Whitelist..."
     social_whitelist="$persist_dir/cache/whitelist/social_whitelist.txt"
     whitelist_file="$persist_dir/cache/whitelist/whitelist.txt"
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
 
-    # Filter whitelist
-    log_message "Filtering Whitelist..."
     if [ "$block_social" -eq 1 ]; then
-        log_message "Social Block enable triggered, Whitelist won't be applied"
+        log_message "Social Block enabled, skipping Social Whitelist."
     else
         whitelist_file="$whitelist_file $social_whitelist"
     fi
-    
-    # Read and sort whitelist entries from all files
-    whitelist=$(cat $whitelist_file | sort -u)
+
+    # Apply whitelist filter
+    log_message "Filtering Whitelist..."
+    whitelist=$(cat $whitelist_file | sort -u 2>/dev/null)
     if [ -n "$whitelist" ]; then
         echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
-        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-        cat "$tmp_hosts" > "$hosts_file"
+        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$tmp_hosts" > "$hosts_file"
+    else
+        cp "$tmp_hosts" "$hosts_file"
     fi
 
-    # Clean up
+    # Set proper permissions
     chmod 644 "$hosts_file"
+
+    # Clean up temporary files
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
+
     log_message "Successfully installed hosts."
 }
+
 
 function remove_hosts() {
     log_message "Starting to remove hosts."
