@@ -444,8 +444,7 @@ case "$(tolower "$1")" in
         # Add custom sources if available
         if [ -s "$persist_dir/custom-source.txt" ]; then
             while IFS= read -r line; do
-                general_hosts="${general_hosts}
-        $line"
+                general_hosts+=("$line")
             done < "$persist_dir/custom-source.txt"
         fi
 
