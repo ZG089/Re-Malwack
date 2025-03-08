@@ -443,7 +443,7 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
 
-        echo "- Training the ad-killer army ⚔"
+        echo "- Installing hosts"
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
@@ -453,11 +453,11 @@ case "$(tolower "$1")" in
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
         update_status
-        if [ -d /data/adb/modules/Re-Malwack ]; then
+        if [ ! -d /data/adb/modules_update/Re-Malwack ]; then # If the script is NOT running in root manager (during updating)
             log_message "Successfully updated hosts."
-            echo "- All done!"
+            echo "- Everything is now Good!"
         else
-            return 0
+            log_message "Successfully updated hosts."
         fi
         ;;
 
