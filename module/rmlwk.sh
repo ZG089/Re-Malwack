@@ -399,12 +399,12 @@ case "$(tolower "$1")" in
 
     --update-hosts)
         if [ -d /data/adb/modules/Re-Malwack ]; then
-            ui_print "[UPGRADING ANTI-ADS FORTRESS 🏰]"
+            echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
         else
-            ui_print "[BUILDING ANTI-ADS FORTRESS 🏰]"
+            echo "[BUILDING ANTI-ADS FORTRESS 🏰]"
         fi 
         nuke_if_we_dont_have_internet
-
+        echo "- Downloading base hosts."
         # Re-Malwack general hosts
         general_hosts="
         https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
