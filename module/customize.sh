@@ -29,11 +29,7 @@ sleep 0.2
 ui_print "                                    /"
 ui_print " ----------------------------------"
 ui_print " "
-if [ -d /data/adb/modules/Re-Malwack ]; then
-    ui_print "[UPDATE BEGINS]"
-else
-    ui_print "[INSTALLATION BEGINS]"
-fi
+
 
 # abort in recovery
 if ! $BOOTMODE; then
