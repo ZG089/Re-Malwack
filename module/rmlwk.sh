@@ -31,7 +31,8 @@ function malvack_banner() {
 
 # Variables
 persist_dir="/data/adb/Re-Malwack"
-MODDIR="${0%/*}"
+#MODDIR="${0%/*}" mi mi mi mi mi miku, miku hatsune miku! 
+MODDIR=$(if [ "$(getprop sys.boot_completed)" == "1" ]; then echo "/data/adb/modules/Re-Malwack/"; else echo "/data/adb/modules_update/Re-Malwack/"; fi)
 hosts_file="$MODDIR/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
