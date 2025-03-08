@@ -399,11 +399,10 @@ case "$(tolower "$1")" in
 
     --update-hosts)
         if [ -d /data/adb/modules/Re-Malwack ]; then
-            log_message "Starting to update hosts..."
-            echo "- Upgrading protection fortress 🏰🛡"
+            ui_print "[UPGRADING ANTI-ADS FORTRESS 🏰]"
         else
-            echo "- Building protection fortress 🏰🛡"   
-        fi     
+            ui_print "[BUILDING ANTI-ADS FORTRESS 🏰]"
+        fi 
         nuke_if_we_dont_have_internet
 
         # Re-Malwack general hosts
