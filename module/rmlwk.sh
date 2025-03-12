@@ -276,8 +276,13 @@ case "$(tolower "$1")" in
 	    echo "- Successfully reverted changes."
         ;;
 
-    --block-porn|--block-gambling|--block-fakenews|--block-social)
-        block_type=${1#--block-}
+    --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
+        case "$1" in
+            --block-porn|-bp) block_type="porn" ;;
+            --block-gambling|-bg) block_type="gambling" ;;
+            --block-fakenews|-bf) block_type="fakenews" ;;
+            --block-social|-bs) block_type="social" ;;
+        esac
         status="$2"
         eval "block_toggle=\"\$block_${block_type}\""
 
@@ -301,7 +306,7 @@ case "$(tolower "$1")" in
         update_status
         ;;
 
-    --whitelist)
+    --whitelist|-w)
         option="$2"
         domain="$3"
         
@@ -328,7 +333,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-    --blacklist)
+    --blacklist|-b)
         option="$2"
         domain="$3"
 
@@ -361,7 +366,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-    --custom-source)
+    --custom-source|-c)
         option="$2"
         domain="$3"
 
@@ -383,7 +388,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-    --auto-update)
+    --auto-update|-a)
         case "$2" in
             enable)
                 enable_cron
@@ -392,13 +397,13 @@ case "$(tolower "$1")" in
                 disable_cron
                 ;;
             *)
-                echo "❌ Invalid option for --auto-update"
-                echo "Usage: rmlwk --auto-update <enable|disable>"
+                echo "❌ Invalid option for --auto-update / -a"
+                echo "Usage: rmlwk <--auto-update|-a> <enable|disable>"
                 ;;
         esac
         ;;
 
-    --update-hosts)
+    --update-hosts|-u)
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
         else
@@ -465,16 +470,16 @@ case "$(tolower "$1")" in
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument]"
-        echo "--update-hosts: Update the hosts file."
-        echo "--auto-update <enable|disable>: Toggle auto hosts update"
-        echo "--custom-source <add|remove> <domain>: Add your preferred hosts source."
+        echo "--update-hosts, -u: Update the hosts file."
+        echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
+        echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
         echo "--reset: Restore original hosts file."
-        echo "--block-porn <disable>: Block pornographic sites, use disable to unblock."
-        echo "--block-gambling <disable>: Block gambling sites, use disable to unblock."
-        echo "--block-fakenews <disable>: Block fake news sites, use disable to unblock."
-        echo "--block-social <disable>: Block social media sites, use disable to unblock."
-        echo "--whitelist <add|remove> <domain>: Whitelist a domain."
-        echo "--blacklist <add|remove> <domain>: Blacklist a domain."
+        echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
+        echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
+        echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
+        echo "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
+        echo "--whitelist, -w <add|remove> <domain>: Whitelist a domain."
+        echo "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
