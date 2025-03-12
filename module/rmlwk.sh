@@ -71,6 +71,20 @@ function install_hosts() {
     
     # Process whitelist
     log_message "Processing Whitelist..."
+    if [ ! -f "$persist_dir/cache/whitelist/whitelist.txt" ]; then
+        log_message "Repo's whitelist.txt not found, downloading..."
+        mkdir -p "$persist_dir/cache/whitelist"
+        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
+    else
+        log_message "Repo's whitelist.txt found, continuing..."
+    
+    if [ ! -f "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
+        log_message "Repo's social_whitelist.txt not found, downloading..."
+        mkdir -p "$persist_dir/cache/whitelist"
+        fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
+    else
+        log_message "Repo's social_whitelist.txt found, continuing..."
+    fi        
     social_whitelist="$persist_dir/cache/whitelist/social_whitelist.txt"
     whitelist_file="$persist_dir/cache/whitelist/whitelist.txt"
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
@@ -263,7 +277,7 @@ fi
 
 # Main Logic
 case "$(tolower "$1")" in
-    --reset)
+    --reset|-r)
         log_message "Reverting the changes."
         echo "- Reverting the changes..."
         echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -473,7 +487,7 @@ case "$(tolower "$1")" in
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
-        echo "--reset: Restore original hosts file."
+        echo "--reset, -r: Restore original hosts file."
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
