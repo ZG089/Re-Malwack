@@ -78,6 +78,7 @@ function install_hosts() {
         fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
     else
         log_message "Repo's whitelist.txt found, continuing..."
+    fi
     
     if [ ! -f "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
         log_message "Repo's social_whitelist.txt not found, downloading..."
