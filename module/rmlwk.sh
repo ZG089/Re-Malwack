@@ -59,6 +59,7 @@ function install_hosts() {
     log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
+    echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file" 
 
     # Prepare blacklist
     log_message "Preparing Blacklist..."
