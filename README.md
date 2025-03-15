@@ -76,7 +76,7 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.t
 ## Download Module
 > [!TIP]
 > - You can download the module from:\
-[![MMRL](https://mmrl.dev/assets/badge.svg)](https://mmrl.dergoogler.com/module/Re-Malwack)
+[![MMRL](https://mmrl.dev/assets/badge.svg)](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
 > - Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
