@@ -382,27 +382,33 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-    --custom-source|-c)
-        option="$2"
-        domain="$3"
-
-        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
-            echo "usage: rmlwk --custom-source <add/remove> <domain>"
-            display_custom_sources=$(cat "$persist_dir/custom-source.txt" 2>/dev/null)
-            [ ! -z "$display_custom_sources" ] && echo -e "Current custom sources:\n$display_custom_sources" || echo "Current custom sources: no saved custom sources"
-        else
-            touch "$persist_dir/custom-source.txt"
-            if [ "$option" = "add" ]; then
-                grep -qx "$domain" "$persist_dir/custom-source.txt" && echo "$domain is already in custom sources" || echo "$domain" >> "$persist_dir/custom-source.txt"
-                log_message "Added $domain to custom source."
-                echo "- Added $domain to custom source."
-            else
-                sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"
-                log_message "Removed $domain from custom source."
-                echo "- $domain removed from custom source."
-            fi
-        fi
-        ;;
+	--custom-source|-c)
+	option="$2"
+	domain="$3"
+	display_custom_sources=$(cat "$persist_dir/custom-source.txt" 2>/dev/null)
+	if [[ "$option" != "add|remove" || -z "$domain" || -z "$display_custom_sources" ]]; then
+	    echo "usage: rmlwk --custom-source <add/remove> <domain>"
+	else
+	    touch "$persist_dir/custom-source.txt"
+	    if [ "$option" = "add" ]; then
+	        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
+	            echo "$domain is already in custom sources" 
+	        else
+	            echo "$domain" >> "$persist_dir/custom-source.txt"
+	        fi
+	        log_message "Added $domain to custom source."
+	        echo "- Added $domain to custom source."
+	    else
+	        if sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"; then
+	            log_message "Removed $domain from custom source."
+	            echo "- $domain removed from custom source."
+	        else
+	            log_message "Failed to remove $domain from custom source."
+	            echo "- $domain was failed to get removed from custom source, please try again"
+	        fi
+	    fi
+	fi
+	;;
 
     --auto-update|-a)
         case "$2" in
