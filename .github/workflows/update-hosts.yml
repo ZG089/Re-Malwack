@@ -43,6 +43,7 @@ jobs:
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
             sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
             rm -f hosts/tmp_hosts.txt  # Remove temp file
+            cat hosts/hosts.txt
   
       - name: Remove Whitelisted Domains
         run: |
@@ -50,6 +51,7 @@ jobs:
               if [ -s hosts/whitelist.txt ]; then
                 grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt || true
                 mv hosts/tmp_hosts.txt hosts/hosts.txt
+                cat hosts/hosts.txt
               else
                 echo "Whitelist is empty or missing. Skipping..."
               fi
