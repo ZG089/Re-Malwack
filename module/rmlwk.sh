@@ -383,32 +383,49 @@ case "$(tolower "$1")" in
         ;;
 
 	--custom-source|-c)
-	option="$2"
-	domain="$3"
-	display_custom_sources=$(cat "$persist_dir/custom-source.txt" 2>/dev/null)
-	if [[ "$option" != "add|remove" || -z "$domain" || -z "$display_custom_sources" ]]; then
-	    echo "usage: rmlwk --custom-source <add/remove> <domain>"
-	else
-	    touch "$persist_dir/custom-source.txt"
-	    if [ "$option" = "add" ]; then
-	        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
-	            echo "$domain is already in custom sources" 
-	        else
-	            echo "$domain" >> "$persist_dir/custom-source.txt"
-	        fi
-	        log_message "Added $domain to custom source."
-	        echo "- Added $domain to custom source."
-	    else
-	        if sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"; then
-	            log_message "Removed $domain from custom source."
-	            echo "- $domain removed from custom source."
-	        else
-	            log_message "Failed to remove $domain from custom source."
-	            echo "- $domain was failed to get removed from custom source, please try again"
-	        fi
-	    fi
-	fi
-	;;
+    option="$2"
+    domain="$3"
+    
+    if [ -z "$option" ]; then
+        echo "❌ Missing argument: You must specify 'add' or 'remove'."
+        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+        exit 1
+    fi
+    
+    if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
+        echo "❌ Invalid option: Use 'add' or 'remove'."
+        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+        exit 1
+    fi
+
+    if [ -z "$domain" ]; then
+        echo "❌ Missing domain: You must specify a domain."
+        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+        exit 1
+    fi
+    
+    touch "$persist_dir/custom-source.txt"
+    
+    if [ "$option" = "add" ]; then
+        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
+            echo "ℹ️  $domain is already in custom sources."
+        else
+            echo "$domain" >> "$persist_dir/custom-source.txt"
+            log_message "Added $domain to custom source."
+            echo "✅ Added $domain to custom source."
+        fi
+    else
+        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
+            sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"
+            log_message "Removed $domain from custom source."
+            echo "✅ Removed $domain from custom source."
+        else
+            log_message "Failed to remove $domain from custom source."
+            echo "❌ $domain was not found in custom sources."
+        fi
+    fi
+    ;;
+
 
     --auto-update|-a)
         case "$2" in
