@@ -80,10 +80,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
+          git fetch
           echo "=== GIT STATUS BEFORE FORCE ADD ==="
           git status
           echo "================================="
-      
           git add -f hosts/hosts.txt  # Force-add in case Git is ignoring it
       
           echo "=== GIT STATUS AFTER ADD ==="
