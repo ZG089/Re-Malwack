@@ -75,23 +75,26 @@ jobs:
               fi
           
 
-      - name: Commit and Push Changes
+      - name: Compute Checksum & Commit if Changed
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch
-          echo "=== GIT STATUS BEFORE FORCE ADD ==="
-          git status
-          echo "================================="
-          git add -f hosts/hosts.txt  # Force-add in case Git is ignoring it
-          echo "=== GIT STATUS AFTER ADD ==="
-          git status
-          echo "==========================="
-          if git diff --cached --quiet; then
-            echo "No changes found. Maybe timestamps are the same?"
-            ls -l hosts/hosts.txt  # Show file details
-            exit 0
-          else
-            git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
-            git push
+         git config --global user.name "github-actions[bot]"
+         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+         # Compute checksum of current hosts file
+         checksum_file="hosts/.checksum"
+         new_checksum=$(crc32 hosts/hosts.txt)
+         echo "New Checksum: $new_checksum"
+         # Compare with previous checksum
+         if [ -f "$checksum_file" ]; then
+          old_checksum=$(cat "$checksum_file")
+          echo "Old Checksum: $old_checksum"
+          if [ "$new_checksum" = "$old_checksum" ]; then
+           echo "No content changes detected. Skipping commit."
+           exit 0
           fi
+         fi
+         # Save new checksum
+         echo "$new_checksum" > "$checksum_file"
+         git add hosts/hosts.txt "$checksum_file" 
+         git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
+         git push --force
+         
