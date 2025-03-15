@@ -86,15 +86,18 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            # Ensure files are tracked
-            git add hosts/hosts.txt || true
-            # Commit only if there are changes
-            if ! git diff --cached --quiet; then
-              git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
-              git push
-            else
-              echo "No changes to commit."
-            fi
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Ensure file is added
+          git add hosts/hosts.txt || true
+      
+          # Check if changes exist before committing
+          if git diff --cached --quiet; then
+            echo "No changes found. Skipping commit."
+          else
+            git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
+            git push
+          fi
+
 
