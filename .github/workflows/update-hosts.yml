@@ -47,14 +47,29 @@ jobs:
   
       - name: Remove Whitelisted Domains
         run: |
-              echo "Filtering whitelist..."
-              if [ -s hosts/whitelist.txt ]; then
-                grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt || true
-                mv hosts/tmp_hosts.txt hosts/hosts.txt
-                cat hosts/hosts.txt
-              else
-                echo "Whitelist is empty or missing. Skipping..."
-              fi
+          echo "Filtering whitelist..."
+          
+          whitelist_file="hosts/whitelist.txt"
+          
+          if [ -s "$whitelist_file" ]; then
+            # Make a backup before filtering
+            cp hosts/hosts.txt hosts/hosts.bak
+      
+            # Ensure each whitelisted domain is properly removed
+            while IFS= read -r domain; do
+              # Only remove exact matches like your script does
+              sed -i "/^0\.0\.0\.0 $domain$/d" hosts/hosts.txt
+            done < "$whitelist_file"
+      
+            # If the file is empty after filtering, restore the backup
+            if [ ! -s hosts/hosts.txt ]; then
+              echo "WARNING: Whitelist filtering removed everything! Restoring backup."
+              mv hosts/hosts.bak hosts/hosts.txt
+            fi
+          else
+            echo "Whitelist is empty or missing. Skipping..."
+          fi
+
          
       - name: Setting up permissions for hosts file
         run: |
