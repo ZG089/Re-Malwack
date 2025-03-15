@@ -44,19 +44,19 @@ jobs:
             sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
             rm -f hosts/tmp_hosts.txt  # Remove temp file
   
-      - name: Remove Whitelisted Domains
+      - name: Remove Whitelisted Domains (Safe Mode)
         run: |
           echo "Filtering whitelist..."
           
           whitelist_file="hosts/whitelist.txt"
-          
+      
           if [ -s "$whitelist_file" ]; then
             # Make a backup before filtering
             cp hosts/hosts.txt hosts/hosts.bak
       
             # Ensure each whitelisted domain is properly removed
             while IFS= read -r domain; do
-              # Only remove exact matches like your script does
+              # Escape special characters in domain for sed
               escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
               sed -i "/^0\.0\.0\.0 $escaped_domain$/d" hosts/hosts.txt
             done < "$whitelist_file"
@@ -65,9 +65,11 @@ jobs:
             if [ ! -s hosts/hosts.txt ]; then
               echo "WARNING: Whitelist filtering removed everything! Restoring backup."
               mv hosts/hosts.bak hosts/hosts.txt
-            else
-              echo "Whitelist is empty or missing. Skipping..."
             fi
+          else
+            echo "Whitelist is empty or missing. Skipping..."
+          fi
+
 
          
       - name: Setting up permissions for hosts file
