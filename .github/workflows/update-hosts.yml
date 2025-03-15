@@ -33,6 +33,12 @@ jobs:
             curl -sL "$url" >> hosts/raw_hosts.txt
             echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
           done
+      - name: Verify Hosts Download
+        run: |
+          if [ ! -s hosts/raw_hosts.txt ]; then
+            echo "Hosts file is empty! Download might have failed."
+            exit 1
+          fi
 
       - name: Download Whitelist
         run: |
