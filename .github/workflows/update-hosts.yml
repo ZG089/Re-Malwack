@@ -18,7 +18,7 @@ jobs:
 
       - name: Download Hosts Files
         run: |
-          mkdir -p rmlwk-hosts
+          mkdir -p hosts
           sources=(
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
             "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt"
@@ -29,39 +29,40 @@ jobs:
             "https://hblock.molinero.dev/hosts"
           )
           for url in "${sources[@]}"; do
-            curl -sL "$url" >> rmlwk-hosts/raw_hosts.txt
-            echo "" >> rmlwk-hosts/raw_hosts.txt  # Ensure newline separation
+            curl -sL "$url" >> hosts/raw_hosts.txt
+            echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
           done
 
       - name: Download Whitelist
         run: |
-            curl -sL "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" -o rmlwk-hosts/whitelist.txt
+            curl -sL "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" -o hosts/whitelist.txt
   
       - name: Clean and Merge Hosts
         run: |
             echo "Cleaning hosts..."
-            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' rmlwk-hosts/raw_hosts.txt > rmlwk-hosts/tmp_hosts.txt
-            sort -u rmlwk-hosts/tmp_hosts.txt > rmlwk-hosts/hosts.txt
-            rm -f rmlwk-hosts/tmp_hosts.txt  # Remove temp file
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
+            sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
+            rm -f hosts/tmp_hosts.txt  # Remove temp file
   
       - name: Remove Whitelisted Domains
         run: |
               echo "Filtering whitelist..."
-              if [ -s rmlwk-hosts/whitelist.txt ]; then
-                grep -vFf rmlwk-hosts/whitelist.txt rmlwk-hosts/hosts.txt > rmlwk-hosts/tmp_hosts.txt || true
-                mv rmlwk-hosts/tmp_hosts.txt rmlwk-hosts/hosts.txt
+              if [ -s hosts/whitelist.txt ]; then
+                grep -vFf hosts/whitelist.txt hosts/hosts.txt > hosts/tmp_hosts.txt || true
+                mv hosts/tmp_hosts.txt hosts/hosts.txt
               else
                 echo "Whitelist is empty or missing. Skipping..."
               fi
          
       - name: Setting up permissions for hosts file
         run: |
-          chmod 644 rmlwk-hosts/hosts.txt  
+          chmod 644 hosts/hosts.txt  
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add rmlwk-hosts/hosts.txt
+          git add hosts/hosts.txt
+          cat hosts/hosts.txt
           git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" || exit 0
           git push
