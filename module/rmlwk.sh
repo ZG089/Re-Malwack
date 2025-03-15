@@ -72,40 +72,51 @@ function install_hosts() {
     
     # Process whitelist
     log_message "Processing Whitelist..."
-    if [ ! -f "$persist_dir/cache/whitelist/whitelist.txt" ]; then
-        log_message "Repo's whitelist.txt not found, downloading..."
-        mkdir -p "$persist_dir/cache/whitelist"
-        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
-    else
-        log_message "Repo's whitelist.txt found, continuing..."
-    fi
-    
-    if [ ! -f "$persist_dir/cache/whitelist/social_whitelist.txt" ]; then
-        log_message "Repo's social_whitelist.txt not found, downloading..."
-        mkdir -p "$persist_dir/cache/whitelist"
-        fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
-    else
-        log_message "Repo's social_whitelist.txt found, continuing..."
-    fi        
-    social_whitelist="$persist_dir/cache/whitelist/social_whitelist.txt"
     whitelist_file="$persist_dir/cache/whitelist/whitelist.txt"
+
+    if [ "$block_social" -eq 0 ]; then
+        whitelist_file="$whitelist_file $persist_dir/cache/whitelist/social_whitelist.txt"
+    else
+        log_message "Social Block triggered, Social whitelist won't be applied"
+    fi
+
+    # Append user-defined whitelist if it exists
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
 
-    # Filter whitelist
-    log_message "Filtering Whitelist..."
-    if [ "$block_social" -eq 1 ]; then
-        log_message "Social Block enable triggered, Whitelist won't be applied"
+    # Debugging - Check each whitelist file individually
+    for file in $whitelist_file; do
+        if [ ! -f "$file" ]; then
+            log_message "WARNING: Whitelist file $file does not exist!"
+        elif [ ! -s "$file" ]; then
+            log_message "WARNING: Whitelist file $file is empty!"
+        else
+            log_message "Whitelist file $file found with content."
+        fi
+    done
+
+    # Read and merge whitelist properly
+    whitelist=""
+    for file in $whitelist_file; do
+        [ -s "$file" ] && whitelist="$whitelist$(cat "$file")"$'\n'
+    done
+    whitelist=$(echo "$whitelist" | sort -u)
+
+    # If whitelist is empty, log and skip filtering
+    if [ -z "$whitelist" ]; then
+        log_message "Whitelist is empty. Skipping whitelist filtering."
     else
-        whitelist_file="$whitelist_file $social_whitelist"
+        echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' > "${tmp_hosts}w"
+
+        while IFS= read -r domain; do
+            # Escape special characters in domain for sed
+            escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
+
+            # Remove from hosts file
+            sed -i "/^0\.0\.0\.0 $escaped_domain$/d" "$hosts_file"
+            log_message "Filtered whitelist: Removed $domain from hosts file."
+        done < "${tmp_hosts}w"
     fi
-    
-    # Read and sort whitelist entries from all files
-    whitelist=$(cat $whitelist_file | sort -u)
-    if [ -n "$whitelist" ]; then
-        echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}w"
-        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-        cat "$tmp_hosts" > "$hosts_file"
-    fi
+
 
     # Clean up
     chmod 644 "$hosts_file"
