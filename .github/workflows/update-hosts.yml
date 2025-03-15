@@ -53,14 +53,11 @@ jobs:
             echo "Error: raw_hosts.txt is empty after download!" >&2
             exit 1
           fi
-      
           sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
-          
           if [ ! -s hosts/tmp_hosts.txt ]; then
             echo "Error: Cleaning removed everything!" >&2
             exit 1
           fi
-      
           sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
           rm -f hosts/tmp_hosts.txt
 
@@ -74,7 +71,6 @@ jobs:
                 echo "Whitelist is empty or missing. Skipping..."
               fi
           
-
       - name: Commit and Push Changes to `hosts-update` Branch
         run: |
           git config --global user.name "github-actions[bot]"
@@ -90,10 +86,10 @@ jobs:
           git add hosts/hosts.txt
       
           # Commit only if there are changes
-          if git diff --cached --quiet; then
-            echo "No changes found. Skipping commit."
-            exit 0
-          fi
+          # if git diff --cached --quiet; then
+           # echo "No changes found. Skipping commit."
+           # exit 0
+          #fi
       
           git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
           
