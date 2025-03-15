@@ -63,10 +63,6 @@ jobs:
       
           sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
           rm -f hosts/tmp_hosts.txt
-      
-          echo "=== FINAL HOSTS CONTENT ==="
-          cat hosts/hosts.txt || echo "hosts.txt not found!"
-          echo "========================="
 
       - name: Remove Whitelisted Domains
         run: |
@@ -84,14 +80,19 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       
-          echo "=== GIT STATUS BEFORE COMMIT ==="
+          echo "=== GIT STATUS BEFORE FORCE ADD ==="
           git status
-          echo "==============================="
+          echo "================================="
       
-          git add hosts/hosts.txt || true
+          git add -f hosts/hosts.txt  # Force-add in case Git is ignoring it
+      
+          echo "=== GIT STATUS AFTER ADD ==="
+          git status
+          echo "==========================="
       
           if git diff --cached --quiet; then
-            echo "No changes found. Skipping commit."
+            echo "No changes found. Maybe timestamps are the same?"
+            ls -l hosts/hosts.txt  # Show file details
             exit 0
           else
             git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
