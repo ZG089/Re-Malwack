@@ -46,10 +46,32 @@ jobs:
   
       - name: Clean and Merge Hosts
         run: |
-            echo "Cleaning hosts..."
-            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
-            sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
-            rm -f hosts/tmp_hosts.txt  # Remove temp file
+          echo "Cleaning hosts..."
+          
+          # Ensure raw_hosts.txt isn't empty before proceeding
+          if [ ! -s hosts/raw_hosts.txt ]; then
+            echo "Error: raw_hosts.txt is empty after download!" >&2
+            exit 1
+          fi
+      
+          # Remove comments and empty lines, normalize spaces
+          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
+          
+          # Ensure tmp_hosts.txt isn't empty before proceeding
+          if [ ! -s hosts/tmp_hosts.txt ]; then
+            echo "Error: Cleaning process wiped everything! Check input files." >&2
+            exit 1
+          fi
+      
+          sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
+          rm -f hosts/tmp_hosts.txt  # Remove temp file
+      
+          # Ensure hosts.txt isn't empty
+          if [ ! -s hosts/hosts.txt ]; then
+            echo "Error: hosts.txt is empty after processing!" >&2
+            exit 1
+          fi
+
   
       - name: Remove Whitelisted Domains
         run: |
