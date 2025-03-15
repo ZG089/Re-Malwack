@@ -1,6 +1,5 @@
 name: Update Hosts
-permissions:
-  contents: write
+
 on:
   schedule:
     - cron: "0 0 * * *"  # Runs every 24 hours at midnight UTC
@@ -34,33 +33,17 @@ jobs:
             echo "" >> hosts/raw_hosts.txt  # Ensure newline separation
           done
 
-      - name: Verify Hosts Download
-        run: |
-          if [ ! -s hosts/raw_hosts.txt ]; then
-            echo "Hosts file is empty! Download might have failed."
-            exit 1
-          fi
-
       - name: Download Whitelist
         run: |
             curl -sL "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" -o hosts/whitelist.txt
   
       - name: Clean and Merge Hosts
         run: |
-          echo "Cleaning hosts..."
-          
-          if [ ! -s hosts/raw_hosts.txt ]; then
-            echo "Error: raw_hosts.txt is empty after download!" >&2
-            exit 1
-          fi
-          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
-          if [ ! -s hosts/tmp_hosts.txt ]; then
-            echo "Error: Cleaning removed everything!" >&2
-            exit 1
-          fi
-          sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
-          rm -f hosts/tmp_hosts.txt
-
+            echo "Cleaning hosts..."
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' hosts/raw_hosts.txt > hosts/tmp_hosts.txt
+            sort -u hosts/tmp_hosts.txt > hosts/hosts.txt
+            rm -f hosts/tmp_hosts.txt  # Remove temp file
+  
       - name: Remove Whitelisted Domains
         run: |
               echo "Filtering whitelist..."
@@ -70,40 +53,15 @@ jobs:
               else
                 echo "Whitelist is empty or missing. Skipping..."
               fi
-          
-      - name: Checkout Repository (Full History)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fix shallow clone issues
-      
-      - name: Debug Git Status
+         
+      - name: Setting up permissions for hosts file
         run: |
-          echo "=== CURRENT DIRECTORY ==="
-          pwd
-          echo "=== LISTING FILES ==="
-          ls -lah
-          echo "=== LISTING HOSTS DIRECTORY ==="
-          ls -lah hosts || echo "No hosts directory found!"
-          echo "=== GIT STATUS ==="
-          git status
-          echo "=== GIT BRANCH ==="
-          git branch
-          echo "=== GIT LOG ==="
-          git log --oneline -5
-      
-      - name: Ensure We Are on Main
-        run: |
-          git checkout main || git checkout -b main
-      
-      - name: Force Add Only hosts.txt
-        run: |
-          git add -f hosts/hosts.txt  # ONLY add hosts.txt
-      
-      - name: FORCE Commit and Push (No Change Checks)
+          chmod 644 hosts/hosts.txt  
+
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
-          echo "Forcing commit..."
-          git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" --allow-empty
-          git push -u origin main --force
+          git add hosts/hosts.txt
+          git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]" || exit 0
+          git push
