@@ -2,10 +2,9 @@
   
 <a href="https://ibb.co/cX89yGnf"><img src="https://i.ibb.co/h1dNgPzQ/Re-Malwack-2.png" alt="Re-Malwack" border="0"></a>
 </div>
-<h2 align="center">Not just a normal Ad blocker module 🗿</h2>
+<h2 align="center">Not just a normal ad-blocker module ✨</h2>
 
-![Hosts Update Status](https://img.shields.io/badge/Hosts_update_status-Regularly-green?style=for-the-badge)
-![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-red?style=for-the-badge)
+[![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v5.3.0)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?style=for-the-badge&color=gray&logo=telegram)](https://t.me/Re_Malwack)
@@ -15,38 +14,27 @@
 [![Donation](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 ![Built with](https://img.shields.io/badge/Made_with-Love-red?style=for-the-badge)
 
+**If you are looking for a final solution to get rid of ads, Malware, and Trackers forever, then Re-Malwack is the best choice for you and your family.**
 
-## Features
+## Features // What makes this module special?
 
-- Same as [Malwack](https://github.com/Magisk-Modules-Alt-Repo/Malwack/#features) (P*rn block, whitelist, reset hosts, ad block, protection from malware.)
-- 🚫 Has Blacklist Feature
-- ⛔ Blocks ads, malware, trackers, P*rn sites, fake news sites, and gambling sites
-- ✨ Has WebUI
-- 🛠️ Hosts file is updated regularly
-- ✨ Supports Magisk (v20.0+), KernelSU (v1.0.1 and below) and Apatch (Apatch is not tested)
+- ⛔ It blocks ads, malware and trackers By default, you can also block P*rn sites, fake news sites, gambling sites and social sites as well.
+- ⚙ Allows you to modify and manage hosts file (whitelist/blacklist urls, reset hosts, auto update adblock)
+- 🤙 Allows you to add custom hosts sources
+- ✨ Easy to use
+- 🛠 Supports Magisk (v20.0+) (and its variants), KernelSU (and its variants) and Apatch
+- 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-(no-root))
 - 🔧 Regularly maintained & updated
-- ⚙️ Fixed Malwack's bugs
-- 🚀 Enhanced for more performance and effectiveness.
-- 🔜 More soon....
+- ❤ Made with love and care
+
 
 ## Requirements
 > [!IMPORTANT]
-> - Stable internet connection in order to download hosts during installation.
+> - Stable internet connection.
 > - Mid-Range or high-end device.
 
-> [!WARNING]
+> [!CAUTION]
 > **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
-
-## Download Module
-> [!TIP]
-You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Malwack) Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
-
-
-## Get started
-> [!NOTE]
-> 1. Open Magisk, go to Modules section, click on the '+' icon, then select the Re-Malwack Module zip file to install.
-> 2. Reboot your device to activate the Re-Malwack Module's protective features.
-> 3. Enjoy, Your device is fully protected now :)
 
 ## How to use Re-Malwack
 > [!NOTE]
@@ -56,47 +44,60 @@ You can download the module from [MMRL](https://mmrl.dergoogler.com/module/Re-Ma
 - Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
 ```
-Usage: rmlwk [--options]
---reset: Restore original hosts file.
---block-porn: Block pornographic sites.
---block-gambling: Block gambling sites.
---block-fake: Block fake news sites.
---whitelist <domain>: Whitelist a domain.
---blacklist <domain>: Blacklist a domain.
---update-hosts: Update the hosts file.
---help, -h: Display help.
-Example command: su -c rmlwk --update-hosts
+ "Usage: rmlwk [--argument]"
+         "--update-hosts, -u: Update the hosts file."
+         "--auto-update, -a <enable|disable>: Toggle auto hosts update."
+         "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
+         "--reset, -r: Restore original hosts file."
+         "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
+         "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
+         "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
+         "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
+         "--whitelist, -w <add|remove> <domain>: Whitelist a domain."
+         "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
+         "--help, -h: Display help."
 ```
 
 ### 2. Via WebUI
- - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
+ - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
 
-> [!TIP]
-> - You can update hosts file by going into magisk, and pressing the action button on the module card instead of updating it using Re-Malwack cli. 
+### 3. Local vpn (no-root)
+- You can still protect your device without needing for root access, just copy paste this url into [DNSnet](https://play.google.com/store/apps/details?id=dev.clombardo.dnsnet), or [AdAway](https://f-droid.org/packages/org.adaway/), or any other app of your choice :
+
+```
+https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.txt
+```
 
 
 > [!NOTE]
-> - For KernelSU users and for those who noticed that the hosts file isn't updated after running ``su -c rmlwk --update-hosts``, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
+> - For KernelSU users and for those who noticed that the hosts file isn't updated/ad blocking doesn't work, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
 
 
-## Total Blocked
+## Download Module
 > [!TIP]
-> - 920,783+ Malware, Ads, Spyware
+> - You can download the module from:\
+[![MMRL](https://mmrl.dev/assets/badge.svg)](https://mmrl.dergoogler.com/module/Re-Malwack)
+> - Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
-## How does it work? - Frequently Asked Questions
+## How does it work? - Frequently Asked Questions (FAQ)
+
 > [!TIP]
-> **Where is the file?**
-> - Your ``hosts`` file located in ``/system/etc``. It "acts" like your school blocking service that blocks you from going to websites. However, this (the ``Hosts`` file) is done locally on your phone's root system. 
+> **How does this module block websites and what modifications were made?**
+> - How does it block websites: It modifies `hosts` file to block websites and malware by denying access for your phone to connect to it at all. It will just return a blank page.
 
-> [!TIP]
-> **How does the host's file block websites and what modifications were made?**
-> - How does it block websites: The host file blocks websites and malware by denying access for your phone to connect to it at all. It will just return a blank page. ``0.0.0.0 www.the-website-that-is-blocked.com``.
 
 > [!TIP]
 > **Does it blocks in-app ads and in-game ads as well ?**
-> - Of course it does ! All of this using the magic of magisk and the hosts file !
+> - Of course it does! All of this using the magic of magisk and the hosts file !
 
+> [!TIP]
+> **My device lags a lot/ there's an error when using the module, How to fix ?**
+> - Firstly, export logs, then attach it to your report. Submit [here](https://github.com/ZG089/Re-Malwack/issues) or report your problem in our [telegram support group](https://t.me/Re_Malwack), Just don't forget to attach logs!
+
+> [!TIP]
+> **Can I help in something?**
+> - Surely, You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
 
 > [!NOTE]
 > - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089)
@@ -106,16 +107,19 @@ Example command: su -c rmlwk --update-hosts
 
 ![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
  
-## Credits
-- [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
-- [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
-- [@KOWX712](https://github.com/KOWX712) - WebUI + Contribution to Re-Malwack project
-- [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
-- [@hBlock](https://github.com/hectorm/hblock) - Hosts file
-- [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
+## Contributors
+- [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
 - [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
 - And Finally, YOU! For using my module :)
+
+## This project wouldn't exist without:
+
+- [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
+- [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
+- [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
+- [@hBlock](https://github.com/hectorm/hblock) - Hosts file
+- [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 
 ## Donations
 
