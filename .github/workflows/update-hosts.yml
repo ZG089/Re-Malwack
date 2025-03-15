@@ -61,7 +61,7 @@ jobs:
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
             # Ensure files are tracked
-            git add hosts/hosts.txt hosts/raw_hosts.txt hosts/whitelist.txt || true
+            git add hosts/hosts.txt || true
             # Commit only if there are changes
             if ! git diff --cached --quiet; then
               git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
