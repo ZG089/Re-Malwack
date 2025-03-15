@@ -75,13 +75,13 @@ jobs:
               fi
           
 
-      - name: Compute Checksum & Commit if Changed
+      - name: Compute SHA-256 Checksum & Commit if Changed
         run: |
          git config --global user.name "github-actions[bot]"
          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-         # Compute checksum of current hosts file
+         # Compute SHA-256 checksum of hosts file
          checksum_file="hosts/.checksum"
-         new_checksum=$(crc32 hosts/hosts.txt)
+         new_checksum=$(sha256sum hosts/hosts.txt | awk '{print $1}')
          echo "New Checksum: $new_checksum"
          # Compare with previous checksum
          if [ -f "$checksum_file" ]; then
@@ -94,7 +94,6 @@ jobs:
          fi
          # Save new checksum
          echo "$new_checksum" > "$checksum_file"
-         git add hosts/hosts.txt "$checksum_file" 
+         git add hosts/hosts.txt "$checksum_file"
          git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
          git push --force
-         
