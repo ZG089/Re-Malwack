@@ -47,7 +47,7 @@ mkdir -p "$persist_dir/logs"
 # Skip banner if running from Magisk Manager
 [ -z "$MAGISKTMP" ] && malvack_banner
 
-# Define a logging function
+# Logging func
 function log_message() {
     local message="$1"
     [ -f "$LOGFILE" ] || touch "$LOGFILE"
@@ -94,27 +94,20 @@ function install_hosts() {
         fi
     done
 
-    # Read and merge whitelist properly
-    whitelist=""
-    for file in $whitelist_file; do
-        [ -s "$file" ] && whitelist="$whitelist$(cat "$file")"$'\n'
-    done
-    whitelist=$(echo "$whitelist" | sort -u)
+    # Merge whitelist files into one
+    cat $whitelist_file | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | sort -u > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
-    if [ -z "$whitelist" ]; then
+    if [ ! -s "${tmp_hosts}w" ]; then
         log_message "Whitelist is empty. Skipping whitelist filtering."
     else
-        echo "$whitelist" | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' > "${tmp_hosts}w"
-
-        while IFS= read -r domain; do
-            # Escape special characters in domain for sed
-            escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
-
-            # Remove from hosts file
-            sed -i "/^0\.0\.0\.0 $escaped_domain$/d" "$hosts_file"
-            log_message "Filtered whitelist: Removed $domain from hosts file."
-        done < "${tmp_hosts}w"
+        log_message "Filtering whitelist..."
+        
+        # Bulk remove whitelisted domains from hosts file
+        grep -vFf "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
+        mv "$tmp_hosts" "$hosts_file"
+        chmod 644 $hosts_file
+        log_message "Whitelist filtering completed."
     fi
 
 
