@@ -1,6 +1,6 @@
 <div align="center">
   
-<a href="https://ibb.co/cX89yGnf"><img src="https://i.ibb.co/h1dNgPzQ/Re-Malwack-2.png" alt="Re-Malwack" border="0"></a>
+<img src="./assets/Re-Malwack.png" alt="logo" />
 </div>
 <h2 align="center">Not just a normal ad-blocker module ✨</h2>
 
