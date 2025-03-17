@@ -34,6 +34,7 @@ persist_dir="/data/adb/Re-Malwack"
 REALPATH=$(readlink -f "$0")
 MODDIR=$(dirname "$REALPATH")
 hosts_file="$MODDIR/system/etc/hosts"
+system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
@@ -59,7 +60,6 @@ function install_hosts() {
     log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
-    echo "" > "$hosts_file" 
 
     # Prepare blacklist
     log_message "Preparing Blacklist..."
@@ -197,12 +197,12 @@ function fetch() {
     local url="$2"
 
     if command -v curl >/dev/null 2>&1; then
-        curl -sL -o "$output_file" "$url" && log_message "Downloaded $url" || { 
+        curl -sL -o "$output_file" "$url" && log_message "Downloaded $url, stored in $output_file" || { 
             log_message "Failed to download $url with curl"; 
             abort "Failed to download $url"; 
         }
     elif command -v wget >/dev/null 2>&1; then
-        wget --no-check-certificate -q -O "$output_file" "$url" && log_message "Downloaded $url" || { 
+        wget --no-check-certificate -q -O "$output_file" "$url" && log_message "Downloaded $url, stored in $output_file" || { 
             log_message "Failed to download $url with wget"; 
             abort "Failed to download $url"; 
         }
@@ -213,9 +213,12 @@ function fetch() {
 }
 
 function update_status() {
-    if grep -q '0.0.0.0' "$hosts_file"; then
+    if grep -q '0.0.0.0' "$system_hosts"; then
         string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
         status="Protection is enabled ✅ | Last updated: $(date)"
+    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
+        string="description=Status: Reboot required to apply changes 🔃"
+        status="Reboot required to apply changes 🔃"
     else
         string="description=Status: Protection is disabled due to reset ❌"
         status="Protection is disabled due to reset ❌"
@@ -449,8 +452,10 @@ case "$(tolower "$1")" in
     --update-hosts|-u)
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
+            log_message "Updating protections..."
         else
             echo "[BUILDING ANTI-ADS FORTRESS 🏰]"
+            log_message "Installing protection for the first time"
         fi 
         nuke_if_we_dont_have_internet
         echo "- Downloading base hosts."
