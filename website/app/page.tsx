@@ -20,7 +20,7 @@ export default function Home() {
               <Link href="/download">Download Now</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/guide">Guides</Link>
+              <Link href="/guide">Read the Guide</Link>
             </Button>
           </div>
         </section>
@@ -74,7 +74,7 @@ export default function Home() {
       <footer className="border-t py-6 md:py-0">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            Released under the GPL V3 Copyright © {new Date().getFullYear()}-present  @ZG089
+            Released under the GPL v3.0 Copyright © {new Date().getFullYear()}-present @ZG089
           </p>
           <div className="flex items-center gap-4">
             <Link
