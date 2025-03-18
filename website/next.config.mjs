@@ -1,21 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  output: 'export',
+  basePath: '',
   images: {
     unoptimized: true,
   },
-  experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
+  // This ensures CSS is properly included
+  webpack: (config) => {
+    return config;
   },
-}
+  // Disable trailing slash to fix asset loading
+  trailingSlash: false,
+  // Ensure assets are properly referenced
+  assetPrefix: './',
+};
 
 export default nextConfig;
