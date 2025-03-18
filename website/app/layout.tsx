@@ -1,12 +1,13 @@
 import type React from "react"
 import "@/app/globals.css"
 import type { Metadata } from "next"
-import { Mona_Sans as FontSans } from "next/font/google"
+import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils"
 
-export const fontSans = FontSans({
+// Use a different approach for font loading
+const inter = Inter({
   subsets: ["latin"],
+  display: "swap",
   variable: "--font-sans",
 })
 
@@ -21,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>
@@ -30,4 +31,3 @@ export default function RootLayout({
     </html>
   )
 }
-
