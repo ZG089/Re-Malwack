@@ -64,9 +64,11 @@ config_file="/data/adb/Re-Malwack/config.sh"
 types="block_porn block_gambling block_fakenews block_social daily_update"
 mkdir -p "/data/adb/Re-Malwack"
 touch "$config_file"
-for type in $types; do
-    grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
-done
+if [ ! -d "/data/adb/modules/Re-Malwack" ]; then # if the module directory doesn't exist (first time installation)
+    for type in $types; do
+        grep -q "^$type=" "$config_file" || echo "${type}=0" >> "$config_file"
+    done
+fi
 
 # set permissions
 chmod 755 $MODPATH/rmlwk.sh
