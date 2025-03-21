@@ -411,24 +411,24 @@ case "$(tolower "$1")" in
         exit 1
     fi
     
-    touch "$persist_dir/custom-source.txt"
+    touch "$persist_dir/sources.txt"
     
     if [ "$option" = "add" ]; then
-        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
-            echo "ℹ️  $domain is already in custom sources."
+        if grep -qx "$domain" "$persist_dir/sources.txt"; then
+            echo "ℹ️  $domain is already in sources."
         else
-            echo "$domain" >> "$persist_dir/custom-source.txt"
-            log_message "Added $domain to custom source."
-            echo "✅ Added $domain to custom source."
+            echo "$domain" >> "$persist_dir/sources.txt"
+            log_message "Added $domain to sources."
+            echo "✅ Added $domain to sources."
         fi
     else
-        if grep -qx "$domain" "$persist_dir/custom-source.txt"; then
-            sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/custom-source.txt"
-            log_message "Removed $domain from custom source."
-            echo "✅ Removed $domain from custom source."
+        if grep -qx "$domain" "$persist_dir/sources.txt"; then
+            sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
+            log_message "Removed $domain from sources."
+            echo "✅ Removed $domain from sources."
         else
-            log_message "Failed to remove $domain from custom source."
-            echo "❌ $domain was not found in custom sources."
+            log_message "Failed to remove $domain from sources."
+            echo "❌ $domain was not found in sources."
         fi
     fi
     ;;
@@ -458,24 +458,27 @@ case "$(tolower "$1")" in
             log_message "Installing protection for the first time"
         fi 
         nuke_if_we_dont_have_internet
-        echo "- Downloading base hosts."
+        echo "- Downloading hosts..."
         # Re-Malwack general hosts
-        general_hosts="
-        https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-        https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt
-        https://o0.pages.dev/Pro/hosts.txt
-        https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
-        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
-        https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
-        https://hblock.molinero.dev/hosts
-        "
+        sources_file="$persist_dir/sources.txt"
 
-        # custom source
-        if [ -s "$persist_dir/custom-source.txt" ]; then
-            custom_hosts=$(cat "$persist_dir/custom-source.txt")
-        else
-            custom_hosts=""
+        # Ensure the sources file exists
+        if [ ! -f "$sources_file" ]; then
+            echo "# Base Hosts Sources" > "$sources_file"
+            echo "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" >> "$sources_file"
+            echo "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt" >> "$sources_file"
+            echo "https://o0.pages.dev/Pro/hosts.txt" >> "$sources_file"
+            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt" >> "$sources_file"
+            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt" >> "$sources_file"
+            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt" >> "$sources_file"
+            echo "https://hblock.molinero.dev/hosts" >> "$sources_file"
+            echo "" >> "$sources_file"
+            echo "# User Custom Hosts Sources (Add your own below)" >> "$sources_file"
         fi
+
+        # Load sources from the file, ignoring comments
+        hosts_list=$(grep -v '^#' "$sources_file" | grep -v '^$')
+
 
         # Download hosts in parallel
         hosts_list=$(echo "$general_hosts $custom_hosts" | sort -u)

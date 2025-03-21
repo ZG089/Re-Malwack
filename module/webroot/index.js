@@ -17,7 +17,7 @@ const basePath = "/data/adb/Re-Malwack";
 const filePaths = {
     blacklist: `${basePath}/blacklist.txt`,
     whitelist: `${basePath}/whitelist.txt`,
-    "custom-source": `${basePath}/custom-source.txt`,
+    "custom-source": `${basePath}/sources.txt`,
 };
 
 // Link redirect
