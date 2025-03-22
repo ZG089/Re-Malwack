@@ -51,13 +51,11 @@ function aboutMenu() {
         aboutOverlay.style.display = 'flex';
         setTimeout(() => {
             aboutOverlay.style.opacity = '1';
-            aboutMenu.style.opacity = '1';
         }, 10);
         document.body.style.overflow = 'hidden';
     };
     const hideMenu = () => {
         aboutOverlay.style.opacity = '0';
-        aboutMenu.style.opacity = '0';
         setTimeout(() => {
             aboutOverlay.style.display = 'none';
             document.body.style.overflow = 'auto';
@@ -166,7 +164,34 @@ async function updateHostsFile() {
 
 // Function to reset hosts
 async function resetHostsFile() {
-    await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
+    const resetOverlay = document.getElementById("confirmation-overlay");
+    const cancelButton = document.getElementById("cancel-reset");
+    const resetButton = document.getElementById("confirm-reset");
+
+    resetOverlay.style.display = 'flex';
+    setTimeout(() => {
+        resetOverlay.style.opacity = 1;
+    }, 10)
+
+    const closeResetOverlay = () => {
+        resetOverlay.style.opacity = 0;
+        setTimeout(() => {
+            resetOverlay.style.display = 'none';
+        }, 200)
+    }
+
+    let setupListener = true;
+    if (setupListener) {
+        cancelButton.addEventListener('click', () => closeResetOverlay());
+        resetOverlay.addEventListener('click', (e) => {
+            if (e.target === resetOverlay) closeResetOverlay();
+        })
+        resetButton.addEventListener('click', async () => {
+            closeResetOverlay();
+            await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
+        })
+        setupListener = false;
+    }
 }
 
 // Function to enable/disable daily update

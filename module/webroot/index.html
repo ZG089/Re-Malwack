@@ -168,8 +168,8 @@
     <!-- End of content -->
 
     <!-- About -->
-    <div id="about-overlay" class="about-overlay">
-        <div id="about-menu" class="about-menu">
+    <div id="about-overlay" class="overlay">
+        <div id="about-menu" class="overlay-content">
             <button id="close-about" class="close-about">&#x2715;</button>
             <div class="about-content">
                 <div class="about-logo-container">
@@ -212,6 +212,18 @@
                     <p>@forsaken-heart24 - Contribution to the Re-Malwack Project</p>
                     <p>And Finally, YOU! For using my module :)</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation dialog -->
+    <div class="overlay" id="confirmation-overlay">
+        <div class="overlay-content">
+            <h2>Confirm Reset?</h2>
+            <p>Are you sure you want to reset hosts file?</p>
+            <div class="confirmation-btn-container">
+                <button class="confirmation-btn ripple-container" id="cancel-reset">Cancel</button>
+                <button class="confirmation-btn ripple-container" id="confirm-reset">Reset</button>
             </div>
         </div>
     </div>
