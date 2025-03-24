@@ -67,7 +67,7 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    cat "${tmp_hosts}0" "$tmp_hosts" | grep -Ev '^[[:space:]]*#|^[[:space:]]*$' | sort -u > "$hosts_file"
+    grep -Ev '^[[:space:]]*#' "${tmp_hosts}"[!0] | tr -s '[:space:]' ' ' | sort -u > "$hosts_file"
 
     # Process whitelist
     log_message "Processing Whitelist..."
