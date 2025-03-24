@@ -67,11 +67,7 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-
-    {
-        cat ${tmp_hosts}0" "$tmp_hosts"
-        grep -Ev
-    } | sort -u > "$hosts_file"
+    cat "${tmp_hosts}0" "$tmp_hosts" | grep -Ev '^[[:space:]]*#|^[[:space:]]*$' | sort -u > "$hosts_file"
 
     # Process whitelist
     log_message "Processing Whitelist..."
@@ -106,7 +102,7 @@ function install_hosts() {
     else
         log_message "Filtering whitelist..."
         
-        # Bulk remove whitelisted domains from hosts file
+        # remove whitelisted domains from hosts file
         grep -vFf "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
         mv "$tmp_hosts" "$hosts_file"
         chmod 644 $hosts_file
