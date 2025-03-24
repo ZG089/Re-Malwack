@@ -67,7 +67,7 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
+    grep -Ev '^[[:space:]]*#|^[[:space:]]*$' > "$tmp_hosts"
     sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
     
     # Process whitelist
