@@ -2,8 +2,8 @@
 	"license": "GPL-3.0",
 	"support": "https://t.me/Re_Malwack",
 	"donate": "http://buymeacoffee.com/ZG089",
-	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/banner.png",
-	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/logo.png",
+	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/banner.png",
+	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/logo.png",
 	"categories": [
         "Adblocking and Hosts Files",
         "APatch",
