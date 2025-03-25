@@ -1,17 +1,3 @@
-// Elements
-const aboutButton = document.getElementById('about-button');
-const inputs = document.querySelectorAll('input');
-const focusClass = 'input-focused';
-const telegramLink = document.getElementById('telegram');
-const githubLink = document.getElementById('github');
-const xdaLink = document.getElementById('xda');
-const sponsorLink = document.getElementById('sponsor');
-const dailyUpdateToggle = document.getElementById('daily-update-toggle');
-const blockPornToggle = document.getElementById('block-porn-toggle');
-const blockGamblingToggle = document.getElementById('block-gambling-toggle');
-const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
-const blockSocialToggle = document.getElementById('block-social-toggle');
-
 const basePath = "/data/adb/Re-Malwack";
 
 const filePaths = {
@@ -22,18 +8,18 @@ const filePaths = {
 
 // Link redirect
 const links = [
-    { element: telegramLink, url: 'https://t.me/Re_Malwack', name: 'Telegram' },
-    { element: githubLink, url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
-    { element: xdaLink, url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
-    { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
+    { element: 'telegram', url: 'https://t.me/Re_Malwack', name: 'Telegram' },
+    { element: 'github', url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
+    { element: 'xda', url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
+    { element: 'sponsor', url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
 ];
 
 // Block types
 const blockTypes = [
-    { id: 'porn', toggle: blockPornToggle, name: 'porn sites', flag: '--block-porn' },
-    { id: 'gambling', toggle: blockGamblingToggle, name: 'gambling sites', flag: '--block-gambling' },
-    { id: 'fakenews', toggle: blockFakenewsToggle, name: 'fake news sites', flag: '--block-fakenews' },
-    { id: 'social', toggle: blockSocialToggle, name: 'social media sites', flag: '--block-social' }
+    { id: 'porn', toggle: 'block-porn-toggle', name: 'porn sites', flag: '--block-porn' },
+    { id: 'gambling', toggle: 'block-gambling-toggle', name: 'gambling sites', flag: '--block-gambling' },
+    { id: 'fakenews', toggle: 'block-fakenews-toggle', name: 'fake news sites', flag: '--block-fakenews' },
+    { id: 'social', toggle: 'block-social-toggle', name: 'social media sites', flag: '--block-social' }
 ];
 
 // Ripple effect configuration
@@ -122,21 +108,12 @@ async function getStatus() {
 
 // Function to check block status for different site categories
 async function checkBlockStatus(type) {
+    const toggle = document.getElementById(type.toggle);
     try {
-        const result = await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
-        type.toggle.checked = true;
+        await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
+        toggle.checked = true;
     } catch (error) {
-        type.toggle.checked = false;
-    }
-}
-
-// Function to check daily update status
-async function checkDailyUpdateStatus() {
-    try {
-        const result = await execCommand(`grep -q '^daily_update=1' ${basePath}/config.sh`);
-        dailyUpdateToggle.checked = true;
-    } catch (error) {
-        dailyUpdateToggle.checked = false;
+        toggle.checked = false;
     }
 }
 
@@ -194,6 +171,17 @@ async function resetHostsFile() {
     }
 }
 
+// Function to check daily update status
+const dailyUpdateToggle = document.getElementById('daily-update-toggle');
+async function checkDailyUpdateStatus() {
+    try {
+        await execCommand(`grep -q '^daily_update=1' ${basePath}/config.sh`);
+        dailyUpdateToggle.checked = true;
+    } catch (error) {
+        dailyUpdateToggle.checked = false;
+    }
+}
+
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const isEnabled = dailyUpdateToggle.checked;
@@ -224,7 +212,8 @@ async function exportLogs() {
 
 // Function to handle blocking/unblocking different site categories
 async function handleBlock(type) {
-    const isRemoving = type.toggle.checked;
+    const toggle = document.getElementById(type.toggle);
+    const isRemoving = toggle.checked;
     const prompt_message = isRemoving ? "- Removing entries..." : `- Applying block for ${type.name}...`;
     const action = isRemoving ? `${type.flag} 0` : type.flag;
     const errorPrompt = `- Failed to apply block for ${type.name}`;
@@ -255,11 +244,9 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
         clearTimeout(window.promptTimeout);
     }
     setTimeout(() => {
-        prompt.classList.add('visible');
-        prompt.classList.remove('hidden');
+        prompt.style.transform = 'translateY(calc((var(--window-inset-bottom, 0px) + 40px) * -1))';
         window.promptTimeout = setTimeout(() => {
-            prompt.classList.remove('visible');
-            prompt.classList.add('hidden');
+            prompt.style.transform = 'translateY(100%)';
         }, duration);
     }, 100);
 }
@@ -326,6 +313,8 @@ async function execCommand(command) {
 }
 
 // Prevent input box blocked by keyboard
+const inputs = document.querySelectorAll('input');
+const focusClass = 'input-focused';
 inputs.forEach(input => {
     input.addEventListener('focus', event => {
         document.body.classList.add(focusClass);
@@ -346,7 +335,7 @@ inputs.forEach(input => {
 
 // Link redirect
 links.forEach(link => {
-    link.element.addEventListener("click", async () => {
+    document.getElementById(link.element).addEventListener("click", async () => {
         try {
             await execCommand(`am start -a android.intent.action.VIEW -d ${link.url}`);
         } catch (error) {
