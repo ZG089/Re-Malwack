@@ -67,22 +67,12 @@ async function getVersion() {
         document.getElementById('version-text').textContent = `${version} | `;
         getStatus();
     } catch (error) {
-        if (typeof ksu !== 'undefined' && ksu.mmrl) {
-            updateStatus("Please enable JavaScript API in MMRL settings:\n1. Settings\n2. Security\n3. Allow JavaScript API\n4. Re-Malwack\n5. Enable Advanced KernelSU API");
-        } else {
-            updateStatus("Error reading description from module.prop");
-        }
+        console.log("Error getting version:", error);
     }
 }
 
-// Function to update the status text dynamically in the WebUI
-function updateStatus(statusText) {
-    const statusElement = document.getElementById('version-status');
-    statusElement.innerHTML = statusText.replace(/\n/g, '<br>');
-}
-
 // Function to check if running in MMRL
-function checkMMRL() {
+async function checkMMRL() {
     if (typeof ksu !== 'undefined' && ksu.mmrl) {
         // Request API permission
         // Require MMRL version code 33045 or higher
@@ -90,6 +80,16 @@ function checkMMRL() {
             $Re_Malwack.requestAdvancedKernelSUAPI();
         } catch (error) {
             console.log("Error requesting API:", error);
+        }
+
+        // Test permission and display overlay if permission not granted
+        try {
+            await execCommand('ls /');
+        } catch (error) {
+            const mmrlOverlay = document.getElementById('mmrl-overlay');
+            mmrlOverlay.style.display = 'flex';
+            mmrlOverlay.style.opacity = '1';
+            document.body.style.overflow = 'hidden';
         }
     } else {
         console.log("Not running in MMRL environment.");

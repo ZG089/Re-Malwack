@@ -144,6 +144,23 @@ body.input-focused {
     user-select: none;
 }
 
+.centered-header {
+    width: 100%;
+    text-align: center;
+}
+
+.permission-steps {
+    text-align: left;
+}
+
+.permission-steps ol {
+    padding: 0 25px;
+}
+
+.permission-steps li {
+    margin-top: 10px;
+}
+
 .confirmation-btn-container {
     display: flex;
     width: 100%;
@@ -415,13 +432,13 @@ input:checked+.slider:before {
     background-color: var(--btn-primary);
 }
 
-ul {
+.box ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-li {
+.box li {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -429,7 +446,7 @@ li {
     border-bottom: 1px solid var(--border-color);
 }
 
-li span {
+.box li span {
     font-size: 14px;
     word-wrap: break-word;
     word-break: break-word;
