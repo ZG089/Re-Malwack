@@ -67,7 +67,11 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    grep -Ev '^[[:space:]]*#' "${tmp_hosts}"[!0] | tr -s '[:space:]' ' ' | sort -u > "$hosts_file"
+    # Handle new downloaded hosts, not handling previous hosts here to reduce processing time since it is already well formatted
+    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
+
+    # Merge with previous hosts and remove duplicated entries
+    sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
 
     # Process whitelist
     log_message "Processing Whitelist..."
@@ -101,14 +105,14 @@ function install_hosts() {
         log_message "Whitelist is empty. Skipping whitelist filtering."
     else
         log_message "Filtering whitelist..."
-        
+
         # remove whitelisted domains from hosts file
-        grep -vFf "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-        mv "$tmp_hosts" "$hosts_file"
-        chmod 644 $hosts_file
+        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
+
+        # Don't move mounted hosts file directly to prevent break mount
+        cat "$tmp_hosts" > "$hosts_file"
         log_message "Whitelist filtering completed."
     fi
-
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -288,7 +292,7 @@ case "$(tolower "$1")" in
     --reset|-r)
         log_message "Reverting the changes."
         echo "- Reverting the changes..."
-        echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
 
         # Reset blocklist values to 0
@@ -341,7 +345,9 @@ case "$(tolower "$1")" in
             if [ "$option" = "add" ]; then
                 # Add domain to whitelist.txt and remove from hosts
                 grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
-                sed -i "/0\.0\.0\.0 $domain/d" "$hosts_file" 2>/dev/null
+                sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$tmp_hosts"
+                cat "$tmp_hosts" > "$hosts_file"
+                rm -f "$tmp_hosts"
                 log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
             else
                 # Remove domain from whitelist.txt if found
@@ -459,28 +465,10 @@ case "$(tolower "$1")" in
         nuke_if_we_dont_have_internet
         echo "- Downloading hosts..."
         # Re-Malwack general hosts
-        sources_file="$persist_dir/sources.txt"
-
-        # Ensure the sources file exists
-        if [ ! -f "$sources_file" ]; then
-            echo "# Base Hosts Sources" > "$sources_file"
-            echo "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" >> "$sources_file"
-            echo "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt" >> "$sources_file"
-            echo "https://o0.pages.dev/Pro/hosts.txt" >> "$sources_file"
-            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt" >> "$sources_file"
-            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt" >> "$sources_file"
-            echo "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt" >> "$sources_file"
-            echo "https://hblock.molinero.dev/hosts" >> "$sources_file"
-            echo "" >> "$sources_file"
-            echo "# User Custom Hosts Sources (Add your own below)" >> "$sources_file"
-        fi
-
         # Load sources from the file, ignoring comments
-        hosts_list=$(grep -v '^#' "$sources_file" | grep -v '^$')
-
+        hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
 
         # Download hosts in parallel
-        hosts_list=$(echo "$general_hosts $custom_hosts" | sort -u)
         for host in $hosts_list; do
             counter="$((counter + 1))"
             fetch "${tmp_hosts}${counter}" "$host" &
@@ -500,7 +488,7 @@ case "$(tolower "$1")" in
         wait
 
         echo "- Installing hosts"
-        echo "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
         # Check config and apply update
