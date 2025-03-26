@@ -289,13 +289,14 @@ body.input-focused {
 }
 
 .box {
-    width: calc(90vw - 30px);
+    width: 90vw;
     max-width: 800px;
     background-color: var(--bg-secondary);
     border: none;
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     padding: 15px;
+    box-sizing: border-box;
     transition: background-color 0.2s ease;
     user-select: none;
 }
@@ -426,6 +427,7 @@ input:checked+.slider:before {
     justify-content: center;
     width: 32px;
     height: 32px;
+    transform: translateX(110%);
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -440,18 +442,17 @@ input:checked+.slider:before {
 
 .box li {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 8px 5px;
+    overflow-x: auto;
+    padding: 8px 0;
     border-bottom: 1px solid var(--border-color);
 }
 
 .box li span {
     font-size: 14px;
+    word-break: break-all;
     word-wrap: break-word;
-    word-break: break-word;
-    overflow-wrap: break-word;
-    max-width: calc(100% - 40px);
+    flex-grow: 1;
 }
 
 li:last-child {
@@ -491,6 +492,7 @@ li:last-child {
 
 .footer {
     padding: 30px;
+    padding-bottom: calc(var(--bottom-inset) + 30px);
     position: relative;
     text-align: center;
 }
