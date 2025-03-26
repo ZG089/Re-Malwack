@@ -26,3 +26,6 @@
 # typescript
 /website/*.tsbuildinfo
 /website/next-env.d.ts
+
+# webui debug
+/module/webroot/link
