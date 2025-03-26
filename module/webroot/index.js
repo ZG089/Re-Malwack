@@ -1,9 +1,10 @@
 const basePath = "/data/adb/Re-Malwack";
+const modulePath = "/data/adb/modules/Re-Malwack";
 
 const filePaths = {
-    blacklist: `${basePath}/blacklist.txt`,
-    whitelist: `${basePath}/whitelist.txt`,
-    "custom-source": `${basePath}/sources.txt`,
+    blacklist: 'blacklist.txt',
+    whitelist: 'whitelist.txt',
+    "custom-source": 'sources.txt',
 };
 
 // Link redirect
@@ -25,7 +26,6 @@ const blockTypes = [
 // Ripple effect configuration
 const rippleClasses = ['.ripple-container', '.link-icon'];
 
-let isScrolling = false;
 let modeActive = false;
 
 // Function to handle about menu
@@ -99,21 +99,61 @@ async function checkMMRL() {
 // Function to get working status
 async function getStatus() {
     try {
-        await execCommand("grep -q '0.0.0.0' /system/etc/hosts");
-        document.getElementById('status-text').textContent = "Protection is enabled ✅";
+        const result = await execCommand(`grep -q '0.0.0.0' /system/etc/hosts || echo "false"`);
+        document.getElementById('status-text').textContent = result.trim() === "false" ? "Ready 🟡" : "Protection is enabled ✅";
     } catch (error) {
-        document.getElementById('status-text').textContent = "Ready 🟡";
+        console.error("Failed to read from /etc/hosts:", error);
     }
 }
 
 // Function to check block status for different site categories
-async function checkBlockStatus(type) {
-    const toggle = document.getElementById(type.toggle);
+async function checkBlockStatus() {
     try {
-        await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
-        toggle.checked = true;
+        const result = await fetch('link/persistent_dir/config.sh').then(response => {
+            if (!response.ok) throw new Error('Config file not found');
+            return response.text();
+        });
+        const lines = result.split("\n");
+        
+        // Check each block type
+        for (const type of blockTypes) {
+            const toggle = document.getElementById(type.toggle);
+            const blockLine = lines.find(line => line.trim().startsWith(`block_${type.id}=`));
+            if (blockLine) {
+                const value = blockLine.split('=')[1].trim();
+                toggle.checked = value === '1';
+            } else {
+                toggle.checked = false;
+            }
+        }
+
+        // Check daily update status
+        const dailyUpdateToggle = document.getElementById('daily-update-toggle');
+        const dailyUpdateLine = lines.find(line => line.trim().startsWith('daily_update='));
+        if (dailyUpdateLine) {
+            const value = dailyUpdateLine.split('=')[1].trim();
+            dailyUpdateToggle.checked = value === '1';
+        } else {
+            dailyUpdateToggle.checked = false;
+        }
     } catch (error) {
-        toggle.checked = false;
+        console.error('Failed to check status:', error);
+        if (error.message === 'Config file not found') {
+            try {
+                await linkFile();
+                await checkBlockStatus();
+                return;
+            } catch (linkError) {
+                console.error('Failed to link file:', linkError);
+            }
+        }
+        // Set all toggles to false on error
+        for (const type of blockTypes) {
+            const toggle = document.getElementById(type.toggle);
+            toggle.checked = false;
+        }
+        // Set daily update toggle to false on error
+        document.getElementById('daily-update-toggle').checked = false;
     }
 }
 
@@ -171,24 +211,13 @@ async function resetHostsFile() {
     }
 }
 
-// Function to check daily update status
-const dailyUpdateToggle = document.getElementById('daily-update-toggle');
-async function checkDailyUpdateStatus() {
-    try {
-        await execCommand(`grep -q '^daily_update=1' ${basePath}/config.sh`);
-        dailyUpdateToggle.checked = true;
-    } catch (error) {
-        dailyUpdateToggle.checked = false;
-    }
-}
-
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
-    const isEnabled = dailyUpdateToggle.checked;
+    const isEnabled = document.getElementById('daily-update-toggle').checked;
     try {
         await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
         showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
-        checkDailyUpdateStatus();
+        await checkBlockStatus();
     } catch (error) {
         console.error("Failed to toggle daily update:", error);
         showPrompt("Failed to toggle daily update", false);
@@ -200,7 +229,7 @@ async function exportLogs() {
     try {
         const result = await execCommand(`
             LOG_DATE="$(date +%Y-%m-%d_%H%M%S)"
-            tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs &>/dev/null
+            tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='${basePath}' -C ${basePath} logs &>/dev/null
             echo "$LOG_DATE"
         `);
         showPrompt(`Logs saved to /sdcard/Download/Re-Malwack_logs_${result.trim()}.tar.gz`, true, 3000);
@@ -228,7 +257,7 @@ async function handleBlock(type) {
             showPrompt(line, true);
         });
         await getStatus();
-        await checkBlockStatus(type);
+        await checkBlockStatus();
     } catch (error) {
         console.error(errorMessage, error);
         showPrompt(errorPrompt, false);
@@ -409,7 +438,9 @@ function applyRippleEffect() {
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
-        const content = await execCommand(`cat ${filePaths[fileType]}`);
+        const response = await fetch('link/persistent_dir/' + filePaths[fileType]);
+        if (!response.ok) throw new Error(`File ${filePaths[fileType]} not found`);
+        const content = await response.text();
         const lines = content
             .split("\n")
             .map(line => line.trim())
@@ -425,11 +456,15 @@ async function loadFile(fileType) {
                 </button>
             `;
             listElement.appendChild(listItem);
+            listItem.addEventListener('click', () => {
+                listItem.scrollTo({ left: listItem.scrollWidth, behavior: 'smooth' });
+            });
             listItem.querySelector(".delete-btn").addEventListener("click", () => removeLine(fileType, line));
         });
         applyRippleEffect();
     } catch (error) {
         console.error(`Failed to load ${fileType} file:`, error);
+        throw error;
     }
 }
 
@@ -446,6 +481,40 @@ async function removeLine(fileType, line) {
     }
 }
 
+// Function to link file
+async function linkFile() {
+    try {
+        await execCommand(`
+            mkdir -p ${modulePath}/webroot/link
+            [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir`
+        );
+    } catch (error) {
+        console.error(`Failed to remove link persistent directory to webroot:`, error);
+    }
+}
+
+// Scroll event
+let lastScrollY = window.scrollTop;
+let isScrolling = false;
+let scrollTimeout;
+const scrollThreshold = 25;
+window.addEventListener('scroll', () => {
+    isScrolling = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+    }, 200);
+
+    // Hide remove button on scroll
+    const box = document.querySelector('.box li');
+    if (box) {
+        document.querySelectorAll('.box li').forEach(li => {
+            li.scrollTo({ left: 0, behavior: 'smooth' });
+        });
+    }
+    lastScrollY = window.scrollTop;
+});
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     checkMMRL();
@@ -459,12 +528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     attachAddButtonListeners();
     getVersion();
-    checkDailyUpdateStatus();
-    for (const type of blockTypes) {
-        await checkBlockStatus(type);
-    }
+    await checkBlockStatus();
+    ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
     applyRippleEffect();
-    await loadFile('whitelist');
-    await loadFile('blacklist');
-    await loadFile('custom-source');
 });
