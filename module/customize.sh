@@ -60,25 +60,33 @@ done
 ping -c 1 -w 5 google.com &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Add a persistent directory to save configuration
-config_file="/data/adb/Re-Malwack/config.sh"
+persistent_dir="/data/adb/Re-Malwack"
+config_file="$persistent_dir/config.sh"
 types="block_porn block_gambling block_fakenews block_social daily_update"
-mkdir -p "/data/adb/Re-Malwack"
+mkdir -p "$persistent_dir"
 touch "$config_file"
 for type in $types; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
 done
 
+# Handle source file
+if [ ! -s "$persistent_dir/source.txt" ]; then
+    mv -f $MODPATH/common/source.txt $persistent_dir/source.txt
+else
+    rm -f $MODPATH/common/source.txt
+fi
+
 # set permissions
 chmod 755 $MODPATH/rmlwk.sh
 chmod 755 $MODPATH/action.sh
-chmod 755 "/data/adb/Re-Malwack/config.sh"
+chmod 755 "$persistent_dir/config.sh"
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
-rm -rf /data/adb/Re-Malwack/logs/*
+rm -rf $persistent_dir/logs/*
 sh $MODPATH/rmlwk.sh --update-hosts || {
     ui_print "- Failed to initialize hosts files"
     ui_print "- Log saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
-    tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude='/data/adb/Re-Malwack' -C /data/adb/Re-Malwack logs
+    tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
     abort
 }
