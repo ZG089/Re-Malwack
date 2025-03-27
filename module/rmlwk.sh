@@ -48,6 +48,31 @@ mkdir -p "$persist_dir/logs"
 # Skip banner if running from Magisk Manager
 [ -z "$MAGISKTMP" ] && malvack_banner
 
+# APRIL_FOOLS
+
+function april_fools() {
+    touch $persist_dir/get_pranked
+    clear
+    echo -e "\033[0;31m !!!!!!!!!!!!!!!!"
+    echo -e "\033[0;31m !!!  DANGER  !!!"
+    echo -e "\033[0;31m !!!!!!!!!!!!!!!!"
+    sleep 3
+    echo -e "\033[0;31m - Your device is now hacked."
+    sleep 1.5
+    echo -e "\033[0;31m - Bricking the device in"
+    sleep 0.5
+    echo -e "\033[0;31m 3..."
+    sleep 1
+    echo -e "\033[0;31m 2..."
+    sleep 1
+    echo -e "\033[0;31m 1..."
+    sleep 3
+    am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ"
+    echo "- Happy April Fools!"
+    echo "- XD" 
+    log_message "Happy April Fools!"
+}
+
 # Logging func
 function log_message() {
     local message="$1"
@@ -281,6 +306,16 @@ function disable_cron() {
     fi
 }
 
+# Trigger April Fools prank :)
+if [[ "$(date +%m-%d)" == "04-01" && ! -f "$presist_dir/get_pranked" ]]; then
+    if (( RANDOM % 2 == 0 )); then # Chance of happening: 50%
+        sleep 3
+        echo ""
+        echo -e "\033[0;31m - FATAL ERROR OCCURED!"
+        sleep 2
+        april_fools
+    fi 
+fi     
 
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
