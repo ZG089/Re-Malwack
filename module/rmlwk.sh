@@ -276,7 +276,7 @@ function enable_cron() {
         crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
         sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been enabled."
-        echo "✅ Auto-update enabled."
+        echo "- Auto-update enabled."
     fi
 }
 
@@ -303,7 +303,7 @@ function disable_cron() {
         # Disable auto-update
         sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
         log_message "Auto-update has been disabled."
-        echo "❌ Auto-update disabled."
+        echo "- Auto-update disabled."
     fi
 }
 
@@ -316,7 +316,9 @@ if [[ "$(date +%m-%d)" == "04-01" && ! -f "$presist_dir/get_pranked" && ! -d "/d
         echo -e "\033[0;31m - FATAL ERROR OCCURED!"
         sleep 2
         april_fools
-    fi 
+    fi
+else
+    rm -f $presist_dir/get_pranked    
 fi     
 
 # Check Root
@@ -436,19 +438,19 @@ case "$(tolower "$1")" in
     domain="$3"
     
     if [ -z "$option" ]; then
-        echo "❌ Missing argument: You must specify 'add' or 'remove'."
+        echo "- Missing argument: You must specify 'add' or 'remove'."
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
         exit 1
     fi
     
     if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
-        echo "❌ Invalid option: Use 'add' or 'remove'."
+        echo "- Invalid option: Use 'add' or 'remove'."
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
         exit 1
     fi
 
     if [ -z "$domain" ]; then
-        echo "❌ Missing domain: You must specify a domain."
+        echo "- Missing domain: You must specify a domain."
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
         exit 1
     fi
@@ -457,20 +459,20 @@ case "$(tolower "$1")" in
     
     if [ "$option" = "add" ]; then
         if grep -qx "$domain" "$persist_dir/sources.txt"; then
-            echo "ℹ️  $domain is already in sources."
+            echo "- $domain is already in sources."
         else
             echo "$domain" >> "$persist_dir/sources.txt"
             log_message "Added $domain to sources."
-            echo "✅ Added $domain to sources."
+            echo "- Added $domain to sources."
         fi
     else
         if grep -qx "$domain" "$persist_dir/sources.txt"; then
             sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
             log_message "Removed $domain from sources."
-            echo "✅ Removed $domain from sources."
+            echo "- Removed $domain from sources."
         else
             log_message "Failed to remove $domain from sources."
-            echo "❌ $domain was not found in sources."
+            echo "- $domain was not even found in sources."
         fi
     fi
     ;;
@@ -485,7 +487,7 @@ case "$(tolower "$1")" in
                 disable_cron
                 ;;
             *)
-                echo "❌ Invalid option for --auto-update / -a"
+                echo "- Invalid option for --auto-update / -a"
                 echo "Usage: rmlwk <--auto-update|-a> <enable|disable>"
                 ;;
         esac
