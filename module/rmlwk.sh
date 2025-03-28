@@ -67,9 +67,10 @@ function april_fools() {
     sleep 1
     echo -e "\033[0;31m 1..."
     sleep 3
-    am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ"
+    am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ" 2>&1
     echo "- Happy April Fools!"
-    echo "- XD" 
+    echo "- XD"
+    exit
     log_message "Happy April Fools!"
 }
 
@@ -307,9 +308,10 @@ function disable_cron() {
 }
 
 # Trigger April Fools prank :)
-if [[ "$(date +%m-%d)" == "04-01" && ! -f "$presist_dir/get_pranked" ]]; then
+# Only starts at April 1st
+if [[ "$(date +%m-%d)" == "04-01" && ! -f "$presist_dir/get_pranked" && ! -d "/data/adb/modules_update/Re-Malwack" ]]; then
     if (( RANDOM % 2 == 0 )); then # Chance of happening: 50%
-        sleep 3
+        sleep 2
         echo ""
         echo -e "\033[0;31m - FATAL ERROR OCCURED!"
         sleep 2
