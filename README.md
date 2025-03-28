@@ -17,7 +17,6 @@
 **If you are looking for a final solution to get rid of ads, Malware, and Trackers forever, then Re-Malwack is the best choice for you and your family.**
 
 ## Features // What makes this module special?
-
 - ⛔ It blocks ads, malware and trackers By default, you can also block P*rn sites, fake news sites, gambling sites and social sites as well.
 - ⚙ Allows you to modify and manage hosts file (whitelist/blacklist urls, reset hosts, auto update adblock)
 - 🤙 Allows you to add custom hosts sources
@@ -104,7 +103,6 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.t
 > - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 ## Activity
-
 ![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
  
 ## Contributors
@@ -113,7 +111,6 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.t
 - [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
-
 - [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
@@ -121,7 +118,6 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.t
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 
 ## Donations
-
 As a 10th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
 
 [![Donation](https://img.shields.io/badge/BUY_ME_A_COFFEE-black?&logo=buymeacoffee&logoColor=black&style=for-the-badge&logoSize=50&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
