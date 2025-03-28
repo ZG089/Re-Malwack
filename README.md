@@ -109,9 +109,8 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.t
  
 ## Contributors
 - [@KOWX712](https://github.com/KOWX712)
-- [@GalaxyA14user](https://github.com/GalaxyA14user) - Fixing bugs + Contribution to the Re-Malwack project
-- [@forsaken-heart24](https://github.com/forsaken-heart24) - Contribution to the Re-Malwack Project
-- And Finally, YOU! For using my module :)
+- [@GalaxyA14user](https://github.com/GalaxyA14user)
+- [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
 
