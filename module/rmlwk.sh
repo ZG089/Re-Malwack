@@ -87,17 +87,9 @@ function install_hosts() {
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
-    # Prepare blacklist
+    # Process blacklist and merge into previous hosts
     log_message "Preparing Blacklist..."
-    [ -s "$persist_dir/blacklist.txt" ] && sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0 " $0}' > "${tmp_hosts}b"
-
-    # Update hosts
-    log_message "Updating hosts..."
-    # Handle new downloaded hosts, not handling previous hosts here to reduce processing time since it is already well formatted
-    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${tmp_hosts}"[!0] > "$tmp_hosts"
-
-    # Merge with previous hosts and remove duplicated entries
-    sort -u "${tmp_hosts}0" "$tmp_hosts" > "$hosts_file"
+    [ -s "$persist_dir/blacklist.txt" ] && sed '/#/d; /^$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0", $0}' >> "${tmp_hosts}0"
 
     # Process whitelist
     log_message "Processing Whitelist..."
@@ -124,21 +116,18 @@ function install_hosts() {
     done
 
     # Merge whitelist files into one
-    cat $whitelist_file | sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' | sort -u > "${tmp_hosts}w"
+    cat $whitelist_file | sed '/#/d; /^$/d' | sort -u | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
         log_message "Whitelist is empty. Skipping whitelist filtering."
-    else
-        log_message "Filtering whitelist..."
-
-        # remove whitelisted domains from hosts file
-        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "$hosts_file" > "$tmp_hosts"
-
-        # Don't move mounted hosts file directly to prevent break mount
-        cat "$tmp_hosts" > "$hosts_file"
-        log_message "Whitelist filtering completed."
+        echo "" > "${tmp_hosts}w"
     fi
+
+    # Update hosts
+    log_message "Updating hosts..."
+    # Cleanup new downloaded hosts, then sort with previous hosts, then filter whitelist
+    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//' "${tmp_hosts}"[!0] | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -153,7 +142,7 @@ function remove_hosts() {
     cp -f "$hosts_file" "${tmp_hosts}0"
 
     # Arrange cached hosts
-    sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${cache_hosts}"* | sort -u > "${tmp_hosts}1"
+    sed '/#/d; /^$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${cache_hosts}"* | sort -u > "${tmp_hosts}1"
 
     # Remove from hosts file
     awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}1" "${tmp_hosts}0" > "$hosts_file"
@@ -226,19 +215,19 @@ function fetch() {
     local url="$2"
 
     if command -v curl >/dev/null 2>&1; then
-        curl -sL -o "$output_file" "$url" && log_message "Downloaded $url, stored in $output_file" || { 
-            log_message "Failed to download $url with curl"; 
-            abort "Failed to download $url"; 
+        curl -Ls "$url" > "$output_file" || { 
+            log_message "Failed to download $url with curl"
+            abort "Failed to download $url"
         }
-    elif command -v wget >/dev/null 2>&1; then
-        wget --no-check-certificate -q -O "$output_file" "$url" && log_message "Downloaded $url, stored in $output_file" || { 
-            log_message "Failed to download $url with wget"; 
-            abort "Failed to download $url"; 
-        }
+        echo "" >> "$output_file"
     else
-        log_message "Neither curl nor wget is available."
-        abort "No supported download tools (curl/wget) found."
+        busybox wget --no-check-certificate -qO - "$url" > "$output_file" || { 
+            log_message "Failed to download $url with wget"
+            abort "Failed to download $url"
+        }
+        echo "" >> "$output_file"
     fi
+    log_message "Downloaded $url, stored in $output_file"
 }
 
 function update_status() {
@@ -536,7 +525,7 @@ case "$(tolower "$1")" in
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
         update_status
-        if [ ! -d /data/adb/modules_update/Re-Malwack ]; then # If the script is NOT running in root manager (during updating)
+        if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then # If the script is NOT running in root manager (during updating)
             log_message "Successfully updated hosts."
             echo "- Everything is now Good!"
         else
