@@ -144,6 +144,10 @@ body.input-focused {
     user-select: none;
 }
 
+#security-warning-content h2 {
+    text-align: center;
+}
+
 .centered-header {
     width: 100%;
     text-align: center;
@@ -484,6 +488,7 @@ li:last-child {
     max-width: calc(100% - 40px);
     transform: translateY(100%);
     transition: transform 0.2s ease;
+    user-select: none;
 }
 
 .prompt.error {
