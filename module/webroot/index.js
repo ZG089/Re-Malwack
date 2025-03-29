@@ -493,6 +493,64 @@ async function linkFile() {
     }
 }
 
+/**
+ * Setup the Rick Roll overlay to appear on April 1st with a 70% chance.
+ * Consecutive trigger protection for user experience.
+ * Clicking on close button will redirect to rick roll
+ * Double click on black space to exit early
+ * @returns {void} 
+ */
+function setupPrank() { 
+    const today = new Date();
+    if (today.getMonth() !== 3 || today.getDate() !== 1) return;
+
+    const warningOverlay = document.getElementById('security-warning');
+    const closeButton = document.getElementById('understood');
+    let redirect = true;
+
+    const lastPrank = localStorage.getItem('lastPrank');
+    const shouldPrank = Math.random() < 0.7;
+
+    // Make sure this won't be triggered in a row for user experience
+    if (shouldPrank && lastPrank !== '1') {
+        openOverlay();
+        // Set flag in localStorage to prevent it from happening next time
+        localStorage.setItem('lastPrank', '1');
+    } else {
+        localStorage.setItem('lastPrank', '0');
+    }
+
+    closeButton.addEventListener('click', () => redirectRr());
+    warningOverlay.addEventListener('dblclick', (e) => {
+        if (e.target === warningOverlay) {
+            closeOverlay();
+            redirect = false;
+        }
+    });
+
+    async function redirectRr() {
+        closeOverlay(); 
+        try {
+            // Redirect to YouTube Rick Roll
+            await execCommand(`am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ"`);
+        } catch (error) {
+            console.error("Error redirect link:", error);
+        }
+    }
+
+    function openOverlay() {
+        document.body.style.overflow = 'hidden';
+        warningOverlay.style.display = 'flex';
+        setTimeout(() => warningOverlay.style.opacity = '1', 10);
+    }
+
+    function closeOverlay() {
+        document.body.style.overflow = 'auto';
+        warningOverlay.style.opacity = '0';
+        setTimeout(() => warningOverlay.style.display = 'none', 200);
+    }
+}
+
 // Scroll event
 let lastScrollY = window.scrollTop;
 let isScrolling = false;
@@ -518,6 +576,7 @@ window.addEventListener('scroll', () => {
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     checkMMRL();
+    setupPrank();
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
