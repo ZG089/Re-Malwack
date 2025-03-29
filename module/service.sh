@@ -36,7 +36,7 @@ if grep -q '0.0.0.0' "$HOSTS_FILE"; then
 else
     if [ -f "$MODDIR/disable" ]; then
         log_message "Status: Module is disabled"
-        string="description=status: Disabled ❌ | $(date)"
+        string="description=status: Disabled ❌"
         sed -i "s/^description=.*/$string/g" "$MODDIR/module.prop"
         return  # Exit the else block early
     else
