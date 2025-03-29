@@ -1,45 +1,31 @@
-// Elements
-const aboutButton = document.getElementById('about-button');
-const inputs = document.querySelectorAll('input');
-const focusClass = 'input-focused';
-const telegramLink = document.getElementById('telegram');
-const githubLink = document.getElementById('github');
-const xdaLink = document.getElementById('xda');
-const sponsorLink = document.getElementById('sponsor');
-const dailyUpdateToggle = document.getElementById('daily-update-toggle');
-const blockPornToggle = document.getElementById('block-porn-toggle');
-const blockGamblingToggle = document.getElementById('block-gambling-toggle');
-const blockFakenewsToggle = document.getElementById('block-fakenews-toggle');
-const blockSocialToggle = document.getElementById('block-social-toggle');
-
 const basePath = "/data/adb/Re-Malwack";
+const modulePath = "/data/adb/modules/Re-Malwack";
 
 const filePaths = {
-    blacklist: `${basePath}/blacklist.txt`,
-    whitelist: `${basePath}/whitelist.txt`,
-    "custom-source": `${basePath}/sources.txt`,
+    blacklist: 'blacklist.txt',
+    whitelist: 'whitelist.txt',
+    "custom-source": 'sources.txt',
 };
 
 // Link redirect
 const links = [
-    { element: telegramLink, url: 'https://t.me/Re_Malwack', name: 'Telegram' },
-    { element: githubLink, url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
-    { element: xdaLink, url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
-    { element: sponsorLink, url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
+    { element: 'telegram', url: 'https://t.me/Re_Malwack', name: 'Telegram' },
+    { element: 'github', url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
+    { element: 'xda', url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
+    { element: 'sponsor', url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
 ];
 
 // Block types
 const blockTypes = [
-    { id: 'porn', toggle: blockPornToggle, name: 'porn sites', flag: '--block-porn' },
-    { id: 'gambling', toggle: blockGamblingToggle, name: 'gambling sites', flag: '--block-gambling' },
-    { id: 'fakenews', toggle: blockFakenewsToggle, name: 'fake news sites', flag: '--block-fakenews' },
-    { id: 'social', toggle: blockSocialToggle, name: 'social media sites', flag: '--block-social' }
+    { id: 'porn', toggle: 'block-porn-toggle', name: 'porn sites', flag: '--block-porn' },
+    { id: 'gambling', toggle: 'block-gambling-toggle', name: 'gambling sites', flag: '--block-gambling' },
+    { id: 'fakenews', toggle: 'block-fakenews-toggle', name: 'fake news sites', flag: '--block-fakenews' },
+    { id: 'social', toggle: 'block-social-toggle', name: 'social media sites', flag: '--block-social' }
 ];
 
 // Ripple effect configuration
 const rippleClasses = ['.ripple-container', '.link-icon'];
 
-let isScrolling = false;
 let modeActive = false;
 
 // Function to handle about menu
@@ -81,22 +67,12 @@ async function getVersion() {
         document.getElementById('version-text').textContent = `${version} | `;
         getStatus();
     } catch (error) {
-        if (typeof ksu !== 'undefined' && ksu.mmrl) {
-            updateStatus("Please enable JavaScript API in MMRL settings:\n1. Settings\n2. Security\n3. Allow JavaScript API\n4. Re-Malwack\n5. Enable Advanced KernelSU API");
-        } else {
-            updateStatus("Error reading description from module.prop");
-        }
+        console.log("Error getting version:", error);
     }
 }
 
-// Function to update the status text dynamically in the WebUI
-function updateStatus(statusText) {
-    const statusElement = document.getElementById('version-status');
-    statusElement.innerHTML = statusText.replace(/\n/g, '<br>');
-}
-
 // Function to check if running in MMRL
-function checkMMRL() {
+async function checkMMRL() {
     if (typeof ksu !== 'undefined' && ksu.mmrl) {
         // Request API permission
         // Require MMRL version code 33045 or higher
@@ -104,6 +80,16 @@ function checkMMRL() {
             $Re_Malwack.requestAdvancedKernelSUAPI();
         } catch (error) {
             console.log("Error requesting API:", error);
+        }
+
+        // Test permission and display overlay if permission not granted
+        try {
+            await execCommand('ls /');
+        } catch (error) {
+            const mmrlOverlay = document.getElementById('mmrl-overlay');
+            mmrlOverlay.style.display = 'flex';
+            mmrlOverlay.style.opacity = '1';
+            document.body.style.overflow = 'hidden';
         }
     } else {
         console.log("Not running in MMRL environment.");
@@ -113,30 +99,61 @@ function checkMMRL() {
 // Function to get working status
 async function getStatus() {
     try {
-        await execCommand("grep -q '0.0.0.0' /system/etc/hosts");
-        document.getElementById('status-text').textContent = "Protection is enabled ✅";
+        const result = await execCommand(`grep -q '0.0.0.0' /system/etc/hosts || echo "false"`);
+        document.getElementById('status-text').textContent = result.trim() === "false" ? "Ready 🟡" : "Protection is enabled ✅";
     } catch (error) {
-        document.getElementById('status-text').textContent = "Ready 🟡";
+        console.error("Failed to read from /etc/hosts:", error);
     }
 }
 
 // Function to check block status for different site categories
-async function checkBlockStatus(type) {
+async function checkBlockStatus() {
     try {
-        const result = await execCommand(`grep -q '^block_${type.id}=1' ${basePath}/config.sh`);
-        type.toggle.checked = true;
-    } catch (error) {
-        type.toggle.checked = false;
-    }
-}
+        const result = await fetch('link/persistent_dir/config.sh').then(response => {
+            if (!response.ok) throw new Error('Config file not found');
+            return response.text();
+        });
+        const lines = result.split("\n");
+        
+        // Check each block type
+        for (const type of blockTypes) {
+            const toggle = document.getElementById(type.toggle);
+            const blockLine = lines.find(line => line.trim().startsWith(`block_${type.id}=`));
+            if (blockLine) {
+                const value = blockLine.split('=')[1].trim();
+                toggle.checked = value === '1';
+            } else {
+                toggle.checked = false;
+            }
+        }
 
-// Function to check daily update status
-async function checkDailyUpdateStatus() {
-    try {
-        const result = await execCommand(`grep -q '^daily_update=1' ${basePath}/config.sh`);
-        dailyUpdateToggle.checked = true;
+        // Check daily update status
+        const dailyUpdateToggle = document.getElementById('daily-update-toggle');
+        const dailyUpdateLine = lines.find(line => line.trim().startsWith('daily_update='));
+        if (dailyUpdateLine) {
+            const value = dailyUpdateLine.split('=')[1].trim();
+            dailyUpdateToggle.checked = value === '1';
+        } else {
+            dailyUpdateToggle.checked = false;
+        }
     } catch (error) {
-        dailyUpdateToggle.checked = false;
+        console.error('Failed to check status:', error);
+        if (error.message === 'Config file not found') {
+            try {
+                await linkFile();
+                await checkBlockStatus();
+                return;
+            } catch (linkError) {
+                console.error('Failed to link file:', linkError);
+            }
+        }
+        // Set all toggles to false on error
+        for (const type of blockTypes) {
+            const toggle = document.getElementById(type.toggle);
+            toggle.checked = false;
+        }
+        // Set daily update toggle to false on error
+        document.getElementById('daily-update-toggle').checked = false;
     }
 }
 
@@ -196,11 +213,11 @@ async function resetHostsFile() {
 
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
-    const isEnabled = dailyUpdateToggle.checked;
+    const isEnabled = document.getElementById('daily-update-toggle').checked;
     try {
         await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
         showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
-        checkDailyUpdateStatus();
+        await checkBlockStatus();
     } catch (error) {
         console.error("Failed to toggle daily update:", error);
         showPrompt("Failed to toggle daily update", false);
@@ -212,7 +229,7 @@ async function exportLogs() {
     try {
         const result = await execCommand(`
             LOG_DATE="$(date +%Y-%m-%d_%H%M%S)"
-            tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='/data/adb/Re-Malwack' -C ${basePath} logs &>/dev/null
+            tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='${basePath}' -C ${basePath} logs &>/dev/null
             echo "$LOG_DATE"
         `);
         showPrompt(`Logs saved to /sdcard/Download/Re-Malwack_logs_${result.trim()}.tar.gz`, true, 3000);
@@ -224,7 +241,8 @@ async function exportLogs() {
 
 // Function to handle blocking/unblocking different site categories
 async function handleBlock(type) {
-    const isRemoving = type.toggle.checked;
+    const toggle = document.getElementById(type.toggle);
+    const isRemoving = toggle.checked;
     const prompt_message = isRemoving ? "- Removing entries..." : `- Applying block for ${type.name}...`;
     const action = isRemoving ? `${type.flag} 0` : type.flag;
     const errorPrompt = `- Failed to apply block for ${type.name}`;
@@ -239,7 +257,7 @@ async function handleBlock(type) {
             showPrompt(line, true);
         });
         await getStatus();
-        await checkBlockStatus(type);
+        await checkBlockStatus();
     } catch (error) {
         console.error(errorMessage, error);
         showPrompt(errorPrompt, false);
@@ -255,11 +273,9 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
         clearTimeout(window.promptTimeout);
     }
     setTimeout(() => {
-        prompt.classList.add('visible');
-        prompt.classList.remove('hidden');
+        prompt.style.transform = 'translateY(calc((var(--window-inset-bottom, 0px) + 40px) * -1))';
         window.promptTimeout = setTimeout(() => {
-            prompt.classList.remove('visible');
-            prompt.classList.add('hidden');
+            prompt.style.transform = 'translateY(100%)';
         }, duration);
     }, 100);
 }
@@ -326,6 +342,8 @@ async function execCommand(command) {
 }
 
 // Prevent input box blocked by keyboard
+const inputs = document.querySelectorAll('input');
+const focusClass = 'input-focused';
 inputs.forEach(input => {
     input.addEventListener('focus', event => {
         document.body.classList.add(focusClass);
@@ -346,7 +364,7 @@ inputs.forEach(input => {
 
 // Link redirect
 links.forEach(link => {
-    link.element.addEventListener("click", async () => {
+    document.getElementById(link.element).addEventListener("click", async () => {
         try {
             await execCommand(`am start -a android.intent.action.VIEW -d ${link.url}`);
         } catch (error) {
@@ -420,7 +438,9 @@ function applyRippleEffect() {
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
-        const content = await execCommand(`cat ${filePaths[fileType]}`);
+        const response = await fetch('link/persistent_dir/' + filePaths[fileType]);
+        if (!response.ok) throw new Error(`File ${filePaths[fileType]} not found`);
+        const content = await response.text();
         const lines = content
             .split("\n")
             .map(line => line.trim())
@@ -436,11 +456,15 @@ async function loadFile(fileType) {
                 </button>
             `;
             listElement.appendChild(listItem);
+            listItem.addEventListener('click', () => {
+                listItem.scrollTo({ left: listItem.scrollWidth, behavior: 'smooth' });
+            });
             listItem.querySelector(".delete-btn").addEventListener("click", () => removeLine(fileType, line));
         });
         applyRippleEffect();
     } catch (error) {
         console.error(`Failed to load ${fileType} file:`, error);
+        throw error;
     }
 }
 
@@ -457,9 +481,102 @@ async function removeLine(fileType, line) {
     }
 }
 
+// Function to link file
+async function linkFile() {
+    try {
+        await execCommand(`
+            mkdir -p ${modulePath}/webroot/link
+            [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir`
+        );
+    } catch (error) {
+        console.error(`Failed to remove link persistent directory to webroot:`, error);
+    }
+}
+
+/**
+ * Setup the Rick Roll overlay to appear on April 1st with a 70% chance.
+ * Consecutive trigger protection for user experience.
+ * Clicking on close button will redirect to rick roll
+ * Double click on black space to exit early
+ * @returns {void} 
+ */
+function setupPrank() { 
+    const today = new Date();
+    if (today.getMonth() !== 3 || today.getDate() !== 1) return;
+
+    const warningOverlay = document.getElementById('security-warning');
+    const closeButton = document.getElementById('understood');
+    let redirect = true;
+
+    const lastPrank = localStorage.getItem('lastPrank');
+    const shouldPrank = Math.random() < 0.7;
+
+    // Make sure this won't be triggered in a row for user experience
+    if (shouldPrank && lastPrank !== '1') {
+        openOverlay();
+        // Set flag in localStorage to prevent it from happening next time
+        localStorage.setItem('lastPrank', '1');
+    } else {
+        localStorage.setItem('lastPrank', '0');
+    }
+
+    closeButton.addEventListener('click', () => redirectRr());
+    warningOverlay.addEventListener('dblclick', (e) => {
+        if (e.target === warningOverlay) {
+            closeOverlay();
+            redirect = false;
+        }
+    });
+
+    async function redirectRr() {
+        closeOverlay(); 
+        try {
+            // Redirect to YouTube Rick Roll
+            await execCommand(`am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ"`);
+        } catch (error) {
+            console.error("Error redirect link:", error);
+        }
+    }
+
+    function openOverlay() {
+        document.body.style.overflow = 'hidden';
+        warningOverlay.style.display = 'flex';
+        setTimeout(() => warningOverlay.style.opacity = '1', 10);
+    }
+
+    function closeOverlay() {
+        document.body.style.overflow = 'auto';
+        warningOverlay.style.opacity = '0';
+        setTimeout(() => warningOverlay.style.display = 'none', 200);
+    }
+}
+
+// Scroll event
+let lastScrollY = window.scrollTop;
+let isScrolling = false;
+let scrollTimeout;
+const scrollThreshold = 25;
+window.addEventListener('scroll', () => {
+    isScrolling = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+    }, 200);
+
+    // Hide remove button on scroll
+    const box = document.querySelector('.box li');
+    if (box) {
+        document.querySelectorAll('.box li').forEach(li => {
+            li.scrollTo({ left: 0, behavior: 'smooth' });
+        });
+    }
+    lastScrollY = window.scrollTop;
+});
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     checkMMRL();
+    setupPrank();
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
@@ -470,12 +587,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     attachAddButtonListeners();
     getVersion();
-    checkDailyUpdateStatus();
-    for (const type of blockTypes) {
-        await checkBlockStatus(type);
-    }
+    await checkBlockStatus();
+    ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
     applyRippleEffect();
-    await loadFile('whitelist');
-    await loadFile('blacklist');
-    await loadFile('custom-source');
 });
