@@ -70,10 +70,10 @@ for type in $types; do
 done
 
 # Handle source file
-if [ ! -s "$persistent_dir/source.txt" ]; then
-    mv -f $MODPATH/common/source.txt $persistent_dir/source.txt
+if [ ! -s "$persistent_dir/sources.txt" ]; then
+    mv -f $MODPATH/common/sources.txt $persistent_dir/sources.txt
 else
-    rm -f $MODPATH/common/source.txt
+    rm -f $MODPATH/common/sources.txt
 fi
 
 # set permissions
