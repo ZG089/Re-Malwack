@@ -494,10 +494,10 @@ async function linkFile() {
 }
 
 /**
- * Setup the Rick Roll overlay to appear on April 1st with a 70% chance.
+ * Setup the Rick Roll overlay to appear on April 1st
  * Consecutive trigger protection for user experience.
- * Clicking on close button will redirect to rick roll
- * Double click on black space to exit early
+ * Clicking on understood button will redirect to rick roll
+ * Double click on blank space to exit early
  * @returns {void} 
  */
 function setupPrank() { 
@@ -506,26 +506,18 @@ function setupPrank() {
 
     const warningOverlay = document.getElementById('security-warning');
     const closeButton = document.getElementById('understood');
-    let redirect = true;
-
     const lastPrank = localStorage.getItem('lastPrank');
-    const shouldPrank = Math.random() < 0.7;
 
     // Make sure this won't be triggered in a row for user experience
-    if (shouldPrank && lastPrank !== '1') {
+    if (lastPrank !== '1') {
         openOverlay();
         // Set flag in localStorage to prevent it from happening next time
         localStorage.setItem('lastPrank', '1');
-    } else {
-        localStorage.setItem('lastPrank', '0');
     }
 
     closeButton.addEventListener('click', () => redirectRr());
     warningOverlay.addEventListener('dblclick', (e) => {
-        if (e.target === warningOverlay) {
-            closeOverlay();
-            redirect = false;
-        }
+        if (e.target === warningOverlay) closeOverlay();
     });
 
     async function redirectRr() {
