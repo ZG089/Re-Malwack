@@ -1,3 +1,32 @@
+## v6.0
+- 🐛 Fixed bug where installer detects disabled conflicted module.  
+- 🐛 Fixed bug where whitelist, blacklist, and newly downloaded hosts don't apply due to a broken mount.  
+- ⚡ Rewritten full script code for better performance and speed.  
+- 🛠️ Added module update/install detection.  
+- ⚡ Implemented parallel downloads for a quicker installation/update process.  
+- 🔗 Integrated main script with module installer script.  
+- 🔄 Added auto-update hosts option.  
+- 🔒 Added Social block.  
+- 📝 You can now edit, add, or remove host source URLs. 
+- ✅ Added online whitelist.  
+- 📜 Added logging system.  
+- 📤 Added option to export logs via WebUI.  
+- 🕵️‍♂️ Hide script detection, now mounted to root manager binaries dir for better hiding.  
+- 👀 You can now view whitelisted and blacklisted entries via script or WebUI.  
+- ⚠️ Added warning (in WebUI) when resetting hosts, to prevent accidental wipe.  
+- 🔄 Added check for WebUI JS API status for MMRL App.  
+- 🖥️ Added WebUI JS API request prompt.  
+- ✅ Added "confirmation" argument to reset hosts command, preventing accidental wipe.  
+- ⌨️ Added shorter prefixes for commands.  
+- 🎨 Various UI improvements in WebUI.  
+- 📡 Added possibility to use Re-Malwack hosts using local VPN (no root).  
+- 🔘 Blocklists are now toggleable via WebUI and script.  
+- 📥 Blocklists now update when updating hosts (only effective for the user’s enabled blocklists).  
+- 🚫 Removed hBlock hosts source for faster hosts processing. However, you can still add it manually via script or WebUI.  
+- 🛑 Implemented social whitelist exception when Social block is enabled.  
+- ⚡ Made installer wizard quicker and quieter.  
+- 🎖️ Updated credits.  
+
 ## v5.3.0
 - ⛔ Enhanced ads, malware and trackers blocking experience.
 - ✨ The module got a new webUI which you can open using [KSUWebUI](https://github.com/5ec1cff/KsuWebUIStandalone) or using [MMRL](https://github.com/DerGoogler/MMRL).
