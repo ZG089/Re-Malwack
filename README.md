@@ -4,7 +4,7 @@
 </div>
 <h2 align="center">Not just a normal ad-blocker module ✨</h2>
 
-[![Module Version](https://img.shields.io/badge/Module_Version-v5.3.0-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v5.3.0)
+[![Module Version](https://img.shields.io/badge/Module_Version-v6.0-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v6.0)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?style=for-the-badge&color=gray&logo=telegram)](https://t.me/Re_Malwack)
