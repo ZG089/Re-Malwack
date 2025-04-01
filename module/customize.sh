@@ -90,4 +90,3 @@ sh $MODPATH/rmlwk.sh --update-hosts || {
     tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
     abort
 }
-rm -f $MODPATH /common/repo.json
