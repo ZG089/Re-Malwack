@@ -20,10 +20,16 @@ aan.amazon.com
 api.us-east-1.aiv-delivery.net  
 device-metrics*.amazon.com  
 
+# Apple
+appldnld.apple.com
+ocsp.apple.com
+gsp-ssl.ls.apple.com
+
 # Discover  
 api.mixpanel.com  
 api.radar.io  
-branch.io  
+branch.io
+cdn.branch.io 
 datadoghq.com  
 discover.com  
 tt.omtrdc.net  
@@ -38,19 +44,47 @@ email.gupy.com.br
 email.inbound.gupy.com.br  
 
 # Microsoft  
-live.com  
+live.com
 microsoft.com  
 microsoftonline.com  
 
 # Other "APIs"  
 codepush.appcenter.ms  
 dpm.demdex.net  
-sentry.io  
+sentry.io
+mobile.launchdarkly.com
+clientstream.launchdarkly.com
+api.apptentive.com
+api2.branch.io
 
 # Google  
 googleapis.com  
 googleadservices.com  
-s.youtube.com  
+s.youtube.com 
+ssl.google-analytics.com
+oauth.googleusercontent.com
+mtalk.google.com
+clients3.google.com
+clients4.google.com
+clients5.google.com
+
+# Captcha
+www.google.com/recaptcha/
+www.gstatic.com/recaptcha/
+hcaptcha.com
+assets.hcaptcha.com
+
+# Messaging / Notifications
+fcm.googleapis.com
+firebaseinstallations.googleapis.com
+android.clients.google.com
+
+# Gaming
+playfabapi.com
+xboxlive.com
+epicgames.com
+api.steampowered.com
+steambroadcast.akamaized.net
 
 # Groq AI  
 web.stytch.com  
@@ -76,9 +110,28 @@ samsung-gamelauncher.com
 supercell.com  
 
 # Streaming  
-tidal.com  
-spotify.app.link  
+tidal.com
+spotify.app.link
+api.spotify.com
+prod.spotify.map.fastly.net
 
 
 # Sites  
-html-load.com  
+html-load.com
+
+# Subway
+www.subway.com
+api.subway.com
+media.subway.com
+id.subway.com
+id-content.subway.com
+subway.demdex.net
+fast.subway.demdex.net
+subway.quantummetric.com
+subway-mid-prod3-all-lb.campaign.adobe.com
+subway-mkt-prod3-lb.campaign.adobe.com
+subway2016.tt.omtrdc.net
+subwayfranchiseeadvertising.122.2o7.net
+subwayfranchiseeadvertising.d2.sc.omtrdc.net
+subwayfranchiseeadvertising.data.adobedc.net
+subwayfranchiseeadvertising.sc.omtrdc.net
