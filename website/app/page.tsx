@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
+import { Check } from "lucide-react"
 
 export default function Home() {
   return (
@@ -20,7 +21,7 @@ export default function Home() {
               <Link href="/download">Download Now</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/guide">Read the Guide</Link>
+              <Link href="/guide">How to use</Link>
             </Button>
           </div>
         </section>
@@ -37,7 +38,7 @@ export default function Home() {
               <ul className="grid gap-6">
                 <li className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <div className="h-5 w-5 text-primary">✓</div>
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Ad Blocking</h3>
@@ -46,7 +47,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <div className="h-5 w-5 text-primary">✓</div>
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Malware & Tracker Protection</h3>
@@ -57,7 +58,7 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <div className="h-5 w-5 text-primary">✓</div>
+                    <Check className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h3 className="font-medium">Content Filtering</h3>
@@ -74,7 +75,7 @@ export default function Home() {
       <footer className="border-t py-6 md:py-0">
         <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            Released under the GPL v3.0 Copyright © {new Date().getFullYear()}-present @ZG089
+          Released under the GPL v3.0 Copyright © {new Date().getFullYear()}-present @ZG089
           </p>
           <div className="flex items-center gap-4">
             <Link
@@ -91,4 +92,3 @@ export default function Home() {
     </div>
   )
 }
-
