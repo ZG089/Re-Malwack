@@ -90,3 +90,11 @@ sh $MODPATH/rmlwk.sh --update-hosts || {
     tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
     abort
 }
+
+# Create symlink on install for ksu/ap
+manager_paths="/data/adb/ap/bin /data/adb/ksu/bin"
+for i in $manager_paths; do
+    if [ -d "$i" ]; then
+        ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
+    fi
+done
