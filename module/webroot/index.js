@@ -378,9 +378,21 @@ function applyRippleEffect() {
     rippleClasses.forEach(selector => {
         document.querySelectorAll(selector).forEach(element => {
             if (element.dataset.rippleListener !== "true") {
-                element.addEventListener("pointerdown", function (event) {
-                    if (isScrolling) return;
-                    if (modeActive) return;
+                element.addEventListener("pointerdown", async (event) => {
+                    const handlePointerUp = () => {
+                        ripple.classList.add("end");
+                        setTimeout(() => {
+                            ripple.classList.remove("end");
+                            ripple.remove();
+                        }, duration * 1000);
+                        element.removeEventListener("pointerup", handlePointerUp);
+                        element.removeEventListener("pointercancel", handlePointerUp);
+                    };
+                    element.addEventListener("pointerup", () => setTimeout(handlePointerUp, 80));
+                    element.addEventListener("pointercancel", () => setTimeout(handlePointerUp, 80));
+    
+                    await new Promise(resolve => setTimeout(resolve, 80));
+                    if (isScrolling || modeActive) return;
 
                     const ripple = document.createElement("span");
                     ripple.classList.add("ripple");
@@ -406,7 +418,6 @@ function applyRippleEffect() {
                     // Adaptive color
                     const computedStyle = window.getComputedStyle(element);
                     const bgColor = computedStyle.backgroundColor || "rgba(0, 0, 0, 0)";
-                    const textColor = computedStyle.color;
                     const isDarkColor = (color) => {
                         const rgb = color.match(/\d+/g);
                         if (!rgb) return false;
@@ -415,19 +426,8 @@ function applyRippleEffect() {
                     };
                     ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "";
 
-                    // Append ripple and handle cleanup
+                    // Append ripple animation
                     element.appendChild(ripple);
-                    const handlePointerUp = () => {
-                        ripple.classList.add("end");
-                        setTimeout(() => {
-                            ripple.classList.remove("end");
-                            ripple.remove();
-                        }, duration * 1000);
-                        element.removeEventListener("pointerup", handlePointerUp);
-                        element.removeEventListener("pointercancel", handlePointerUp);
-                    };
-                    element.addEventListener("pointerup", handlePointerUp);
-                    element.addEventListener("pointercancel", handlePointerUp);
                 });
                 element.dataset.rippleListener = "true";
             }
