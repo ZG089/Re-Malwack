@@ -154,15 +154,7 @@ body.input-focused {
 }
 
 .permission-steps {
-    text-align: left;
-}
-
-.permission-steps ol {
-    padding: 0 25px;
-}
-
-.permission-steps li {
-    margin-top: 10px;
+    text-align: center;
 }
 
 .confirmation-btn-container {
