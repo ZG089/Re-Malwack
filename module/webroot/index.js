@@ -74,22 +74,36 @@ async function getVersion() {
 // Function to check if running in MMRL
 async function checkMMRL() {
     if (typeof ksu !== 'undefined' && ksu.mmrl) {
-        // Request API permission
-        // Require MMRL version code 33045 or higher
+        // Set status bars theme based on device theme
         try {
-            $Re_Malwack.requestAdvancedKernelSUAPI();
+            $Re_Malwack.setLightStatusBars(!window.matchMedia('(prefers-color-scheme: dark)').matches)
         } catch (error) {
-            console.log("Error requesting API:", error);
+            console.error("Error setting status bars theme:", error)
         }
 
-        // Test permission and display overlay if permission not granted
+        // Check MMRL version
         try {
-            await execCommand('ls /');
+            const mmrlJson = $Re_Malwack.getMmrl();
+            const mmrlData = JSON.parse(mmrlJson);
+            if (mmrlData.versionCode < 33329) {
+                // Require 33329 for a working fetch function
+                throw new Error('MMRL version is less than 33329');
+            } else if (mmrlData.versionCode < 33348) {
+                // requestAdvancedKernelSUAPI deprecated in v33348
+                $Re_Malwack.requestAdvancedKernelSUAPI();
+            }
         } catch (error) {
+            console.error('MMRL version check failed:', error);
+            $Re_Malwack.requestAdvancedKernelSUAPI(); // Just to ensure linkRedirect work
+
+            // Show overlay
             const mmrlOverlay = document.getElementById('mmrl-overlay');
             mmrlOverlay.style.display = 'flex';
             mmrlOverlay.style.opacity = '1';
             document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                execCommand(`am start -a android.intent.action.VIEW -d 'https://github.com/MMRLApp/MMRL/releases/latest'`);
+            }, 3000)
         }
     } else {
         console.log("Not running in MMRL environment.");
