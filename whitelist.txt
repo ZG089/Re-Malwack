@@ -1,24 +1,24 @@
 # Re-Malwack hosts whitelist
 
 # AliExpress  
-alicdn.com  
+alicdn.com
 
 # Adobe  
-sstats.adobe.com  
-assest.adobedtm.com  
+sstats.adobe.com
+assets.adobedtm.com  
 
-# Adult Swim  
-ad.auditude.com  
-bea4.v.fwmrm.net  
-geo.ngtv.io  
-sb.scorecardresearch.com  
-sstats.adultswim.com  
+# Adult Swim
+ad.auditude.com
+bea4.v.fwmrm.net 
+geo.ngtv.io
+sb.scorecardresearch.com
+sstats.adultswim.com
 
 # Amazon / Prime Video  
-amazon-adsystem.com  
-aan.amazon.com  
-api.us-east-1.aiv-delivery.net  
-device-metrics*.amazon.com  
+amazon-adsystem.com
+aan.amazon.com
+api.us-east-1.aiv-delivery.net 
+device-metrics*.amazon.com
 
 # Apple
 appldnld.apple.com
@@ -26,53 +26,62 @@ ocsp.apple.com
 gsp-ssl.ls.apple.com
 
 # Discover  
-api.mixpanel.com  
-api.radar.io  
+api.mixpanel.com
+api.radar.io
 branch.io
-cdn.branch.io 
-datadoghq.com  
-discover.com  
-tt.omtrdc.net  
-report.dfs.glassboxdigital.io  
+cdn.branch.io
+datadoghq.com
+discover.com
+tt.omtrdc.net
+report.dfs.glassboxdigital.io
 
 # Epic Games  
-eulatracking-public-service-prod.ol.epicgames.com  
-delivers.dtignite.com  
+eulatracking-public-service-prod.ol.epicgames.com
+delivers.dtignite.com
 
-# Gupy  
-email.gupy.com.br  
-email.inbound.gupy.com.br  
+# Gupy
+email.gupy.com.br
+email.inbound.gupy.com.br
 
 # Microsoft  
 live.com
-microsoft.com  
-microsoftonline.com  
+microsoft.com
+microsoftonline.com
 
 # Other "APIs"  
-codepush.appcenter.ms  
-dpm.demdex.net  
+codepush.appcenter.ms
+dpm.demdex.net
 sentry.io
 mobile.launchdarkly.com
 clientstream.launchdarkly.com
 api.apptentive.com
 api2.branch.io
+cdn.quantummetric.com
+ingest.quantummetric.com
+rl.quantummetric.com
+cdn.cookielaw.org
+app-measurement.com
+p11.techlab-cdn.com
+cm.everesttech.net
 
 # Google  
-googleapis.com  
-googleadservices.com  
-s.youtube.com 
+googleapis.com
+googleadservices.com
+s.youtube.com
 ssl.google-analytics.com
 oauth.googleusercontent.com
 mtalk.google.com
 clients3.google.com
 clients4.google.com
 clients5.google.com
+firebaselogging-pa.googleapis.com
 
 # Captcha
 www.google.com/recaptcha/
 www.gstatic.com/recaptcha/
 hcaptcha.com
 assets.hcaptcha.com
+ssl.kaptcha.com
 
 # Messaging / Notifications
 fcm.googleapis.com
@@ -87,27 +96,27 @@ api.steampowered.com
 steambroadcast.akamaized.net
 
 # Groq AI  
-web.stytch.com  
-groq.com  
+web.stytch.com
+groq.com
 
 # NordVPN  
-launches.appsflyer.com  
+launches.appsflyer.com
 
 # OnePlus  
-com-service-us-04.allwnos.com  
-com-service-us-05.allwnos.com  
-com-service-us-07.allwnos.com  
-com-service-us-08.allwnos.com  
+com-service-us-04.allwnos.com
+com-service-us-05.allwnos.com
+com-service-us-07.allwnos.com
+com-service-us-08.allwnos.com
 
 # Samsung Apps  
-samsungrs.com  
-samsungosp.com  
-samsungcloud.com  
-samsungapps.com  
-samsung-gamelauncher.com  
+samsungrs.com
+samsungosp.com
+samsungcloud.com
+samsungapps.com
+samsung-gamelauncher.com
 
 # Supercell  
-supercell.com  
+supercell.com
 
 # Streaming  
 tidal.com
