@@ -1,23 +1,23 @@
 # Re-Malwack hosts whitelist
 
-# AliExpress  
+# AliExpress
 alicdn.com
 
-# Adobe  
+# Adobe
 sstats.adobe.com
-assets.adobedtm.com  
+assets.adobedtm.com
 
 # Adult Swim
 ad.auditude.com
-bea4.v.fwmrm.net 
+bea4.v.fwmrm.net
 geo.ngtv.io
 sb.scorecardresearch.com
 sstats.adultswim.com
 
-# Amazon / Prime Video  
+# Amazon / Prime Video
 amazon-adsystem.com
 aan.amazon.com
-api.us-east-1.aiv-delivery.net 
+api.us-east-1.aiv-delivery.net
 device-metrics*.amazon.com
 
 # Apple
@@ -25,7 +25,7 @@ appldnld.apple.com
 ocsp.apple.com
 gsp-ssl.ls.apple.com
 
-# Discover  
+# Discover
 api.mixpanel.com
 api.radar.io
 branch.io
@@ -35,7 +35,7 @@ discover.com
 tt.omtrdc.net
 report.dfs.glassboxdigital.io
 
-# Epic Games  
+# Epic Games
 eulatracking-public-service-prod.ol.epicgames.com
 delivers.dtignite.com
 
@@ -43,12 +43,12 @@ delivers.dtignite.com
 email.gupy.com.br
 email.inbound.gupy.com.br
 
-# Microsoft  
+# Microsoft
 live.com
 microsoft.com
 microsoftonline.com
 
-# Other "APIs"  
+# Other "APIs"
 codepush.appcenter.ms
 dpm.demdex.net
 sentry.io
@@ -64,7 +64,7 @@ app-measurement.com
 p11.techlab-cdn.com
 cm.everesttech.net
 
-# Google  
+# Google
 googleapis.com
 googleadservices.com
 s.youtube.com
@@ -95,37 +95,37 @@ epicgames.com
 api.steampowered.com
 steambroadcast.akamaized.net
 
-# Groq AI  
+# Groq AI
 web.stytch.com
 groq.com
 
-# NordVPN  
+# NordVPN
 launches.appsflyer.com
 
-# OnePlus  
+# OnePlus
 com-service-us-04.allwnos.com
 com-service-us-05.allwnos.com
 com-service-us-07.allwnos.com
 com-service-us-08.allwnos.com
 
-# Samsung Apps  
+# Samsung Apps
 samsungrs.com
 samsungosp.com
 samsungcloud.com
 samsungapps.com
 samsung-gamelauncher.com
 
-# Supercell  
+# Supercell
 supercell.com
 
-# Streaming  
+# Streaming
 tidal.com
 spotify.app.link
 api.spotify.com
 prod.spotify.map.fastly.net
 
 
-# Sites  
+# Sites
 html-load.com
 
 # Subway
