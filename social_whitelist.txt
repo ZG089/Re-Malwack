@@ -6,6 +6,7 @@ mqtt-mini.facebook.com
 web.facebook.com  
 graph.instagram.com
 connect.facebook.net
+www.connect.facebook.net
 api.instagram.com
 
 # WhatsApp  
