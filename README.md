@@ -19,7 +19,7 @@
 ## Features // What makes this module special?
 - ⛔ It blocks ads, malware and trackers By default, you can also block P*rn sites, fake news sites, gambling sites and social sites as well.
 - ⚙ Allows you to modify and manage hosts file (whitelist/blacklist urls, reset hosts, auto update adblock)
-- 🤙 Allows you to add custom hosts sources
+- 🤙 Allows you to add custom hosts sources, also modify default ones
 - ✨ Easy to use
 - 🛠 Supports Magisk (v20.0+) (and its variants), KernelSU (and its variants) and Apatch
 - 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-(no-root))
@@ -36,7 +36,7 @@
 > **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
 
 ## How to use Re-Malwack
-> [!NOTE]
+> [!TIP]
 > - It's not required to use it on terminal if you want to update hosts, by just clicking the action button it will get updated.
 
 ### 1. via Terminal
