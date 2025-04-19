@@ -68,10 +68,3 @@
     "typescript": "^5"
   }
 }
-{
-  "name": "re-malwack-badge",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node totalDownloads.js"
-  }
-}
