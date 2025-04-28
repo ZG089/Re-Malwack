@@ -148,15 +148,6 @@ body.input-focused {
     text-align: center;
 }
 
-.centered-header {
-    width: 100%;
-    text-align: center;
-}
-
-.permission-steps {
-    text-align: center;
-}
-
 .confirmation-btn-container {
     display: flex;
     width: 100%;
