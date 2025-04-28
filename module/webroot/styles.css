@@ -311,6 +311,10 @@ body.input-focused {
     text-align: left;
 }
 
+#create-shortcut {
+    display: none;
+}
+
 .toggle-switch {
     position: relative;
     display: inline-block;

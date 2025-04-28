@@ -73,13 +73,21 @@ async function getVersion() {
 
 // Function to check if running in MMRL
 async function checkMMRL() {
-    if (typeof ksu !== 'undefined' && ksu.mmrl) {
+    if (Object.keys($Re_Malwack).length > 0) {
         // Set status bars theme based on device theme
         try {
             $Re_Malwack.setLightStatusBars(!window.matchMedia('(prefers-color-scheme: dark)').matches)
         } catch (error) {
             console.error("Error setting status bars theme:", error)
         }
+
+        // Create shortcut button
+        const createShortcut = document.getElementById('create-shortcut');
+        createShortcut.style.display = 'flex';
+        createShortcut.addEventListener('click', () => {
+            $Re_Malwack.createShortcut();
+            showPrompt("Shortcut created");
+        });
     } else {
         console.log("Not running in MMRL environment.");
     }
