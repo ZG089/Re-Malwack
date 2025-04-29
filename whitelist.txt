@@ -63,6 +63,7 @@ cdn.cookielaw.org
 app-measurement.com
 p11.techlab-cdn.com
 cm.everesttech.net
+weather-server.allawnos.com
 
 # Google
 googleapis.com
@@ -75,6 +76,7 @@ clients3.google.com
 clients4.google.com
 clients5.google.com
 firebaselogging-pa.googleapis.com
+optimizationguide-pa.googleapis.com
 
 # Captcha
 www.google.com/recaptcha/
