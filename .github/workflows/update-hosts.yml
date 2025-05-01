@@ -2,23 +2,24 @@ name: Update Hosts
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # Runs every 24 hours at midnight UTC
-  workflow_dispatch:  # Allows manual triggering
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   update-hosts:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout hosts-update branch only
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history needed for branch control
+          ref: 'hosts-update'
+          fetch-depth: 0
 
       - name: Set up dependencies
         run: sudo apt update && sudo apt install -y curl
 
-      - name: Download Hosts Files
+      - name: Download and generate hosts file
         run: |
           sources=(
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
@@ -28,58 +29,32 @@ jobs:
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
           )
+          rm -f raw_hosts.txt whitelist.txt hosts
           for url in "${sources[@]}"; do
             curl -sL "$url" >> raw_hosts.txt
-            echo "" >> raw_hosts.txt  # Ensure newline separation
+            echo "" >> raw_hosts.txt
           done
-
-      - name: Download Whitelist
-        run: |
           curl -sL "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" -o whitelist.txt
-
-      - name: Clean and Merge Hosts
-        run: |
-          echo "Cleaning hosts..."
-          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' raw_hosts.txt > tmp_hosts.txt
-          sort -u tmp_hosts.txt > hosts
-          rm -f tmp_hosts.txt
-
-      - name: Remove Whitelisted Domains
-        run: |
-          echo "Filtering whitelist..."
-
+          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' raw_hosts.txt | sort -u > hosts
           if [ -s whitelist.txt ]; then
+            cp hosts hosts.bak
             while IFS= read -r domain; do
               escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
               sed -i "/^0\.0\.0\.0 $escaped_domain$/d" hosts
             done < whitelist.txt
-          else
-            echo "Whitelist is empty or missing. Skipping..."
+            [ ! -s hosts ] && mv hosts.bak hosts
           fi
 
-      - name: Set permissions
-        run: chmod 644 hosts
-
-      - name: Prepare hosts-update branch
-        run: |
-          BRANCH="hosts-update"
-          # Avoid conflict when switching branches
-          rm -f hosts
-          # Create an orphan branch if it doesn't exist
-          if ! git ls-remote --exit-code --heads origin "$BRANCH"; then
-            git checkout --orphan "$BRANCH"
-          else
-            git checkout "$BRANCH"
-          fi
-
-          # REMOVE EVERYTHING from working directory and Git index
-          git rm -rf . > /dev/null 2>&1 || true
-          find . -mindepth 1 ! -name '.git' -exec rm -rf {} +
-
-      - name: Commit and Push hosts file
+      - name: Commit and push updated hosts file
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add hosts
-          git commit -m "Auto-update hosts file [$(date +'%Y-%m-%d')]"
-          git push origin hosts-update --force
+          LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ "$LAST_COMMIT_MSG" == "Update hosts file" ]]; then
+            git commit --amend --no-edit
+            git push --force
+          else
+            git commit -m "Update hosts file [$(date +'%Y-%m-%d')]"
+            git push
+          fi
