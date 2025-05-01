@@ -18,3 +18,8 @@ api.whatsapp.com
 # Twitter / X
 t.co
 api.twitter.com
+
+
+# Reddit
+e.reddit.com
+i.redd.it
