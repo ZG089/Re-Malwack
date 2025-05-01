@@ -49,17 +49,10 @@ jobs:
           echo "Filtering whitelist..."
 
           if [ -s whitelist.txt ]; then
-            cp hosts hosts.bak
-
             while IFS= read -r domain; do
               escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
               sed -i "/^0\.0\.0\.0 $escaped_domain$/d" hosts
             done < whitelist.txt
-
-            if [ ! -s hosts ]; then
-              echo "WARNING: Whitelist filtering removed everything! Restoring backup."
-              mv hosts.bak hosts
-            fi
           else
             echo "Whitelist is empty or missing. Skipping..."
           fi
