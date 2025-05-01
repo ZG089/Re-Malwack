@@ -44,6 +44,7 @@ jobs:
           sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' raw_hosts.txt > tmp_hosts.txt
           sort -u tmp_hosts.txt > hosts
           rm -f tmp_hosts.txt
+          rm -f raw_hosts.txt
 
       - name: Remove Whitelisted Domains
         run: |
