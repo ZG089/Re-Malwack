@@ -1,0 +1,19 @@
+{
+	"license": "GPL-3.0",
+	"support": "https://t.me/Re_Malwack",
+	"donate": "http://buymeacoffee.com/ZG089",
+	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/banner.png",
+	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/logo.png",
+	"categories": [
+        "Adblocking and Hosts Files",
+        "APatch",
+        "KernelSU",
+        "Magisk",
+	"Built Different",
+	"Protection",
+	"WebUI"
+    ],
+	"require": [],
+	"screenshots": [],
+	"readme": "https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/README.md"
+}

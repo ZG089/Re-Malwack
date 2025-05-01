@@ -1,0 +1,25 @@
+# Meta (Facebook - instagram)
+edge.mqtt.facebook.com
+graph.facebook.com
+b-graph.facebook.com
+mqtt-mini.facebook.com
+web.facebook.com
+graph.instagram.com
+connect.facebook.net
+www.connect.facebook.net
+api.instagram.com
+
+# WhatsApp
+whatsapp.com
+whatsapp.net
+api.whatsapp.com
+
+
+# Twitter / X
+t.co
+api.twitter.com
+
+
+# Reddit
+e.reddit.com
+i.redd.it

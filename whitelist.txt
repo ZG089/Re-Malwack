@@ -1,0 +1,148 @@
+# Re-Malwack hosts whitelist
+
+# AliExpress
+alicdn.com
+
+# Adobe
+sstats.adobe.com
+assets.adobedtm.com
+
+# Adult Swim
+ad.auditude.com
+bea4.v.fwmrm.net
+geo.ngtv.io
+sb.scorecardresearch.com
+sstats.adultswim.com
+
+# Amazon / Prime Video
+amazon-adsystem.com
+aan.amazon.com
+api.us-east-1.aiv-delivery.net
+device-metrics*.amazon.com
+
+# Apple
+appldnld.apple.com
+ocsp.apple.com
+gsp-ssl.ls.apple.com
+
+# Discover
+api.mixpanel.com
+api.radar.io
+branch.io
+cdn.branch.io
+datadoghq.com
+discover.com
+tt.omtrdc.net
+report.dfs.glassboxdigital.io
+
+# Epic Games
+eulatracking-public-service-prod.ol.epicgames.com
+delivers.dtignite.com
+
+# Gupy
+email.gupy.com.br
+email.inbound.gupy.com.br
+
+# Microsoft
+live.com
+microsoft.com
+microsoftonline.com
+
+# Other "APIs"
+codepush.appcenter.ms
+dpm.demdex.net
+sentry.io
+mobile.launchdarkly.com
+clientstream.launchdarkly.com
+api.apptentive.com
+api2.branch.io
+cdn.quantummetric.com
+ingest.quantummetric.com
+rl.quantummetric.com
+cdn.cookielaw.org
+app-measurement.com
+p11.techlab-cdn.com
+cm.everesttech.net
+weather-server.allawnos.com
+
+# Google
+googleapis.com
+googleadservices.com
+s.youtube.com
+ssl.google-analytics.com
+oauth.googleusercontent.com
+mtalk.google.com
+clients3.google.com
+clients4.google.com
+clients5.google.com
+firebaselogging-pa.googleapis.com
+optimizationguide-pa.googleapis.com
+
+# Captcha
+www.google.com/recaptcha/
+www.gstatic.com/recaptcha/
+hcaptcha.com
+assets.hcaptcha.com
+ssl.kaptcha.com
+
+# Messaging / Notifications
+fcm.googleapis.com
+firebaseinstallations.googleapis.com
+android.clients.google.com
+
+# Gaming
+playfabapi.com
+xboxlive.com
+epicgames.com
+api.steampowered.com
+steambroadcast.akamaized.net
+
+# Groq AI
+web.stytch.com
+groq.com
+
+# NordVPN
+launches.appsflyer.com
+
+# OnePlus
+com-service-us-04.allwnos.com
+com-service-us-05.allwnos.com
+com-service-us-07.allwnos.com
+com-service-us-08.allwnos.com
+
+# Samsung Apps
+samsungrs.com
+samsungosp.com
+samsungcloud.com
+samsungapps.com
+samsung-gamelauncher.com
+
+# Supercell
+supercell.com
+
+# Streaming
+tidal.com
+spotify.app.link
+api.spotify.com
+prod.spotify.map.fastly.net
+
+
+# Sites
+html-load.com
+
+# Subway
+www.subway.com
+api.subway.com
+media.subway.com
+id.subway.com
+id-content.subway.com
+subway.demdex.net
+fast.subway.demdex.net
+subway.quantummetric.com
+subway-mid-prod3-all-lb.campaign.adobe.com
+subway-mkt-prod3-lb.campaign.adobe.com
+subway2016.tt.omtrdc.net
+subwayfranchiseeadvertising.122.2o7.net
+subwayfranchiseeadvertising.d2.sc.omtrdc.net
+subwayfranchiseeadvertising.data.adobedc.net
+subwayfranchiseeadvertising.sc.omtrdc.net
