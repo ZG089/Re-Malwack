@@ -74,7 +74,7 @@ jobs:
 
           # REMOVE EVERYTHING from working directory and Git index
           git rm -rf . > /dev/null 2>&1 || true
-          rm -rf * .[^.]* 2>/dev/null || true
+          find . -mindepth 1 ! -name '.git' -exec rm -rf {} +
 
       - name: Commit and Push hosts file
         run: |
