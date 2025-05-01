@@ -55,6 +55,6 @@ jobs:
             git commit --amend --no-edit
             git push --force
           else
-            git commit -m "Update hosts file [$(date +'%Y-%m-%d')]"
+            git commit -m "Update hosts file"
             git push
           fi
