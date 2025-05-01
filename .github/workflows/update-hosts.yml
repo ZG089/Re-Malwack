@@ -63,13 +63,16 @@ jobs:
       - name: Prepare hosts-update branch
         run: |
           BRANCH="hosts-update"
-
+          # Create an orphan branch if it doesn't exist
           if ! git ls-remote --exit-code --heads origin "$BRANCH"; then
             git checkout --orphan "$BRANCH"
           else
             git checkout "$BRANCH"
-            git rm -rf . > /dev/null 2>&1 || true
           fi
+
+          # REMOVE EVERYTHING from working directory and Git index
+          git rm -rf . > /dev/null 2>&1 || true
+          rm -rf * .[^.]* 2>/dev/null || true
 
       - name: Commit and Push hosts file
         run: |
