@@ -55,8 +55,7 @@ jobs:
               escaped_domain=$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')
               sed -i "/^0\.0\.0\.0 $escaped_domain$/d" hosts
             done < whitelist.txt
-          else
-            echo "Whitelist is empty or missing. Skipping..."
+          rm -f whitelist.txt
           fi
 
       - name: Commit and push updated hosts file
