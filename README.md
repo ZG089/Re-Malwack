@@ -64,7 +64,7 @@
 - You can still protect your device without needing for root access, just copy paste this url into [DNSnet](https://play.google.com/store/apps/details?id=dev.clombardo.dnsnet), or [AdAway](https://f-droid.org/packages/org.adaway/), or any other app of your choice :
 
 ```
-https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.txt
+https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 ```
 
 
