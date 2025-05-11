@@ -130,7 +130,7 @@ export default function GuidePage() {
                     <h3 className="font-medium text-red-600">Does Re-Malwack require root access?</h3>
                     <p className="text-sm text-muted-foreground">
                       Yes, Re-Malwack requires root access to modify the system hosts file. Still you can use Re-Malwack
-                      protection without root by adding the url <code className="bg-muted px-1 py-0.5 rounded">https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/main/hosts/hosts.txt</code>
+                      protection without root by adding the url <code className="bg-muted px-1 py-0.5 rounded">https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts</code>
                       into AdAway or your favourite DNS/local VPN app.
                     </p>
                   </div>
