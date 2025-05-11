@@ -126,7 +126,6 @@ spotify.app.link
 api.spotify.com
 prod.spotify.map.fastly.net
 
-
 # Sites
 html-load.com
 
