@@ -22,7 +22,7 @@
 - 🤙 Allows you to add custom hosts sources, also modify default ones
 - ✨ Easy to use
 - 🛠 Supports Magisk (v20.0+) (and its variants), KernelSU (and its variants) and Apatch
-- 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-(no-root))
+- 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-no-root)
 - 🔧 Regularly maintained & updated
 - ❤ Made with love and care
 
