@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-function malvack_banner() {
+function rmlwk_banner() {
     clear
     printf '\033[0;31m'
     echo "    ____             __  ___      __                    __            "
@@ -8,6 +8,14 @@ function malvack_banner() {
     echo "  / /_/ / _ \\______/ /|_/ / __ \`/ / | /| / / __ \`/ ___/ //_/"       
     echo " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<             "
     echo "/_/ |_|\\___/     /_/  /_/\\__,_/_/ |__/|__/\\__,_/\\___/_/|_|           "
+    echo " "
+    printf '\033[0m'
+    # Refreshes protection status and displays it
+    update_status
+    echo " "
+    echo "$status_msg"
+    printf '\033[0;31m'
+    echo "================================================================="
     printf '\033[0m'
 }
 
@@ -28,7 +36,7 @@ mkdir -p "$persist_dir/logs"
 . "$persist_dir/config.sh"
 
 # Skip banner if running from Magisk Manager
-[ -z "$MAGISKTMP" ] && malvack_banner
+[ -z "$MAGISKTMP" ] && rmlwk_banner
 
 # Logging func
 function log_message() {
@@ -187,18 +195,24 @@ function fetch() {
 }
 
 function update_status() {
-    if grep -q '0.0.0.0' "$system_hosts"; then
-        string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
-        status="Protection is enabled ✅ | Last updated: $(date)"
+    last_mod=$(date -r "$hosts_file" "+%d, %b - %H:%M %Z" 2>/dev/null)
+    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null || echo 0)
+    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null || echo 0)
+
+    if [ "$blocked_mod" -gt 10 ]; then
+        if [ "$blocked_mod" -ne "$blocked_sys" ]; then
+            status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
+        else
+            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
+        fi
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-        string="description=Status: Reboot required to apply changes 🔃"
-        status="Reboot required to apply changes 🔃"
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     else
-        string="description=Status: Protection is disabled due to reset ❌"
-        status="Protection is disabled due to reset ❌"
+        status_msg="Status: Protection is disabled due to reset ❌"
     fi
-    sed -i "s/^description=.*/$string/g" $MODDIR/module.prop
-    log_message "$status"
+
+    sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
+    log_message "$status_msg"
 }
 
 
