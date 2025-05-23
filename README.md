@@ -111,7 +111,7 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 - [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
-- [@person0z](https://github.com/Person0z) - Malwack Magisk module creator
+- [@person0z](https://github.com/Person0z) - Malwack founder
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
 - [@hBlock](https://github.com/hectorm/hblock) - Hosts file
