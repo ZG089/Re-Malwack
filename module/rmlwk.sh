@@ -80,7 +80,15 @@ function install_hosts() {
     done
 
     # Merge whitelist files into one
-    cat $whitelist_file | sed '/#/d; /^$/d' | sort -u | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
+    grep -vE '^\s*#|^\s*$' "$whitelist_file" | sort -u | awk '
+    {
+        if ($0 != "localhost") {
+            print "0.0.0.0", $0;
+            print "127.0.0.1", $0;
+        }
+    }
+    ' > "${tmp_hosts}w"
+
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -329,7 +337,11 @@ case "$(tolower "$1")" in
             if [ "$option" = "add" ]; then
                 # Add domain to whitelist.txt and remove from hosts
                 grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
-                sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$tmp_hosts"
+                # remove lines matching 0.0.0.0 $domain or 127.0.0.1 $domain — except 127.0.0.1 localhost
+                sed "/^0\.0\.0\.0[[:space:]]\+$domain$/d" "$hosts_file" | \
+                sed "/^127\.0\.0\.1[[:space:]]\+$domain$/{
+                    /127\.0\.0\.1[[:space:]]\+localhost/!d
+                }" > "$tmp_hosts"
                 cat "$tmp_hosts" > "$hosts_file"
                 rm -f "$tmp_hosts"
                 log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
