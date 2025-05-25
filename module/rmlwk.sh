@@ -48,6 +48,7 @@ function log_message() {
 function install_hosts() {
     type="$1"
     log_message "Starting to install $type hosts."
+
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
@@ -90,8 +91,10 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    # Cleanup new downloaded hosts, then sort with previous hosts, then filter whitelist
-    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//' "${tmp_hosts}"[!0] | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//' "${tmp_hosts}"[!0] |
+    sort -u - "${tmp_hosts}0" |
+    grep -Fxvf "${tmp_hosts}w" |
+    sed '/^127\.0\.0\.1[[:space:]]\+localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
