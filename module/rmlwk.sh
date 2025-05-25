@@ -13,7 +13,7 @@ function rmlwk_banner() {
     # Refreshes protection status and displays it
     update_status
     echo " "
-    echo "$status_msg"
+    echo "$version - $status_msg"
     printf '\033[0;31m'
     echo "================================================================="
     printf '\033[0m'
@@ -26,6 +26,7 @@ MODDIR=$(dirname "$REALPATH")
 hosts_file="$MODDIR/system/etc/hosts"
 system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
+version=$(grep_prop version $MODDIR/module.prop)
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
@@ -51,7 +52,7 @@ function install_hosts() {
 
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
-
+    echo " " > $hosts_file
     # Process blacklist and merge into previous hosts
     log_message "Preparing Blacklist..."
     [ -s "$persist_dir/blacklist.txt" ] && sed '/#/d; /^$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0", $0}' >> "${tmp_hosts}0"
@@ -91,10 +92,10 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//' "${tmp_hosts}"[!0] |
-    sort -u - "${tmp_hosts}0" |
-    grep -Fxvf "${tmp_hosts}w" |
-    sed '/^127\.0\.0\.1[[:space:]]\+localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' > "$hosts_file"
+    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//; s/127\.0\.0\.1/0.0.0.0/g' "${tmp_hosts}"[!0] | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    printf "127.0.0.1 localhost\n::1 localhost" >> "$hosts_file"
+    signature="# Re-Malwack $version"
+    echo "$signature" >> "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -475,7 +476,6 @@ case "$(tolower "$1")" in
         wait
 
         echo "- Installing hosts"
-        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
         # Check config and apply update
