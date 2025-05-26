@@ -83,7 +83,6 @@ EOF
     esac
     
     printf '\033[0m'
-
     update_status
     echo " "
     echo "$version - $status_msg"
@@ -109,8 +108,6 @@ mkdir -p "$persist_dir/logs"
 # Read config
 . "$persist_dir/config.sh"
 
-# Skip banner if running from Magisk Manager
-[ -z "$MAGISKTMP" ] && rmlwk_banner
 
 # Logging func
 function log_message() {
@@ -347,6 +344,9 @@ function disable_cron() {
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
+
+# Skip banner if running from Magisk Manager
+[ -z "$MAGISKTMP" ] && rmlwk_banner
 
 # Main Logic
 case "$(tolower "$1")" in
