@@ -340,13 +340,14 @@ function disable_cron() {
     fi
 }
 
+
+# Skip banner if running from Magisk Manager
+[ -z "$MAGISKTMP" ] && rmlwk_banner
+
 # Check Root
 if [ "$(id -u)" -ne 0 ]; then
     abort "Root is required to run this script."
 fi
-
-# Skip banner if running from Magisk Manager
-[ -z "$MAGISKTMP" ] && rmlwk_banner
 
 # Main Logic
 case "$(tolower "$1")" in
