@@ -3,7 +3,6 @@
 function rmlwk_banner() {
     clear
 
-    # Banner 1: Gradient red to dark red from top to bottom
     banner1=$(cat <<'EOF'
 \033[38;2;255;102;102m     ..      ...                             ...     ..      ..                       ..                                                ..      
 \033[38;2;255;51;51m  :~"8888x :"%888x                         x*8888x.:*8888: -"888:               x .d88"    x=~                                    < .z@8"`      
@@ -19,8 +18,6 @@ function rmlwk_banner() {
 \033[38;2;0;0;0m  ^-==""      `""       "YP'                 "~'    "~        ""     ^Y"   ^Y'     "%                        ^Y"   ^Y'     "P'       ""    ""   
 EOF
 )
-
-    # Banner 2: Gradient red to dark red from top to bottom
     banner2=$(cat <<'EOF'
 \033[38;2;255;102;102m:::::::..  .,::::::   .        :    :::.      ::: .::    .   .::::::.       .,-:::::  :::  .   
 \033[38;2;255;51;51m;;;;``;;;; ;;;;''''   ;;,.    ;;;   ;;`;;     ;;; ';;,  ;;  ;;;' ;;`;;    ,;;;'````'  ;;; .;;,.
@@ -30,30 +27,23 @@ EOF
 \033[38;2;51;0;0mMMMM   "W" """"YUMMM MMM  M'  "MMMYMM   ""` """"YUMMM "M "M"   YMM   ""`   "YUMMMMMP"MMM "MMP"
 EOF
 )
-
-    # Banner 3: Just red
     banner3=$(cat <<'EOF'
-\033[0;31m    printf '\033[0;31m'
-    echo "    ____             __  ___      __                    __            "
-    echo "   / __ \\___        /  |/  /___ _/ /      ______ ______/ /__          "
-    echo "  / /_/ / _ \\______/ /|_/ / __ \`/ / | /| / / __ \`/ ___/ //_/"       
-    echo " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<             "
-    echo "/_/ |_|\\___/     /_/  /_/\\__,_/_/ |__/|__/\\__,_/\\___/_/|_|           "
-    echo " "
+\033[0;31m    ____             __  ___      __                    __            
+   / __ \___        /  |/  /___ _/ /      ______ ______/ /__          
+  / /_/ / _ \______/ /|_/ / __ `/ / | /| / / __ `/ ___/ //_/       
+ / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<             
+/_/ |_|\___/     /_/  /_/\__,_/_/ |__/|__/\__,_/\___/_/|_|           
+ 
 EOF
 )
-
-    # Banner 4: Just red
     banner4=$(cat <<'EOF'
 \033[0;31m ______     ______     __    __     ______     __         __     __     ______     ______     __  __    
 /\  == \   /\  ___\   /\ "-./  \   /\  __ \   /\ \       /\ \  _ \ \   /\  __ \   /\  ___\   /\ \/ /    
-\033[0;31m\ \  __<   \ \  __\   \ \ \-./\ \  \ \  __ \  \ \ \____  \ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  
-\033[0;31m \ \_\ \_\  \ \_____\  \ \_\ \ \_\  \ \_\ \_\  \ \_____\  \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\ 
+\ \  __<   \ \  __\   \ \ \-./\ \  \ \  __ \  \ \ \____  \ \ \/ ".\ \  \ \  __ \  \ \ \____  \ \  _"-.  
+ \ \_\ \_\  \ \_____\  \ \_\ \ \_\  \ \_\ \_\  \ \_____\  \ \__/".~\_\  \ \_\ \_\  \ \_____\  \ \_\ \_\ 
  \/_/ /_/   \/_____/   \/_/  \/_/   \/_/\/_/   \/_____/   \/_/   \/_/   \/_/\/_/   \/_____/   \/_/\/_/ 
 EOF
 )
-
-    # Banner 5: Gradient red to dark red from top to bottom
     banner5=$(cat <<'EOF'
 \033[38;2;255;102;102m ██▀███  ▓█████  ███▄ ▄███▓ ▄▄▄       ██▓     █     █░ ▄▄▄       ▄████▄   ██ ▄█▀
 \033[38;2;255;51;51m▓██ ▒ ██▒▓█   ▀ ▓██▒▀█▀ ██▒▒████▄    ▓██▒    ▓█░ █ ░█░▒████▄    ▒██▀ ▀█   ██▄█▒ 
@@ -67,8 +57,6 @@ EOF
 \033[38;2;0;0;0m                                                                ░               
 EOF
 )
-
-    # Banner 6: Red only
     banner6=$(cat <<'EOF'
 \033[0;31m██████╗ ███████╗    ███╗   ███╗ █████╗ ██╗     ██╗    ██╗ █████╗  ██████╗██╗  ██╗
 ██╔══██╗██╔════╝    ████╗ ████║██╔══██╗██║     ██║    ██║██╔══██╗██╔════╝██║ ██╔╝
@@ -79,16 +67,23 @@ EOF
 EOF
 )
 
-    # Select a random banner
-    banners=(banner1 banner2 banner3 banner4 banner5 banner6)
-    random_index=$((RANDOM % 6))
-    selected_banner=${banners[$random_index]}
+    if command -v awk >/dev/null 2>&1; then
+        random_index=$(awk 'BEGIN{srand(); print int(rand()*6) + 1}')
+    else
+        random_index=$(( ($(date +%s) % 6) + 1 ))
+    fi
 
-    # Print the selected banner
-    echo -e "$selected_banner"
+    case $random_index in
+        1) echo -e "$banner1" ;;
+        2) echo -e "$banner2" ;;
+        3) echo -e "$banner3" ;;
+        4) echo -e "$banner4" ;;
+        5) echo -e "$banner5" ;;
+        6) echo -e "$banner6" ;;
+    esac
+    
     printf '\033[0m'
 
-    # Refreshes protection status and displays it
     update_status
     echo " "
     echo "$version - $status_msg"
