@@ -26,7 +26,7 @@ MODDIR=$(dirname "$REALPATH")
 hosts_file="$MODDIR/system/etc/hosts"
 system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
-version=$(grep_prop version $MODDIR/module.prop)
+version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
