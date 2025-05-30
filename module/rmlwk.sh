@@ -162,8 +162,8 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    sed '/^127\.0\.0\.1[[:space:]]\+localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
-    # printf "127.0.0.1 localhost\n::1 localhost\n" >> "$hosts_file"
+    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//; s/127\.0\.0\.1/0.0.0.0/g' "${tmp_hosts}"[!0] | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    printf "127.0.0.1 localhost\n::1 localhost\n" >> "$hosts_file"
     signature="# Re-Malwack $version"
     echo "$signature" >> "$hosts_file"
 
