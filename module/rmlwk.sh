@@ -550,6 +550,7 @@ case "$(tolower "$1")" in
         wait
 
         echo "- Installing hosts"
+        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
 
         # Check config and apply update
