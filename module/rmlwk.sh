@@ -122,7 +122,6 @@ function install_hosts() {
 
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
-    echo " " > $hosts_file
     # Process blacklist and merge into previous hosts
     log_message "Preparing Blacklist..."
     [ -s "$persist_dir/blacklist.txt" ] && sed '/#/d; /^$/d' "$persist_dir/blacklist.txt" | awk '{print "0.0.0.0", $0}' >> "${tmp_hosts}0"
@@ -162,10 +161,11 @@ function install_hosts() {
 
     # Update hosts
     log_message "Updating hosts..."
-    sed '/#/d; /!/d; s/  */ /g; /^$/d; s/\r$//; s/127\.0\.0\.1/0.0.0.0/g' "${tmp_hosts}"[!0] | sort -u - "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
-    printf "127.0.0.1 localhost\n::1 localhost\n" >> "$hosts_file"
-    signature="# Re-Malwack $version"
-    echo "$signature" >> "$hosts_file"
+    sed '/#/d; /!/d; s/[[:space:]]\+/ /g; /^$/d; s/\r$//; /^127\.0\.0\.1[ \t]*localhost$/! s/^127\.0\.0\.1[ \t]*/0.0.0.0 /' "${tmp_hosts}"[!0] |
+    sort -u - "${tmp_hosts}0" |
+    grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    echo "# Re-Malwack $version" >> "$hosts_file"
+
 
     # Clean up
     chmod 644 "$hosts_file"
