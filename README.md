@@ -69,9 +69,6 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 > [!NOTE]
 > Hosts source used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
 
-> [!WARNING]
-> - For KernelSU users and for those who noticed that the hosts file isn't updated/ad blocking doesn't work, install [Overlayfs](https://github.com/HuskyDG/magic_overlayfs) module, configure it and it will work. (if you need help configuring it then contact with me via Telegram or XDA)
-
 
 ## Download Module
 > [!TIP]
