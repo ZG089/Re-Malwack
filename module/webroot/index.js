@@ -95,11 +95,13 @@ async function checkMMRL() {
 
 // Function to get working status
 async function getStatus() {
+    const statusElement = document.getElementById('status-text');
     try {
-        const result = await execCommand(`grep -q '0.0.0.0' /system/etc/hosts || echo "false"`);
-        document.getElementById('status-text').textContent = result.trim() === "false" ? "Ready 🟡" : "Protection is enabled ✅";
+        const status = await execCommand("grep '^description=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
+        statusElement.textContent = status.trim();
     } catch (error) {
-        console.error("Failed to read from /etc/hosts:", error);
+        statusElement.textContent = "Error reading module status";
+        console.log("Error getting status:", error);
     }
 }
 
