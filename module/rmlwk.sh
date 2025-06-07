@@ -310,34 +310,32 @@ function fetch() {
 }
 
 function update_status() {
-    last_mod=$(date -r "$hosts_file" "+%d, %b - %H:%M %Z" 2>/dev/null)
+    last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
     if [ -f "$system_hosts" ]; then
-        blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+        blocked_sys=$(grep -m 1 -q '0\.0\.0\.0' "$system_hosts" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
     else
         blocked_sys=0
     fi
 
     if [ -f "$hosts_file" ]; then
-        blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+        blocked_mod=$(grep -m 1 -q '0\.0\.0\.0' "$hosts_file" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
     else
         blocked_mod=0
     fi
  
-    if [ "$blocked_mod" -gt 10 ]; then
-        if [ "$blocked_mod" -ne "$blocked_sys" ]; then
-            status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
+        if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
+            status_msg="Status: Ad-block is paused ⏸️"
+        elif [ "$blocked_mod" -gt 10 ]; then
+            if [ "$blocked_mod" -ne "$blocked_sys" ]; then
+                status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
+            else
+                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
+            fi
+        elif [ -d /data/adb/modules_update/Re-Malwack ]; then
+            status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
         else
-            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
+            status_msg="Status: Protection is disabled due to reset ❌"
         fi
-    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
-    else
-        status_msg="Status: Protection is disabled due to reset ❌"
-    fi
-
-    if is_adblock_paused; then
-        status_msg="Status: Ad-block is paused ⏸️"
-    fi
 
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
