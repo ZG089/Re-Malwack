@@ -635,11 +635,9 @@ case "$(tolower "$1")" in
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
         update_status
-        if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then # If the script is NOT running in root manager (during updating)
-            log_message "Successfully updated hosts."
+        log_message "Successfully updated hosts."
+        if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
             echo "- Everything is now Good!"
-        else
-            log_message "Successfully updated hosts."
         fi
         ;;
 
