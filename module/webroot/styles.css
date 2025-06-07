@@ -1,4 +1,4 @@
-@import url('https://mui.kernelsu.org/mmrl/insets.css');
+@import url('https://mui.kernelsu.org/internal/insets.css');
 
 :root {
     --top-inset: var(--window-inset-top, 0px);
@@ -26,25 +26,23 @@
     --logo-color: #fff;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        /* Background colors */
-        --bg-primary: #151515;
-        --bg-secondary: #292929;
-        --bg-overlay: #292929;
-        --bg-input: #1b1b1b;
+.dark-theme {
+    /* Background colors */
+    --bg-primary: #151515;
+    --bg-secondary: #292929;
+    --bg-overlay: #292929;
+    --bg-input: #1b1b1b;
 
-        /* Text colors */
-        --text-primary: #fff;
-        --text-secondary: #C2C2C2;
+    /* Text colors */
+    --text-primary: #fff;
+    --text-secondary: #C2C2C2;
 
-        /* Border colors */
-        --border-color: #636363;
+    /* Border colors */
+    --border-color: #636363;
 
-        /* Logo color */
-        --logo-bg: #fff;
-        --logo-color: #D51200;
-    }
+    /* Logo color */
+    --logo-bg: #fff;
+    --logo-color: #D51200;
 }
 
 body {
@@ -74,16 +72,22 @@ body.input-focused {
     font-weight: bold;
     color: var(--btn-primary-text);
     background-color: var(--btn-primary);
-    align-items: center;
-    position: relative;
-    width: calc(90vw - 30px);
+    width: 90vw;
     max-width: 800px;
     border: none;
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
     padding: 15px;
     overflow: hidden;
     user-select: none;
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
 }
 
 .festival {
@@ -98,9 +102,33 @@ body.input-focused {
 }
 
 .about {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    margin-left: auto;
+
+    svg {
+        fill: var(--text-primary)
+    }
+}
+
+.theme-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#theme-select {
     position: absolute;
-    right: 15px;
-    z-index: 1000;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    height: 30px;
+    width: 30px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .overlay {
