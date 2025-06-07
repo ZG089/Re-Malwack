@@ -540,6 +540,51 @@ function setupPrank() {
     }
 }
 
+/**
+ * Setup WebUI color theme
+ * localStorage: remalwack_theme - light, dark
+ * @return {void}
+ */
+function setupTheme() {
+    const savedTheme = localStorage.getItem('remalwack_theme');
+    const themeSelect = document.getElementById('theme-select');
+
+    if (savedTheme === 'light') {
+        applyTheme('light');
+        themeSelect.value = 'light';
+    } else if (savedTheme === 'dark') {
+        applyTheme('dark');
+        themeSelect.value = 'dark';
+    } else {
+        applyTheme('system');
+        themeSelect.value = 'system';
+    }
+
+    // theme switcher
+    themeSelect.addEventListener('change', () => {
+        if (themeSelect.value === 'system') {
+            localStorage.removeItem('remalwack_theme');
+        } else {
+            localStorage.setItem('remalwack_theme', themeSelect.value);
+        }
+        applyTheme(themeSelect.value);
+    });
+
+    function applyTheme(theme) {
+        if (theme === 'light') {
+            document.documentElement.classList.remove('dark-theme');
+        } else if (theme === 'dark') {
+            document.documentElement.classList.add('dark-theme');
+        } else {
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark-theme');
+            } else {
+                document.documentElement.classList.remove('dark-theme');
+            }
+        }
+    }
+}
+
 // Scroll event
 let lastScrollY = window.scrollTop;
 let isScrolling = false;
@@ -564,6 +609,7 @@ window.addEventListener('scroll', () => {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
+    setupTheme();
     checkMMRL();
     setupPrank();
     document.getElementById("about-button").addEventListener("click", aboutMenu);
