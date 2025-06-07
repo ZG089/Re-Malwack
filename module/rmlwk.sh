@@ -311,8 +311,17 @@ function fetch() {
 
 function update_status() {
     last_mod=$(date -r "$hosts_file" "+%d, %b - %H:%M %Z" 2>/dev/null)
-    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null || echo 0)
-    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null || echo 0)
+    if [ -f "$system_hosts" ]; then
+        blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    else
+        blocked_sys=0
+    fi
+
+    if [ -f "$hosts_file" ]; then
+        blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    else
+        blocked_mod=0
+    fi
  
     if [ "$blocked_mod" -gt 10 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then
