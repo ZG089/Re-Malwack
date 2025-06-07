@@ -109,6 +109,47 @@ mkdir -p "$persist_dir/logs"
 . "$persist_dir/config.sh"
 
 
+# New functions for pause and resume ad-block
+function pause_adblock() {
+    if [ -f "$persist_dir/hosts.bak" ]; then
+        echo "protection is already paused!"
+        exit
+    fi     
+    log_message "Pausing Protections"
+    echo "- Pausing Protections"
+    cat $hosts_file > "$persist_dir/hosts.bak"
+    printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
+    chmod 644 "$hosts_file"
+    update_status
+    log_message "Protection has been paused."
+    echo "- Protection has been paused."
+}
+
+function resume_adblock() {
+    log_message "Resuming protection."
+    echo "- Resuming protection"
+    if [ -f "$persist_dir/hosts.bak" ]; then
+        cat "$persist_dir/hosts.bak" > "$hosts_file"
+        chmod 644 "$hosts_file"
+        rm -f $persist_dir/hosts.bak
+        update_status
+        log_message "Protection has been resumed."
+        echo "- Protection has been resumed."
+    else
+        log_message "No backup hosts file found to resume."
+        echo "- No backup hosts file found to resume."
+    fi
+}
+
+# New function to check if hosts.bak exists
+function is_adblock_paused() {
+    if [ -f "$persist_dir/hosts.bak" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # Logging func
 function log_message() {
     local message="$1"
@@ -272,7 +313,7 @@ function update_status() {
     last_mod=$(date -r "$hosts_file" "+%d, %b - %H:%M %Z" 2>/dev/null)
     blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null || echo 0)
     blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null || echo 0)
-
+ 
     if [ "$blocked_mod" -gt 10 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
@@ -283,6 +324,10 @@ function update_status() {
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     else
         status_msg="Status: Protection is disabled due to reset ❌"
+    fi
+
+    if is_adblock_paused; then
+        status_msg="Status: Ad-block is paused ⏸️"
     fi
 
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
@@ -351,7 +396,17 @@ fi
 
 # Main Logic
 case "$(tolower "$1")" in
+    --pause-adblock|-pa)
+        pause_adblock
+        ;;
+    --resume-adblock|-ra)
+        resume_adblock
+        ;;
     --reset|-r)
+        if is_adblock_paused; then
+            echo "- Ad-block is paused. Please resume before running this command."
+            exit 1
+        fi
         log_message "Reverting the changes."
         echo "- Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -365,6 +420,10 @@ case "$(tolower "$1")" in
         ;;
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
+        if is_adblock_paused; then
+            echo "- Ad-block is paused. Please resume before running this command."
+            exit 1
+        fi    
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -395,6 +454,10 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
+        if is_adblock_paused; then
+            echo "- Ad-block is paused. Please resume it before running this command."
+            exit 1
+        fi
         option="$2"
         domain="$3"
         
@@ -424,6 +487,10 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
+        if is_adblock_paused; then
+            echo "- Ad-block is paused. Please resume before running this command."
+            exit 1
+        fi
         option="$2"
         domain="$3"
 
@@ -517,6 +584,10 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
+        if is_adblock_paused; then
+            echo "- Ad-block is paused. Please resume before running this command."
+            exit 1
+        fi    
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
             log_message "Updating protections..."
@@ -567,6 +638,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
+    
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument]"
@@ -574,6 +646,8 @@ case "$(tolower "$1")" in
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
         echo "--reset, -r: Restore original hosts file."
+        echo "--pause-adblock, -pa: Pauses protection"
+        echo "--resume-adblock, -ra: Resumes protection"
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
