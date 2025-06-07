@@ -67,8 +67,8 @@ EOF
 EOF
 )
 
-    if command -v awk >/dev/null 2>&1; then
-        random_index=$(awk 'BEGIN{srand(); print int(rand()*6) + 1}')
+    if command -v shuf >/dev/null 2>&1; then
+        random_index=$(shuf -i 1-6 -n 1)
     else
         random_index=$(( ($(date +%s) % 6) + 1 ))
     fi
