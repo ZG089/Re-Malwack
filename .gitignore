@@ -20,6 +20,9 @@
 # env files
 /website/.env*
 
+# bun lockfile
+/website/bun.lock*
+
 # vercel
 /website/.vercel
 
