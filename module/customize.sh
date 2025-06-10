@@ -30,26 +30,20 @@ ui_print "                                    /"
 ui_print " ----------------------------------"
 ui_print " "
 
+# abort if we are in recovery mode.
+[ $BOOTMODE == true ] || abort "! Not supported to install in recovery"
 
-# abort in recovery
-if ! $BOOTMODE; then
-	abort "! Not supported to install in recovery"
-fi
+# check if adaway is detected or not.
+pm list packages | grep -q org.adaway && abort "- Adaway is detected, Please uninstall it to prevent conflicts."
 
-# Check for conflicts
-pm list packages | grep -q org.adaway && abort "- Adaway is detected, Please disable to prevent conflicts."
-
+# iterrate throughout the /data/adb/modules and
+# - Skip if we stumbled upon on our own module
+# - And skip if the module is disabled.
 for module in /data/adb/modules/*; do
     module_id="$(grep_prop id "${module}/module.prop")"
-    # Skip our own module
     [ "$module_id" == "Re-Malwack" ] && continue
-
-    # Check for conflict by looking for a hosts file in the module
     if [ -f "${module}/system/etc/hosts" ]; then
-        # Check if the module is already disabled
-        if [ -f "/data/adb/modules/$module_id/disable" ]; then
-            continue
-        fi
+        [ -f "/data/adb/modules/$module_id/disable" ] && continue
         module_name="$(grep_prop name "${module}/module.prop")"
         ui_print "- Disabling conflicting module: $module_name"
         touch "/data/adb/modules/$module_id/disable"
@@ -62,10 +56,9 @@ ping -c 1 -w 5 google.com &>/dev/null || abort "- This module requires internet 
 # Add a persistent directory to save configuration
 persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
-types="block_porn block_gambling block_fakenews block_social daily_update"
 mkdir -p "$persistent_dir"
 touch "$config_file"
-for type in $types; do
+for type in block_porn block_gambling block_fakenews block_social daily_update; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
 done
 
@@ -74,30 +67,24 @@ if [ ! -s "$persistent_dir/sources.txt" ]; then
     mv -f $MODPATH/common/sources.txt $persistent_dir/sources.txt
 else
     rm -f $MODPATH/common/sources.txt
-
     # Replace previously used compression hosts source if found
     sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|' $persistent_dir/sources.txt
 fi
 
 # set permissions
-chmod 755 $MODPATH/rmlwk.sh
-chmod 755 $MODPATH/action.sh
-chmod 755 "$persistent_dir/config.sh"
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
 rm -rf $persistent_dir/logs/*
 sh $MODPATH/rmlwk.sh --update-hosts || {
-    ui_print "- Failed to initialize hosts files"
-    ui_print "- Log saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+    ui_print "- Failed to initialize host files"
+    ui_print "- Logs are saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
     tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
     abort
 }
 
 # Create symlink on install for ksu/ap
-manager_paths="/data/adb/ap/bin /data/adb/ksu/bin"
-for i in $manager_paths; do
-    if [ -d "$i" ]; then
-        ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
-    fi
+for i in /data/adb/ap/bin /data/adb/ksu/bin; do
+    [ -d "$i" ] && ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
 done
