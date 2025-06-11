@@ -353,14 +353,14 @@ function update_status() {
     log_message "Last hosts file update was in: $last_mod"
     if [ -f "$system_hosts" ]; then
         log_message "Grabbing system hosts file entries count"
-        blocked_sys=$(grep -m 1 -q '0\.0\.0\.0' "$system_hosts" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
+        blocked_sys=$(blocked_sys=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null))
     else
         blocked_sys=0
     fi
     log_message "System hosts entries count: $blocked_sys"
     if [ -f "$hosts_file" ]; then
         log_message "Grabbing module hosts file entries count"
-        blocked_mod=$(grep -m 1 -q '0\.0\.0\.0' "$hosts_file" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
+        blocked_mod=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
     else
         blocked_mod=0
     fi
