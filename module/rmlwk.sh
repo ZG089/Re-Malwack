@@ -366,7 +366,7 @@ function update_status() {
         blocked_mod=0
         log_message "Hosts file reset or not initialized."
     else
-        blocked_mod=$grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+        blocked_mod=($grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
         # Fallback (in worst cases)
         blocked_mod=${blocked_mod:-0}
     fi
