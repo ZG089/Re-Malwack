@@ -152,27 +152,27 @@ function is_adblock_paused() {
 
 # Logging func
 function log_message() {
-    local message="$1"
+    message="$1"
     [ -f "$LOGFILE" ] || touch "$LOGFILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
 }
 
 # Helper to log duration
 function duration_to_hms() {
-    local T=$1
+    T=$1
     printf "%02d:%02d:%02d" $((T/3600)) $((T%3600/60)) $((T%60))
 }
 
 function log_duration() {
-    local name="$1"
-    local start_time="$2"
-    local end_time=$(date +%s)
-    local duration=$((end_time - start_time))
-    log_message "[$(date '+%Y-%m-%d %H:%M:%S')] - $name took $(duration_to_hms $duration) (hh:mm:ss)"
+    name="$1"
+    start_time="$2"
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
+    log_message "$name took $(duration_to_hms $duration) (hh:mm:ss)"
 }
 
 function install_hosts() {
-    local start_time=$(date +%s)
+    start_time=$(date +%s)
     type="$1"
     log_message "Starting to install $type hosts."
 
@@ -232,7 +232,7 @@ function install_hosts() {
 }
 
 function remove_hosts() {
-    local start_time=$(date +%s)
+    start_time=$(date +%s)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -259,9 +259,9 @@ function remove_hosts() {
 }
 
 function block_content() {
-    local start_time=$(date +%s)
-    local block_type=$1
-    local status=$2
+    start_time=$(date +%s)
+    block_type=$1
+    status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
 
     if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
@@ -330,7 +330,7 @@ function fetch() {
 }
 
 function update_status() {
-    local start_time=$(date +%s)
+    start_time=$(date +%s)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
     log_message "Last hosts file update was in: $last_mod"
@@ -426,17 +426,17 @@ function disable_cron() {
 # Main Logic
 case "$(tolower "$1")" in
     --pause-adblock|-pa)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         pause_adblock
         log_duration "pause_adblock" "$start_time"
         ;;
     --resume-adblock|-ra)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         resume_adblock
         log_duration "resume_adblock" "$start_time"
         ;;
     --reset|-r)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -455,7 +455,7 @@ case "$(tolower "$1")" in
         ;;
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -621,7 +621,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -657,7 +657,6 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
-
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
