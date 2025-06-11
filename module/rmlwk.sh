@@ -351,34 +351,41 @@ function update_status() {
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
     log_message "Last hosts file update was in: $last_mod"
-    if [ -f "$system_hosts" ]; then
-        log_message "Grabbing system hosts file entries count"
-        blocked_sys=$(blocked_sys=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null))
-    else
+
+    if [ ! -d "/data/adb/modules/Re-Malwack" ]; then
         blocked_sys=0
+        log_message "First install detected (module directory missing)."
+    else
+        blocked_sys=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
+        # Fallback (in worst cases)
+        blocked_sys=${blocked_sys:-0}
     fi
     log_message "System hosts entries count: $blocked_sys"
-    if [ -f "$hosts_file" ]; then
-        log_message "Grabbing module hosts file entries count"
-        blocked_mod=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
-    else
+    # Detect reset state or missing hosts file
+    if [ ! -s "$hosts_file" ]; then
         blocked_mod=0
+        log_message "Hosts file reset or not initialized."
+    else
+        blocked_mod=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
+        # Fallback (in worst cases)
+        blocked_mod=${blocked_mod:-0}
     fi
     log_message "module hosts entries count: $blocked_mod"
-        if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
-            status_msg="Status: Ad-block is paused ⏸️"
-        elif [ "$blocked_mod" -gt 10 ]; then
-            if [ "$blocked_mod" -ne "$blocked_sys" ]; then
-                status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
-            else
-                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
-            fi
-        elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-            status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
+    if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
+        status_msg="Status: Ad-block is paused ⏸️"
+    elif [ "$blocked_mod" -gt 10 ]; then
+        if [ "$blocked_mod" -ne "$blocked_sys" ]; then
+            status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
-            status_msg="Status: Protection is disabled due to reset ❌"
+            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
         fi
+    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
+    else
+        status_msg="Status: Protection is disabled due to reset ❌"
+    fi
 
+    # Update module description
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
     log_duration "update_status" "$start_time"
