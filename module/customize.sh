@@ -77,7 +77,7 @@ chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
 rm -rf $persistent_dir/logs/*
-sh $MODPATH/rmlwk.sh --update-hosts || {
+sh $MODPATH/rmlwk.sh --update-hosts --quiet || {
     ui_print "- Failed to initialize host files"
     ui_print "- Logs are saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
     tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
