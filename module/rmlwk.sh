@@ -116,8 +116,11 @@ version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 # tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
-
 mkdir -p "$persist_dir/logs"
+# Include error logging
+exec 2>>"$LOGFILE"
+trap 'echo "[$(date "+%Y-%m-%d %H:%M:%S")] - ERROR: Script failed at line $LINENO. Exit code: $?" >> "$LOGFILE"' ERR
+trap 'echo "[$(date "+%Y-%m-%d %H:%M:%S")] - Script exited at line $LINENO with code $?" >> "$LOGFILE"' EXIT
 
 # Read config
 . "$persist_dir/config.sh"
