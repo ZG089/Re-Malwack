@@ -1,6 +1,20 @@
 #!/system/bin/sh
 
+# Add quiet mode variable
+quiet_mode=0
+
+# Check for --quiet argument
+for arg in "$@"; do
+    if [ "$arg" = "--quiet" ]; then
+        quiet_mode=1
+        break
+    fi
+done
+
 function rmlwk_banner() {
+    # Skip banner if quiet mode is enabled
+    [ "$quiet_mode" = 1 ] && return
+
     clear
 
     banner1=$(cat <<'EOF'
@@ -420,7 +434,7 @@ function disable_cron() {
 
 
 # Skip banner if running from Magisk Manager
-[ -z "$MAGISKTMP" ] && rmlwk_banner
+[ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
 
 # Main Logic
