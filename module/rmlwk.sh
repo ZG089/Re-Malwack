@@ -310,7 +310,9 @@ function fetch() {
 }
 
 function update_status() {
+    log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
+    log_message "Last hosts file update was in: $last_mod"
     if [ -f "$system_hosts" ]; then
         log_message "Grabbing system hosts file entries count"
         blocked_sys=$(grep -m 1 -q '0\.0\.0\.0' "$system_hosts" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
