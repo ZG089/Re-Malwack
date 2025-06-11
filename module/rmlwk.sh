@@ -356,7 +356,7 @@ function update_status() {
         blocked_sys=0
         log_message "First install detected (module directory missing)."
     else
-        blocked_sys=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
+        blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
         # Fallback (in worst cases)
         blocked_sys=${blocked_sys:-0}
     fi
@@ -366,7 +366,7 @@ function update_status() {
         blocked_mod=0
         log_message "Hosts file reset or not initialized."
     else
-        blocked_mod=$(awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
+        blocked_mod=$grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
         # Fallback (in worst cases)
         blocked_mod=${blocked_mod:-0}
     fi
