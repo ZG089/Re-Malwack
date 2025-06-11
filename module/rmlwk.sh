@@ -157,7 +157,22 @@ function log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
 }
 
+# Helper to log duration
+function duration_to_hms() {
+    local T=$1
+    printf "%02d:%02d:%02d" $((T/3600)) $((T%3600/60)) $((T%60))
+}
+
+function log_duration() {
+    local name="$1"
+    local start_time="$2"
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    log_message "[$(date '+%Y-%m-%d %H:%M:%S')] - $name took $(duration_to_hms $duration) (hh:mm:ss)"
+}
+
 function install_hosts() {
+    local start_time=$(date +%s)
     type="$1"
     log_message "Starting to install $type hosts."
 
@@ -213,9 +228,11 @@ function install_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully installed hosts."
+    log_duration "install_hosts ($type)" "$start_time"
 }
 
 function remove_hosts() {
+    local start_time=$(date +%s)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -238,9 +255,11 @@ function remove_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully removed hosts."
+    log_duration "remove_hosts" "$start_time"
 }
 
 function block_content() {
+    local start_time=$(date +%s)
     local block_type=$1
     local status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
@@ -270,6 +289,7 @@ function block_content() {
         cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
+    log_duration "block_content ($block_type, $status)" "$start_time"
 }
 
 function tolower() {
@@ -310,6 +330,7 @@ function fetch() {
 }
 
 function update_status() {
+    local start_time=$(date +%s)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
     log_message "Last hosts file update was in: $last_mod"
@@ -343,6 +364,7 @@ function update_status() {
 
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
+    log_duration "update_status" "$start_time"
 }
 
 
@@ -404,12 +426,17 @@ function disable_cron() {
 # Main Logic
 case "$(tolower "$1")" in
     --pause-adblock|-pa)
+        local start_time=$(date +%s)
         pause_adblock
+        log_duration "pause_adblock" "$start_time"
         ;;
     --resume-adblock|-ra)
+        local start_time=$(date +%s)
         resume_adblock
+        log_duration "resume_adblock" "$start_time"
         ;;
     --reset|-r)
+        local start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -424,9 +451,11 @@ case "$(tolower "$1")" in
         update_status
         log_message "Successfully reverted changes."
 	    echo "- Successfully reverted changes."
+        log_duration "reset" "$start_time"
         ;;
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
+        local start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -458,6 +487,7 @@ case "$(tolower "$1")" in
             fi
         fi
         update_status
+        log_duration "block-$block_type" "$start_time"
         ;;
 
     --whitelist|-w)
@@ -591,6 +621,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
+        local start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -641,6 +672,7 @@ case "$(tolower "$1")" in
         if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
             echo "- Everything is now Good!"
         fi
+        log_duration "update-hosts" "$start_time"
         ;;
 
     
