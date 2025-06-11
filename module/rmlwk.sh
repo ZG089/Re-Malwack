@@ -109,7 +109,7 @@ mkdir -p "$persist_dir/logs"
 . "$persist_dir/config.sh"
 
 
-# New functions for pause and resume ad-block
+# Functions for pause and resume ad-block
 function pause_adblock() {
     if [ -f "$persist_dir/hosts.bak" ]; then
         echo "protection is already paused!"
@@ -312,17 +312,19 @@ function fetch() {
 function update_status() {
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
     if [ -f "$system_hosts" ]; then
+        log_message "Grabbing system hosts file entries count"
         blocked_sys=$(grep -m 1 -q '0\.0\.0\.0' "$system_hosts" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
     else
         blocked_sys=0
     fi
-
+    log_message "System hosts entries count: $blocked_sys"
     if [ -f "$hosts_file" ]; then
+        log_message "Grabbing module hosts file entries count"
         blocked_mod=$(grep -m 1 -q '0\.0\.0\.0' "$hosts_file" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
     else
         blocked_mod=0
     fi
- 
+    log_message "module hosts entries count: $blocked_mod"
         if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
             status_msg="Status: Ad-block is paused ⏸️"
         elif [ "$blocked_mod" -gt 10 ]; then
