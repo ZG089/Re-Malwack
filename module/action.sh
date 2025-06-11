@@ -46,4 +46,4 @@ else
     rm -f $persist_dir/get_pranked    
 fi
 
-sh "$MODDIR/rmlwk.sh" --update-hosts || abort "- Failed to update hosts."
+sh "$MODDIR/rmlwk.sh" --update-hosts --quiet || abort "- Failed to update hosts."
