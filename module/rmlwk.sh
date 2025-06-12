@@ -137,6 +137,7 @@ function pause_adblock() {
     cat $hosts_file > "$persist_dir/hosts.bak"
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
     chmod 644 "$hosts_file"
+    sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
     update_status
     log_message "Protection has been paused."
     echo "- Protection has been paused."
@@ -149,6 +150,7 @@ function resume_adblock() {
         cat "$persist_dir/hosts.bak" > "$hosts_file"
         chmod 644 "$hosts_file"
         rm -f $persist_dir/hosts.bak
+        sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         update_status
         log_message "Protection has been resumed."
         echo "- Protection has been resumed."
@@ -160,7 +162,7 @@ function resume_adblock() {
 
 # New function to check if hosts.bak exists
 function is_adblock_paused() {
-    if [ -f "$persist_dir/hosts.bak" ]; then
+    if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
         return 0
     else
         return 1

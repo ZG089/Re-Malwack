@@ -58,7 +58,7 @@ persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
 mkdir -p "$persistent_dir"
 touch "$config_file"
-for type in block_porn block_gambling block_fakenews block_social daily_update; do
+for type in block_porn block_gambling block_fakenews block_social daily_update adblock_switch; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
 done
 
