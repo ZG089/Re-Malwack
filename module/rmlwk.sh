@@ -379,9 +379,9 @@ function update_status() {
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
         fi
-    elif [ "blocked_sys" = 0 ]; then
+    elif [ "$blocked_sys" -eq 0 ]; then
         status_msg="Status: Reboot required to apply changes 🔃"
-    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
+    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     else
         status_msg="Status: Protection is disabled due to reset ❌"
