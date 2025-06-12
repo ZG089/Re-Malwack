@@ -373,6 +373,8 @@ function update_status() {
     log_message "module hosts entries count: $blocked_mod"
     if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
         status_msg="Status: Ad-block is paused ⏸️"
+    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     elif [ "$blocked_mod" -gt 10 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
@@ -381,8 +383,6 @@ function update_status() {
         fi
     elif [ "$blocked_sys" -eq 0 ]; then
         status_msg="Status: Reboot required to apply changes 🔃"
-    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     else
         status_msg="Status: Protection is disabled due to reset ❌"
     fi
