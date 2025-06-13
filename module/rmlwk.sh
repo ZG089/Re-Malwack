@@ -504,7 +504,7 @@ done
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
 
-# Main Logic
+# ====== Main Logic ======
 case "$(tolower "$1")" in
     --pause-adblock|-pa)
         start_time=$(date +%s)
