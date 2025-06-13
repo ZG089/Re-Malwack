@@ -119,8 +119,33 @@ LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 mkdir -p "$persist_dir/logs"
 # Include error logging
 exec 2>>"$LOGFILE"
-trap 'echo "[$(date "+%Y-%m-%d %H:%M:%S")] - ERROR: Script failed at line $LINENO. Exit code: $?" >> "$LOGFILE"' ERR
-trap 'echo "[$(date "+%Y-%m-%d %H:%M:%S")] - Script exited at line $LINENO with code $?" >> "$LOGFILE"' EXIT
+# Trap runtime errors
+trap '
+err_code=$?
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+echo "[$timestamp] - Runtime ERROR ❌ at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
+' ERR
+
+# Trap final script exit
+trap '
+exit_code=$?
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+
+case $exit_code in
+    0)
+        echo "[$timestamp] - Script ran successfully ✅ - No errors" >> "$LOGFILE"
+        ;;
+    1)   msg="General error ❌" ;;
+    126) msg="Command invoked cannot execute ❌" ;;
+    127) msg="Command not found ❌" ;;
+    130) msg="Terminated by Ctrl+C (SIGINT) ❌" ;;
+    137) msg="Killed (possibly OOM or SIGKILL) ❌" ;;
+    *)   msg="Unknown error ❌ (code $exit_code)" ;;
+esac
+
+[ $exit_code -ne 0 ] && echo "[$timestamp] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
+' EXIT
+
 
 # Read config
 . "$persist_dir/config.sh"
@@ -160,7 +185,7 @@ function resume_adblock() {
     fi
 }
 
-# New function to check if hosts.bak exists
+# New function to check adblock pause
 function is_adblock_paused() {
     if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
         return 0
