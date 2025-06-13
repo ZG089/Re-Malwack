@@ -1,6 +1,32 @@
 #!/system/bin/sh
 
+# Welcome to the main script of the module :)
+# Side notes: Literally everything in this module relies on this script you're checking right now.
+# customize.sh (installer script), action script and even WebUI!
+# Now enjoy reading the code
+# - ZG089, Founder of Re-Malwack.
+
+
+# ====== Variables ======
+quiet_mode=0
+persist_dir="/data/adb/Re-Malwack"
+REALPATH=$(readlink -f "$0")
+MODDIR=$(dirname "$REALPATH")
+hosts_file="$MODDIR/system/etc/hosts"
+system_hosts="/system/etc/hosts"
+tmp_hosts="/data/local/tmp/hosts"
+version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
+LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+mkdir -p "$persist_dir/logs"
+
+
+# ====== Functions ======
+
+# Banner function
 function rmlwk_banner() {
+    # Skip banner if quiet mode is enabled
+    [ "$quiet_mode" -eq 1 ] && return
+
     clear
 
     banner1=$(cat <<'EOF'
@@ -91,25 +117,9 @@ EOF
     printf '\033[0m'
 }
 
-# Variables
-persist_dir="/data/adb/Re-Malwack"
-REALPATH=$(readlink -f "$0")
-MODDIR=$(dirname "$REALPATH")
-hosts_file="$MODDIR/system/etc/hosts"
-system_hosts="/system/etc/hosts"
-tmp_hosts="/data/local/tmp/hosts"
-version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
-# tmp_hosts 0 = original hosts file, to prevent overwrite before cat process complete, ensure coexisting of different block type.
-# tmp_hosts 1-9 = downloaded hosts, to simplify process of install and remove function.
-LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+# Functions for pause and resume ad-block
 
-mkdir -p "$persist_dir/logs"
-
-# Read config
-. "$persist_dir/config.sh"
-
-
-# New functions for pause and resume ad-block
+# 1 - Pause adblock
 function pause_adblock() {
     if [ -f "$persist_dir/hosts.bak" ]; then
         echo "protection is already paused!"
@@ -120,11 +130,13 @@ function pause_adblock() {
     cat $hosts_file > "$persist_dir/hosts.bak"
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
     chmod 644 "$hosts_file"
+    sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
     update_status
     log_message "Protection has been paused."
     echo "- Protection has been paused."
 }
 
+# 2 - Resume adblock
 function resume_adblock() {
     log_message "Resuming protection."
     echo "- Resuming protection"
@@ -132,6 +144,7 @@ function resume_adblock() {
         cat "$persist_dir/hosts.bak" > "$hosts_file"
         chmod 644 "$hosts_file"
         rm -f $persist_dir/hosts.bak
+        sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         update_status
         log_message "Protection has been resumed."
         echo "- Protection has been resumed."
@@ -141,23 +154,42 @@ function resume_adblock() {
     fi
 }
 
-# New function to check if hosts.bak exists
+# function to check adblock pause
 function is_adblock_paused() {
-    if [ -f "$persist_dir/hosts.bak" ]; then
+    if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
         return 0
     else
         return 1
     fi
 }
 
-# Logging func
+# Logging func - Literally helpful for any dev :D
 function log_message() {
-    local message="$1"
+    message="$1"
     [ -f "$LOGFILE" ] || touch "$LOGFILE"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
 }
 
+# Helper to log duration
+function duration_to_hms() {
+    T=$1
+    printf "%02d:%02d:%02d" $((T/3600)) $((T%3600/60)) $((T%60))
+}
+
+# I think this is for logging duration? Who knows ¯\\(ツ)/¯
+function log_duration() {
+    name="$1"
+    start_time="$2"
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
+    log_message "$name took $(duration_to_hms $duration) (hh:mm:ss)"
+}
+
+# Functions to process hosts
+
+# 1 - Install hosts
 function install_hosts() {
+    start_time=$(date +%s)
     type="$1"
     log_message "Starting to install $type hosts."
 
@@ -213,9 +245,12 @@ function install_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully installed hosts."
+    log_duration "install_hosts ($type)" "$start_time"
 }
 
+# 2 - Remove hosts
 function remove_hosts() {
+    start_time=$(date +%s)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -238,11 +273,14 @@ function remove_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message "Successfully removed hosts."
+    log_duration "remove_hosts" "$start_time"
 }
 
+# Function to block conte- bruhhh doesn't that seem to be clear to you already? -_-
 function block_content() {
-    local block_type=$1
-    local status=$2
+    start_time=$(date +%s)
+    block_type=$1
+    status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
 
     if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
@@ -270,12 +308,15 @@ function block_content() {
         cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
+    log_duration "block_content ($block_type, $status)" "$start_time"
 }
 
+# shortcase
 function tolower() {
     echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
+# uhhhhh
 function abort() {
     log_message "Aborting: $1"
     echo -e "- \033[0;31m$1\033[0m"
@@ -283,23 +324,29 @@ function abort() {
     exit 1
 }
 
+# Bruh It's clear already what this function does ._.
 function nuke_if_we_dont_have_internet() {
     ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "No internet connection detected, Aborting..."
 }
 
-# Fallback to busybox wget if curl binary is not available
+# Fetches hosts from sources.txt
+# Don't be concerned from these filenames when checking cached files during hosts downloading/processing
+# tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
+# tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local output_file="$1"
     local url="$2"
 
+    # Curly hairyyy- *ahem*
+    # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
         curl -Ls "$url" > "$output_file" || { 
             log_message "Failed to download $url with curl"
             abort "Failed to download $url"
         }
         echo "" >> "$output_file"
-    else
+    else # Else we gotta just fallback to windows ge- my bad I mean winget. 
         busybox wget --no-check-certificate -qO - "$url" > "$output_file" || { 
             log_message "Failed to download $url with wget"
             abort "Failed to download $url"
@@ -309,40 +356,60 @@ function fetch() {
     log_message "Downloaded $url, stored in $output_file"
 }
 
+# Updates module status, modifying module description in module.prop
 function update_status() {
-    last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
-    if [ -f "$system_hosts" ]; then
-        blocked_sys=$(grep -m 1 -q '0\.0\.0\.0' "$system_hosts" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$system_hosts" 2>/dev/null)
-    else
+    start_time=$(date +%s)
+    log_message "Fetching last hosts file update"
+    last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
+    log_message "Last hosts file update was in: $last_mod"
+
+    # From here we fetch blocked entries in both system hosts file and module hosts file
+    if [ ! -d "/data/adb/modules/Re-Malwack" ]; then # aka: if module wasn't installed previously (fresh install)
         blocked_sys=0
-    fi
-
-    if [ -f "$hosts_file" ]; then
-        blocked_mod=$(grep -m 1 -q '0\.0\.0\.0' "$hosts_file" && awk '/^0\.0\.0\.0[[:space:]]/ {c++} END{print c+0}' "$hosts_file" 2>/dev/null)
+        log_message "First install detected (module directory missing)."
     else
-        blocked_mod=0
+        blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+        # Fallback (in worst cases)
+        blocked_sys=${blocked_sys:-0}
     fi
- 
-        if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
-            status_msg="Status: Ad-block is paused ⏸️"
-        elif [ "$blocked_mod" -gt 10 ]; then
-            if [ "$blocked_mod" -ne "$blocked_sys" ]; then
-                status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
-            else
-                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
-            fi
-        elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-            status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
-        else
-            status_msg="Status: Protection is disabled due to reset ❌"
-        fi
+    log_message "System hosts entries count: $blocked_sys"
+    # Detect reset state or missing hosts file
+    if [ ! -s "$hosts_file" ]; then
+        blocked_mod=0
+        log_message "Hosts file is reset or not initialized."
+    else
+        blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+        # Fallback (in worst cases)
+        blocked_mod=${blocked_mod:-0}
+    fi
+    log_message "module hosts entries count: $blocked_mod"
 
+    # Here goes the part where we actually determine module status
+    if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
+        status_msg="Status: Ad-block is paused ⏸️"
+    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
+    elif [ "$blocked_mod" -gt 10 ]; then
+        if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
+            status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
+        else
+            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
+        fi
+    elif [ "$blocked_sys" -eq 0 ]; then
+        status_msg="Status: Reboot required to apply changes 🔃"
+    else
+        status_msg="Status: Protection is disabled due to reset ❌"
+    fi
+
+    # Update module description
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
+    log_duration "update_status" "$start_time"
 }
 
+# Functions for auto-update (cron jobs)
 
-# Enable cron job for auto-update
+# 1 - Enable cron job
 function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
@@ -365,7 +432,7 @@ function enable_cron() {
     fi
 }
 
-# Function to disable auto-update
+# 2 - Disable cron
 function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
@@ -392,20 +459,65 @@ function disable_cron() {
     fi
 }
 
+# Now enough functions and variables, Let's start the real work 😎
 
-# Skip banner if running from Magisk Manager
-[ -z "$MAGISKTMP" ] && rmlwk_banner
+# Error logging lore
+
+# 1 - Include error logging
+exec 2>>"$LOGFILE"
+# 2 - Trap runtime errors
+trap '
+err_code=$?
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+echo "[$timestamp] - Runtime ERROR ❌ at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
+' ERR
+
+# 3 - Trap final script exit
+trap '
+exit_code=$?
+timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+
+case $exit_code in
+    0)
+        echo "[$timestamp] - Script ran successfully ✅ - No errors" >> "$LOGFILE"
+        ;;
+    1)   msg="General error ❌" ;;
+    126) msg="Command invoked cannot execute ❌" ;;
+    127) msg="Command not found ❌" ;;
+    130) msg="Terminated by Ctrl+C (SIGINT) ❌" ;;
+    137) msg="Killed (possibly OOM or SIGKILL) ❌" ;;
+    *)   msg="Unknown error ❌ (code $exit_code)" ;;
+esac
+
+[ $exit_code -ne 0 ] && echo "[$timestamp] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
+' EXIT
+
+# Check for --quiet argument
+for arg in "$@"; do
+    if [ "$arg" = "--quiet" ]; then
+        quiet_mode=1
+        break
+    fi
+done
+
+# Show banner if not running from Magisk Manager / quiet mode is disabled
+[ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
 
-# Main Logic
+# ====== Main Logic ======
 case "$(tolower "$1")" in
     --pause-adblock|-pa)
+        start_time=$(date +%s)
         pause_adblock
+        log_duration "pause_adblock" "$start_time"
         ;;
     --resume-adblock|-ra)
+        start_time=$(date +%s)
         resume_adblock
+        log_duration "resume_adblock" "$start_time"
         ;;
     --reset|-r)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -420,9 +532,11 @@ case "$(tolower "$1")" in
         update_status
         log_message "Successfully reverted changes."
 	    echo "- Successfully reverted changes."
+        log_duration "reset" "$start_time"
         ;;
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -454,6 +568,7 @@ case "$(tolower "$1")" in
             fi
         fi
         update_status
+        log_duration "block-$block_type" "$start_time"
         ;;
 
     --whitelist|-w)
@@ -587,6 +702,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
+        start_time=$(date +%s)
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
@@ -622,7 +738,6 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
-
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
@@ -637,12 +752,13 @@ case "$(tolower "$1")" in
         if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
             echo "- Everything is now Good!"
         fi
+        log_duration "update-hosts" "$start_time"
         ;;
 
     
     --help|-h|*)
         echo ""
-        echo "Usage: rmlwk [--argument]"
+        echo "Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
@@ -659,3 +775,4 @@ case "$(tolower "$1")" in
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
 esac
+
