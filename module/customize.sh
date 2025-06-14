@@ -23,7 +23,31 @@ ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
+# Detect Root Manager
+root_manager=""
+root_version=""
+if command -v magisk >/dev/null 2>&1; then
+    root_manager="Magisk"
+    root_version="$(magisk -v 2>/dev/null)"
+elif command -v ksud >/dev/null 2>&1; then
+    root_manager="KernelSU"
+    root_version="$(ksud -V)"
+elif command -v ap >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/ap" ]; then
+    root_manager="APatch"
+    root_version="$(/data/adb/ap/bin/ap --version 2>/dev/null | head -n 1)"
+else
+    root_manager="Unknown"
+    root_version=""
+fi
+# Output
+if [ -n "$root_version" ]; then
+    ui_print "- 🔓 Root Manager: $root_manager ($root_version)"
+else
+    ui_print "- 🔓 Root Manager: $root_manager"
+fi
+sleep 0.2
 ui_print "- ⌛ Current Time: $(date "+%d, %b - %H:%M %Z")"
+sleep 0.2
 ui_print ""
 sleep 0.2
 ui_print "                                    /"
