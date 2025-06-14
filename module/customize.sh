@@ -31,7 +31,7 @@ if command -v magisk >/dev/null 2>&1; then
     root_version="$(magisk -v 2>/dev/null)"
 elif command -v ksud >/dev/null 2>&1; then
     root_manager="KernelSU"
-    root_version="$(ksud -V)"
+    root_version="$(ksud -V 2>/dev/null | awk '{print $2}')"
 elif command -v ap >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/ap" ]; then
     root_manager="APatch"
     root_version="$(/data/adb/ap/bin/ap --version 2>/dev/null | head -n 1)"
