@@ -161,7 +161,12 @@ async function performAction(promptMessage, commandOption, errorPrompt, errorMes
     try {
         showPrompt(promptMessage, true, 50000);
         await new Promise(resolve => setTimeout(resolve, 300));
-        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${commandOption}`);
+        // Include --quiet to command
+        let cmdOption = commandOption;
+        if (!cmdOption.includes('--quiet')) {
+            cmdOption += ' --quiet';
+        }
+        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${cmdOption}`);
         const lines = output.split("\n");
         lines.forEach(line => {
             showPrompt(line, true);
