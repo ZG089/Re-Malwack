@@ -343,13 +343,13 @@ function fetch() {
     if command -v curl >/dev/null 2>&1; then
         curl -Ls "$url" > "$output_file" || { 
             log_message "Failed to download $url with curl"
-            abort "Failed to download $url"
+            echo "WARNING: Failed to download hosts from $url"
         }
         echo "" >> "$output_file"
     else # Else we gotta just fallback to windows ge- my bad I mean winget. 
         busybox wget --no-check-certificate -qO - "$url" > "$output_file" || { 
             log_message "Failed to download $url with wget"
-            abort "Failed to download $url"
+            echo "WARNING: Failed to download hosts from $url"
         }
         echo "" >> "$output_file"
     fi
