@@ -423,12 +423,16 @@ function enable_cron() {
         mkdir -p "$JOB_DIR"
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
-        busybox crontab "$JOB_FILE" -c "$JOB_DIR"
-        log_message "Cron job added."
-        crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
-        sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
-        log_message "Auto-update has been enabled."
-        echo "- Auto-update enabled."
+        if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
+            echo "Failed to enable auto update: cron-side error."
+            log_message "Failed to enable auto update: cron-side error."
+        else    
+            log_message "Cron job added."
+            crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
+            log_message "Auto-update has been enabled."
+            echo "- Auto-update enabled."
+        fi
     fi
 }
 
@@ -438,6 +442,8 @@ function disable_cron() {
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+    log_message "Disabling auto update has been initiated."
+    log_message "Killing cron processes"
     # Kill cron lore
     busybox pkill crond > /dev/null 2>&1
     busybox pkill busybox crond > /dev/null 2>&1
@@ -522,7 +528,7 @@ case "$(tolower "$1")" in
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
         fi
-        log_message "Reverting the changes."
+        log_message "Resetting hosts command triggered, resetting..."
         echo "- Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         chmod 644 "$hosts_file"
@@ -554,14 +560,15 @@ case "$(tolower "$1")" in
             if [ "$block_toggle" = 0 ]; then
                 echo "- $block_type block is already disabled"
             else
-                echo "- Removing block entries for ${block_type} sites."
+                log_message "Disabling ${block_type} has been initiated." && echo "- Removing block entries for ${block_type} sites."
                 block_content "$block_type" 0
                 log_message "Unblocked ${block_type} sites successfully." && echo "- Unblocked ${block_type} sites successfully."
             fi
         else
             if [ "$block_toggle" = 1 ]; then
-                echo "- $block_type block is already enabled"
+                echo "- ${block_type} block is already enabled"
             else
+                log_message "Enabling/Adding block entries for $block_type has been initiated."
                 echo "- Adding block entries for ${block_type} sites."
                 block_content "$block_type" 1
                 log_message "Blocked ${block_type} sites successfully." && echo "- Blocked ${block_type} sites successfully."
@@ -679,7 +686,7 @@ case "$(tolower "$1")" in
             log_message "Removed $domain from sources."
             echo "- Removed $domain from sources."
         else
-            log_message "Failed to remove $domain from sources."
+            log_message "Failed to remove $domain from sources, maybe wasn't even found?."
             echo "- $domain was not even found in sources."
         fi
     fi
@@ -706,7 +713,7 @@ case "$(tolower "$1")" in
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
-        fi    
+        fi
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
             log_message "Updating protections..."
