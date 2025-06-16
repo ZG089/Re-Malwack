@@ -84,4 +84,3 @@ if [ "$daily_update" = "1" ]; then
         log_message "Crond is already running."
     fi
 fi
-log_message "=========== [Main Script Logs] ==========="
