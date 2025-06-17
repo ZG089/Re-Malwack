@@ -67,7 +67,7 @@
 https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 ```
 > [!NOTE]
-> Hosts source used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
+> Default hosts sources used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
 
 
 ## Download Module
