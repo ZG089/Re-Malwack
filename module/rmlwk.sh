@@ -117,6 +117,17 @@ EOF
     printf '\033[0m'
 }
 
+# Function to count blocked entries and store them
+refresh_blocked_counts() {
+    mkdir -p "$persist_dir/counts"
+
+    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+
+    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+}
+
 # Functions for pause and resume ad-block
 
 # 1 - Pause adblock
@@ -131,6 +142,7 @@ function pause_adblock() {
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
     chmod 644 "$hosts_file"
     sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
+    refresh_blocked_counts
     update_status
     log_message "Protection has been paused."
     echo "- Protection has been paused."
@@ -145,6 +157,7 @@ function resume_adblock() {
         chmod 644 "$hosts_file"
         rm -f $persist_dir/hosts.bak
         sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
+        refresh_blocked_counts
         update_status
         log_message "Protection has been resumed."
         echo "- Protection has been resumed."
@@ -368,9 +381,7 @@ function update_status() {
         blocked_sys=0
         log_message "First install detected (module directory missing)."
     else
-        blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-        # Fallback (in worst cases)
-        blocked_sys=${blocked_sys:-0}
+        blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
     fi
     log_message "System hosts entries count: $blocked_sys"
     # Detect reset state or missing hosts file
@@ -378,9 +389,7 @@ function update_status() {
         blocked_mod=0
         log_message "Hosts file is reset or not initialized."
     else
-        blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-        # Fallback (in worst cases)
-        blocked_mod=${blocked_mod:-0}
+        blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
     fi
     log_message "module hosts entries count: $blocked_mod"
 
@@ -535,6 +544,7 @@ case "$(tolower "$1")" in
 
         # Reset blocklist values to 0
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
+        refresh_blocked_counts
         update_status
         log_message "Successfully reverted changes."
 	    echo "- Successfully reverted changes."
@@ -574,6 +584,7 @@ case "$(tolower "$1")" in
                 log_message "Blocked ${block_type} sites successfully." && echo "- Blocked ${block_type} sites successfully."
             fi
         fi
+        refresh_blocked_counts
         update_status
         log_duration "block-$block_type" "$start_time"
         ;;
@@ -609,6 +620,8 @@ case "$(tolower "$1")" in
                 fi
             fi
         fi
+        refresh_blocked_counts
+        update_status
         ;;
 
     --blacklist|-b)
@@ -646,6 +659,8 @@ case "$(tolower "$1")" in
                 fi
             fi
         fi
+        refresh_blocked_counts
+        update_status
         ;;
 
 	--custom-source|-c)
@@ -754,6 +769,7 @@ case "$(tolower "$1")" in
         [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Updating gambling sites blocklist..."
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
+        refresh_blocked_counts
         update_status
         log_message "Successfully updated hosts."
         if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
@@ -782,4 +798,3 @@ case "$(tolower "$1")" in
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
 esac
-
