@@ -495,6 +495,9 @@ function disable_cron() {
 
 # Now enough functions and variables, Let's start the real work 😎
 
+# Sourcing config file
+. "$persist_dir/config.sh"
+
 # Error logging lore
 
 # 1 - Include error logging
