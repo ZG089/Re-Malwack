@@ -27,14 +27,14 @@ sleep 0.2
 root_manager=""
 root_version=""
 if command -v magisk >/dev/null 2>&1; then
-    root_manager="Magisk"
+    root_manager="Magisk/Variants"
     root_version="$(magisk -v 2>/dev/null)"
 elif command -v ksud >/dev/null 2>&1; then
-    root_manager="KernelSU"
+    root_manager="KernelSU/Variants"
     root_version="$(ksud -V 2>/dev/null | awk '{print $2}')"
-elif command -v ap >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/ap" ]; then
+elif command -v apd >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/apd" ]; then
     root_manager="APatch"
-    root_version="$(/data/adb/ap/bin/ap --version 2>/dev/null | head -n 1)"
+    root_version="$(/data/adb/ap/bin/apd --version 2>/dev/null | head -n 1)"
 else
     root_manager="Unknown"
     root_version=""
