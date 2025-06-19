@@ -93,6 +93,7 @@ else
     rm -f $MODPATH/common/sources.txt
     # Replace previously used compression hosts source if found
     sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|' $persistent_dir/sources.txt
+    sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/1hosts.txt|' $persistent_dir/sources.txt
 fi
 
 # set permissions
