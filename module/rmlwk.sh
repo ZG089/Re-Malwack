@@ -321,8 +321,8 @@ function block_content() {
         sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
     else
         # Download hosts only if no cached host found or during update
-        nuke_if_we_dont_have_internet
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
+            nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
             echo "- Downloading hosts for $block_type."
             log_message "Downloading hosts for $block_type."
