@@ -204,12 +204,12 @@ function log_duration() {
 function install_hosts() {
     start_time=$(date +%s)
     type="$1"
-    log_message "Starting to install $type hosts."
+    log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
     mkdir -p "$persist_dir/cache/whitelist"
     fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
     fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
-
+    log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
     # Process blacklist and merge into previous hosts
