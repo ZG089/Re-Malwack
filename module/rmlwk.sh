@@ -205,6 +205,10 @@ function install_hosts() {
     start_time=$(date +%s)
     type="$1"
     log_message "Starting to install $type hosts."
+    # Update hosts for global whitelist
+    mkdir -p "$persist_dir/cache/whitelist"
+    fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
+    fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
 
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -295,8 +299,23 @@ function block_content() {
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
-
-    if [ "$status" = 0 ] && [ -f "${cache_hosts}1" ]; then
+    if [ "$status" = 0 ]; then
+        if [ ! -f "${cache_hosts}1" ]; then
+            echo "- Warning: Cached blocklist for '$block_type' not found!"
+            echo "- Re-downloading the blocklist to proceed with disabling."
+            echo "- Please do not modify or delete /data/adb/Re-Malwack directory files."
+            echo " - If you think a cleaner app accidentally removed one of the files, Please add the directory to the exceptions list."
+            log_message "Missing cached blocklist for $block_type — auto-redownloading."
+            mkdir -p "$persist_dir/cache/$block_type"
+            fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
+            if [ "$block_type" = "porn" ]; then
+                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
+                fetch "${cache_hosts}3" https://www.someonewhocares.org/hosts/hosts &
+                wait
+            fi
+        fi
+        # Applying updated hosts
+        install_hosts "$block_type"
         remove_hosts
         # Update config
         sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
@@ -749,10 +768,6 @@ case "$(tolower "$1")" in
         done
         wait
 
-        # Update hosts for global whitelist
-        mkdir -p "$persist_dir/cache/whitelist"
-        fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
-        fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
 
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
