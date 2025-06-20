@@ -117,6 +117,13 @@ EOF
     printf '\033[0m'
 }
 
+# Function to check hosts file reset state
+is_default_hosts() {
+    [ ! -s "$1" ] && return 0
+    grep -v -E '^(127\.0\.0\.1|::1)[[:space:]]+localhost$' "$1" | grep -q '^0\.0\.0\.0' && return 1
+    return 0
+}
+
 # Function to count blocked entries and store them
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
@@ -395,22 +402,28 @@ function update_status() {
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
     log_message "Last hosts file update was in: $last_mod"
 
-    # From here we fetch blocked entries in both system hosts file and module hosts file
-    if [ ! -d "/data/adb/modules/Re-Malwack" ]; then # aka: if module wasn't installed previously (fresh install)
+    # System hosts count
+    if [ ! -d "/data/adb/modules/Re-Malwack" ]; then
         blocked_sys=0
         log_message "First install detected (module directory missing)."
+    elif is_default_hosts "$system_hosts"; then
+        blocked_sys=0
+        log_message "System hosts file has default entries only."
     else
         blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
+        blocked_sys=${blocked_sys:-0}
     fi
     log_message "System hosts entries count: $blocked_sys"
-    # Detect reset state or missing hosts file
-    if [ ! -s "$hosts_file" ]; then
+
+    # Module hosts count
+    if is_default_hosts "$hosts_file"; then
         blocked_mod=0
-        log_message "Hosts file is reset or not initialized."
+        log_message "Module hosts file seems to be reset."
     else
         blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
+        blocked_mod=${blocked_mod:-0}
     fi
-    log_message "module hosts entries count: $blocked_mod"
+    log_message "Module hosts entries count: $blocked_mod"
 
     # Here goes the part where we actually determine module status
     if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
