@@ -1,13 +1,17 @@
 #!/bin/sh
+# This is the service script of Re-Malwack
+# It is executed during device boot
 
+# =========== Variables ===========
 MODDIR="${0%/*}"
 hosts_file="/system/etc/hosts"
-string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
 persist_dir="/data/adb/Re-Malwack"
 system_hosts="/system/etc/hosts"
 source $persist_dir/config.sh
 mkdir -p "$persist_dir/logs"
 rm -rf "$persist_dir/logs/"*
+
+# =========== Functions ===========
 
 # Logging function
 function log_message() {
@@ -26,37 +30,30 @@ function is_adblock_paused() {
     fi
 }
 
+# Main script logic 
+
 log_message "=========== [service.sh Logs] ==========="
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
-    [ -L "/data/adb/ksud/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/ksud/bin/rmlwk"
+    [ -L "/data/adb/ksud/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/ksud/bin/rmlwk" && log_message "symlink created at /data/adb/ksud/bin/rmlwk"
 elif [ "$APATCH" = "true" ]; then
-    [ -L "/data/adb/apd/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/apd/bin/rmlwk"
+    [ -L "/data/adb/apd/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/apd/bin/rmlwk" && log_message "symlink created at /data/adb/apd/bin/rmlwk"
 else
     [ -w /sbin ] && magisktmp=/sbin
     [ -w /debug_ramdisk ] && magisktmp=/debug_ramdisk
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
 
-start_time=$(date +%s)
-log_message "Fetching last hosts file update"
-last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
-
-# From here we fetch blocked entries in both system hosts file and module hosts file
+# We fetch blocked entries in both system hosts file and module hosts file
 blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-# Fallback (in worst cases)
+# Fallback // Always returns a number
 blocked_sys=${blocked_sys:-0}
 log_message "System hosts entries count: $blocked_sys"
-# Detect reset state or missing hosts file
-if [ ! -s "$hosts_file" ]; then
-    blocked_mod=0
-    log_message "Hosts file is reset or not initialized."
-else
-    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-    # Fallback (in worst cases)
-    blocked_mod=${blocked_mod:-0}
-fi
+
+blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+# Fallback // Always returns a number
+blocked_mod=${blocked_mod:-0}
 log_message "module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
@@ -73,6 +70,10 @@ elif [ "$blocked_sys" -eq 0 ]; then
 else
     status_msg="Status: Protection is disabled due to reset ❌"
 fi
+
+# Apply module status into module description
+sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
+log_message "$status_msg"
 
 # Check if auto-update is enabled
 if [ "$daily_update" = "1" ]; then
