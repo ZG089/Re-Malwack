@@ -1,9 +1,10 @@
 #!/bin/sh
 
 MODDIR="${0%/*}"
-HOSTS_FILE="/system/etc/hosts"
+hosts_file="/system/etc/hosts"
 string="description=Status: Protection is enabled ✅ | Last updated: $(date)"
 persist_dir="/data/adb/Re-Malwack"
+system_hosts="/system/etc/hosts"
 source $persist_dir/config.sh
 mkdir -p "$persist_dir/logs"
 rm -rf "$persist_dir/logs/"*
