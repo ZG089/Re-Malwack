@@ -13,6 +13,13 @@ rm -rf "$persist_dir/logs/"*
 
 # =========== Functions ===========
 
+# Function to check hosts file reset state
+is_default_hosts() {
+    [ ! -s "$1" ] && return 0
+    grep -v -E '^(127\.0\.0\.1|::1)[[:space:]]+localhost$' "$1" | grep -q '^0\.0\.0\.0' && return 1
+    return 0
+}
+
 # Logging function
 function log_message() {
     local message="$1"
@@ -30,9 +37,7 @@ function is_adblock_paused() {
     fi
 }
 
-# Main script logic 
-
-log_message "=========== [service.sh Logs] ==========="
+# =========== Main script logic ===========
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
@@ -45,16 +50,25 @@ else
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
 
-# We fetch blocked entries in both system hosts file and module hosts file
-blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-# Fallback // Always returns a number
-blocked_sys=${blocked_sys:-0}
+# System hosts count
+if is_default_hosts "$system_hosts"; then
+    blocked_sys=0
+    log_message "System hosts file has default entries only.."
+else
+    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    blocked_sys=${blocked_sys:-0}
+fi
 log_message "System hosts entries count: $blocked_sys"
 
-blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-# Fallback // Always returns a number
-blocked_mod=${blocked_mod:-0}
-log_message "module hosts entries count: $blocked_mod"
+# Module hosts count
+if is_default_hosts "$hosts_file"; then
+    blocked_mod=0
+    log_message "Module hosts file seems to be reset."
+else
+    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    blocked_mod=${blocked_mod:-0}
+fi
+log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
 if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
