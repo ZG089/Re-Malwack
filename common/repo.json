@@ -10,11 +10,11 @@
         "APatch",
         "KernelSU",
         "Magisk",
-	"KernelSU-Next",
-	"Built Different",
-	"Protection",
-	"WebUI",
-	"Privacy"
+		"KernelSU-Next",
+		"Built Different",
+		"Protection",
+		"WebUI",
+		"Privacy"
     ],
 	"require": [],
 	"screenshots": [],
