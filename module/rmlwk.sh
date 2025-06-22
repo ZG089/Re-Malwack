@@ -679,6 +679,8 @@ case "$(tolower "$1")" in
                 if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
                     echo "- $domain is already blacklisted."
                 else
+                    # Ensure newline at end before appending
+                    [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
                     update_status
                     log_message "Blacklisted $domain."
