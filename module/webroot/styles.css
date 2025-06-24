@@ -558,8 +558,8 @@ li:last-child {
     align-items: center;
     justify-content: center;
     position: fixed;
-    bottom: calc(50px + var(--bottom-inset));
-    right: 50px;
+    bottom: calc(5% + var(--bottom-inset));
+    right: 5%;
     height: 60px;
     width: 60px;
     border: none;
