@@ -119,8 +119,8 @@ EOF
 
 # Function to check hosts file reset state
 is_default_hosts() {
-    [ ! -s "$1" ] && return 0
-    grep -v -E '^(127\.0\.0\.1|::1)[[:space:]]+localhost$' "$1" | grep -q '^0\.0\.0\.0' && return 1
+    grep -qvE '^#|^$' "$1" || return 1
+    grep -qvE '^127\.0\.0\.1 localhost$|^::1 localhost$' "$1" && return 1
     return 0
 }
 
