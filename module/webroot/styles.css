@@ -262,15 +262,13 @@ body.input-focused {
 }
 
 .link-icon {
-    display:inline-block;
+    display: inline-block;
     font-style: normal;
     padding: 3px 10px;
     color: #fff;
     border-radius: 8px;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
-    position: relative;
-    overflow: hidden;
     user-select: none;
 }
 
@@ -557,7 +555,6 @@ li:last-child {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
     bottom: calc(5% + var(--bottom-inset));
     right: 5%;
     height: 60px;
@@ -609,6 +606,10 @@ li:last-child {
 .ripple-element {
     position: relative;
     overflow: hidden;
+}
+
+.ripple-element.fixed-ripple {
+    position: fixed;
 }
 
 .ripple {

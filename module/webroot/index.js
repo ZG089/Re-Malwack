@@ -27,9 +27,6 @@ const blockTypes = [
     { id: 'social', toggle: 'block-social-toggle', name: 'social media sites', flag: '--block-social' }
 ];
 
-// Ripple effect configuration
-const rippleClasses = ['.ripple-element', '.link-icon'];
-
 let modeActive = false;
 
 // Function to handle about menu
@@ -393,73 +390,71 @@ links.forEach(link => {
  * @return {void}
  */
 function applyRippleEffect() {
-    rippleClasses.forEach(selector => {
-        document.querySelectorAll(selector).forEach(element => {
-            if (element.dataset.rippleListener !== "true") {
-                element.addEventListener("pointerdown", async (event) => {
-                    // Pointer up event
-                    const handlePointerUp = () => {
-                        ripple.classList.add("end");
-                        setTimeout(() => {
-                            ripple.classList.remove("end");
-                            ripple.remove();
-                        }, duration * 1000);
-                        element.removeEventListener("pointerup", handlePointerUp);
-                        element.removeEventListener("pointercancel", handlePointerUp);
-                    };
-                    element.addEventListener("pointerup", () => setTimeout(handlePointerUp, 80));
-                    element.addEventListener("pointercancel", () => setTimeout(handlePointerUp, 80));
+    document.querySelectorAll('.ripple-element, .reboot').forEach(element => {
+        if (element.dataset.rippleListener !== "true") {
+            element.addEventListener("pointerdown", async (event) => {
+                // Pointer up event
+                const handlePointerUp = () => {
+                    ripple.classList.add("end");
+                    setTimeout(() => {
+                        ripple.classList.remove("end");
+                        ripple.remove();
+                    }, duration * 1000);
+                    element.removeEventListener("pointerup", handlePointerUp);
+                    element.removeEventListener("pointercancel", handlePointerUp);
+                };
+                element.addEventListener("pointerup", () => setTimeout(handlePointerUp, 80));
+                element.addEventListener("pointercancel", () => setTimeout(handlePointerUp, 80));
 
-                    const ripple = document.createElement("span");
-                    ripple.classList.add("ripple");
+                const ripple = document.createElement("span");
+                ripple.classList.add("ripple");
 
-                    // Calculate ripple size and position
-                    const rect = element.getBoundingClientRect();
-                    const width = rect.width;
-                    const size = Math.max(rect.width, rect.height);
-                    const x = event.clientX - rect.left - size / 2;
-                    const y = event.clientY - rect.top - size / 2;
+                // Calculate ripple size and position
+                const rect = element.getBoundingClientRect();
+                const width = rect.width;
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
 
-                    // Determine animation duration
-                    let duration = 0.2 + (width / 800) * 0.4;
-                    duration = Math.min(0.8, Math.max(0.2, duration));
+                // Determine animation duration
+                let duration = 0.2 + (width / 800) * 0.4;
+                duration = Math.min(0.8, Math.max(0.2, duration));
 
-                    // Set ripple styles
-                    ripple.style.width = ripple.style.height = `${size}px`;
-                    ripple.style.left = `${x}px`;
-                    ripple.style.top = `${y}px`;
-                    ripple.style.animationDuration = `${duration}s`;
-                    ripple.style.transition = `opacity ${duration}s ease`;
+                // Set ripple styles
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                ripple.style.animationDuration = `${duration}s`;
+                ripple.style.transition = `opacity ${duration}s ease`;
 
-                    // Get effective background color (traverse up if transparent)
-                    const getEffectiveBackgroundColor = (el) => {
-                        while (el && el !== document.documentElement) {
-                            const bg = window.getComputedStyle(el).backgroundColor;
-                            if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
-                                return bg;
-                            }
-                            el = el.parentElement;
+                // Get effective background color (traverse up if transparent)
+                const getEffectiveBackgroundColor = (el) => {
+                    while (el && el !== document.documentElement) {
+                        const bg = window.getComputedStyle(el).backgroundColor;
+                        if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
+                            return bg;
                         }
-                        return "rgba(255, 255, 255, 1)";
-                    };
+                        el = el.parentElement;
+                    }
+                    return "rgba(255, 255, 255, 1)";
+                };
 
-                    const bgColor = getEffectiveBackgroundColor(element);
-                    const isDarkColor = (color) => {
-                        const rgb = color.match(/\d+/g);
-                        if (!rgb) return false;
-                        const [r, g, b] = rgb.map(Number);
-                        return (r * 0.299 + g * 0.587 + b * 0.114) < 96; // Luma formula
-                    };
-                    ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.2)";
+                const bgColor = getEffectiveBackgroundColor(element);
+                const isDarkColor = (color) => {
+                    const rgb = color.match(/\d+/g);
+                    if (!rgb) return false;
+                    const [r, g, b] = rgb.map(Number);
+                    return (r * 0.299 + g * 0.587 + b * 0.114) < 96; // Luma formula
+                };
+                ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.2)";
 
-                    // Append ripple animation
-                    await new Promise(resolve => setTimeout(resolve, 80));
-                    if (isScrolling || modeActive) return;
-                    element.appendChild(ripple);
-                });
-                element.dataset.rippleListener = "true";
-            }
-        });
+                // Append ripple animation
+                await new Promise(resolve => setTimeout(resolve, 80));
+                if (isScrolling || modeActive) return;
+                element.appendChild(ripple);
+            });
+            element.dataset.rippleListener = "true";
+        }
     });
 }
 
