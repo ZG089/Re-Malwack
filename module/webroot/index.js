@@ -1,3 +1,5 @@
+import { spawn } from './assets/kernelsu.js';
+
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
 
@@ -6,6 +8,8 @@ const filePaths = {
     whitelist: 'whitelist.txt',
     "custom-source": 'sources.txt',
 };
+
+let isShellRunning = false;
 
 // Link redirect
 const links = [
@@ -156,31 +160,52 @@ async function checkBlockStatus() {
     }
 }
 
-// Function to handle peform script and output
-async function performAction(promptMessage, commandOption, errorPrompt, errorMessage) {
-    try {
-        showPrompt(promptMessage, true, 50000);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        // Include --quiet to command
-        let cmdOption = commandOption;
-        if (!cmdOption.includes('--quiet')) {
-            cmdOption += ' --quiet';
-        }
-        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${cmdOption}`);
-        const lines = output.split("\n");
-        lines.forEach(line => {
-            showPrompt(line, true);
-        });
-        await getStatus();
-    } catch (error) {
-        console.error(errorMessage, error);
-        showPrompt(errorPrompt, false);
+/**
+ * Run rmlwk command and show stdout in terminal
+ * @param {string} commandOption - rmlwk --option
+ * @returns {void}
+ */
+function performAction(commandOption) {
+    const terminal = document.querySelector('.terminal');
+    const terminalContent = document.getElementById('terminal-output-text');
+    const backBtn = document.getElementById('aciton-back-btn');
+    const closeBtn = document.querySelector('.close-terminal');
+
+    terminal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    if (isShellRunning) return;
+
+    const closeTerminal = () => {
+        document.body.style.overflow = 'auto';
+        terminal.classList.remove('show');
+        terminalContent.innerHTML = "";
+        closeBtn.classList.remove('show');
+        backBtn.removeEventListener('click', () => closeTerminal());
+        closeBtn.removeEventListener('click', () => closeTerminal());
     }
+
+    backBtn.addEventListener('click', () => closeTerminal());
+    closeBtn.addEventListener('click', () => closeTerminal());
+
+    isShellRunning = true;
+    const output = spawn('sh', ['/data/adb/modules/Re-Malwack/rmlwk.sh', `${commandOption}`], { env: { MAGISKTMP: 'true' }});
+    output.stdout.on('data', (data) => {
+        const newline = document.createElement('p');
+        newline.className = 'output-line';
+        newline.textContent = data;
+        terminalContent.appendChild(newline);
+    });
+    output.on('exit', (code) => {
+        isShellRunning = false;
+        closeBtn.classList.add('show');
+        getStatus();
+        checkBlockStatus();
+    });
 }
 
 // Function to update hosts file
-async function updateHostsFile() {
-    await performAction("- Downloading updates, Please wait...", "--update-hosts", "- Failed to update hosts", "Failed to update hosts:");
+function updateHostsFile() {
+    performAction("--update-hosts");
 }
 
 // Function to reset hosts
@@ -207,9 +232,9 @@ async function resetHostsFile() {
         resetOverlay.addEventListener('click', (e) => {
             if (e.target === resetOverlay) closeResetOverlay();
         })
-        resetButton.addEventListener('click', async () => {
+        resetButton.addEventListener('click', () => {
             closeResetOverlay();
-            await performAction("- Resetting hosts file...", "--reset", "- Failed to reset hosts", "Failed to reset hosts:");
+            performAction("--reset");
         })
         setupListener = false;
     }
@@ -244,28 +269,12 @@ async function exportLogs() {
 }
 
 // Function to handle blocking/unblocking different site categories
-async function handleBlock(type) {
+function handleBlock(type) {
     const toggle = document.getElementById(type.toggle);
     const isRemoving = toggle.checked;
-    const prompt_message = isRemoving ? "- Removing entries..." : `- Applying block for ${type.name}...`;
     const action = isRemoving ? `${type.flag} 0` : type.flag;
-    const errorPrompt = `- Failed to apply block for ${type.name}`;
-    const errorMessage = `Failed to apply block for ${type.name}:`;
 
-    try {
-        showPrompt(prompt_message, true, 50000);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        const output = await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh ${action}`);
-        const lines = output.split("\n");
-        lines.forEach(line => {
-            showPrompt(line, true);
-        });
-        await getStatus();
-        await checkBlockStatus();
-    } catch (error) {
-        console.error(errorMessage, error);
-        showPrompt(errorPrompt, false);
-    }
+    performAction(action);
 }
 
 // Function to show prompt
@@ -458,7 +467,7 @@ function applyRippleEffect() {
 async function loadFile(fileType) {
     try {
         const response = await fetch('link/persistent_dir/' + filePaths[fileType]);
-        if (!response.ok) throw new Error(`File ${filePaths[fileType]} not found`);
+        if (!response.ok) console.log(`File ${filePaths[fileType]} not found`);
         const content = await response.text();
         const lines = content
             .split("\n")
