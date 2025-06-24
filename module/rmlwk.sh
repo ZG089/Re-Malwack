@@ -140,7 +140,7 @@ refresh_blocked_counts() {
 # 1 - Pause adblock
 function pause_adblock() {
     # Check if protection is already paused
-    if [ -f "$persist_dir/hosts.bak" ]; then
+    if is_adblock_paused; then
         echo "protection is already paused!"
         exit
     fi
@@ -432,12 +432,12 @@ function update_status() {
     log_message "Module hosts entries count: $blocked_mod"
 
     # Here goes the part where we actually determine module status
-    if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
-        status_msg="Status: Ad-block is paused ⏸️"
-    elif is_default_hosts "$hosts_file"; then
-        status_msg="Status: Protection is disabled due to reset ❌"
-    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
+    if is_adblock_paused; then
+        status_msg="Status: Protection is paused ⏸️"
+    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
+    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install)"
     elif [ "$blocked_mod" -gt 10 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
@@ -446,8 +446,6 @@ function update_status() {
         fi
     elif is_default_hosts "$system_hosts" && is_default_hosts "$hosts_file"; then
         status_msg="Status: Protection is disabled due to reset ❌"
-    else
-        status_msg="Status: Protection is disabled ❌"
     fi
 
     # Update module description
