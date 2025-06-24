@@ -428,6 +428,8 @@ function update_status() {
     # Here goes the part where we actually determine module status
     if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
         status_msg="Status: Ad-block is paused ⏸️"
+    elif is_default_hosts "$hosts_file"; then
+        status_msg="Status: Protection is disabled due to reset ❌"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ "$blocked_mod" -gt 0 ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     elif [ "$blocked_mod" -gt 10 ]; then
@@ -436,10 +438,10 @@ function update_status() {
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
         fi
-    elif [ "$blocked_sys" -eq 0 ]; then
-        status_msg="Status: Reboot required to apply changes 🔃"
-    else
+    elif is_default_hosts "$system_hosts" && is_default_hosts "$hosts_file"; then
         status_msg="Status: Protection is disabled due to reset ❌"
+    else
+        status_msg="Status: Protection is disabled ❌"
     fi
 
     # Update module description
