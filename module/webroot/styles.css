@@ -109,7 +109,7 @@ body.input-focused {
     margin-left: auto;
 
     svg {
-        fill: var(--text-primary)
+        fill: var(--btn-primary-text);
     }
 }
 
