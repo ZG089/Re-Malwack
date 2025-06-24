@@ -139,10 +139,16 @@ refresh_blocked_counts() {
 
 # 1 - Pause adblock
 function pause_adblock() {
+    # Check if protection is already paused
     if [ -f "$persist_dir/hosts.bak" ]; then
         echo "protection is already paused!"
         exit
-    fi     
+    fi
+    # Check if hosts file is reset
+    if is_default_hosts "$hosts_file"; then
+        echo "You cannot pause Ad-block while hosts is reset"
+        exit
+    fi    
     log_message "Pausing Protections"
     echo "- Pausing Protections"
     cat $hosts_file > "$persist_dir/hosts.bak"
