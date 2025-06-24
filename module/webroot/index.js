@@ -28,7 +28,7 @@ const blockTypes = [
 ];
 
 // Ripple effect configuration
-const rippleClasses = ['.ripple-container', '.link-icon'];
+const rippleClasses = ['.ripple-element', '.link-icon'];
 
 let modeActive = false;
 
@@ -479,7 +479,7 @@ async function loadFile(fileType) {
             const listItem = document.createElement("li");
             listItem.innerHTML = `
                 <span>${line}</span>
-                <button class="delete-btn ripple-container">
+                <button class="delete-btn ripple-element">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm72-144h72v-336h-72v336Zm120 0h72v-336h-72v336Z"/></svg>
                 </button>
             `;
