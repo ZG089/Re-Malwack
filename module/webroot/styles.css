@@ -15,7 +15,7 @@
     --text-secondary: #757575;
 
     /* Border colors */
-    --border-color: #ccc;
+    --border-color: #ddd;
 
     /* Button colors */
     --btn-primary: #D51200;
@@ -68,26 +68,35 @@ body.input-focused {
 }
 
 .header {
-    font-size: 35px;
-    font-weight: bold;
-    color: var(--btn-primary-text);
-    background-color: var(--btn-primary);
+    color: var(--text-primary);
+    background-color: var(--border-color);
     width: 90vw;
     max-width: 800px;
     border: none;
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
-    padding: 15px;
     overflow: hidden;
     user-select: none;
 }
 
 .header-inner {
+    font-size: 35px;
+    font-weight: bold;
+    color: var(--btn-primary-text);
+    background-color: var(--btn-primary);
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 5px;
+    border-radius: 15px;
+    padding: 25px 15px;
+}
+
+.sub-header {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 10px 15px;
 }
 
 .festival {
@@ -322,11 +331,6 @@ body.input-focused {
     user-select: none;
 }
 
-#version-status {
-    font-size: 14px;
-    user-select: none;
-}
-
 .toggle-container {
     display: flex;
     align-items: center;
@@ -493,7 +497,7 @@ li:last-child {
     top: 0;
     left: 0;
     position: fixed;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
     padding-top: var(--top-inset);
     padding-bottom: var(--bottom-inset);
@@ -556,7 +560,7 @@ li:last-child {
     align-items: center;
     justify-content: center;
     bottom: calc(5% + var(--bottom-inset));
-    right: 5%;
+    right: 20px;
     height: 60px;
     width: 60px;
     border: none;
