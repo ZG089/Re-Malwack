@@ -606,7 +606,7 @@ li:last-child {
     text-align: center;
 }
 
-.ripple-container {
+.ripple-element {
     position: relative;
     overflow: hidden;
 }
