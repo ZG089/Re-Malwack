@@ -74,8 +74,8 @@ log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
 
-if is_adblock_paused && [ "$blocked_mod" -gt 0 ]; then
-    status_msg="Status: Ad-block is paused ⏸️"
+if is_adblock_paused; then
+    status_msg="Status: Protection is paused ⏸️"
 elif [ "$blocked_mod" -gt 10 ]; then
     if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
         status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
@@ -83,7 +83,7 @@ elif [ "$blocked_mod" -gt 10 ]; then
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
     fi
 elif is_default_hosts "$system_hosts" && ! is_default_hosts "$hosts_file"; then
-    status_msg="Status: Need to reboot once again 🔃 (If still showing same then report to developer)"
+    status_msg="Status: Need to reboot once again 🔃 (If still showing the same then report to developer)"
 else
     status_msg="Status: Protection is disabled due to reset ❌"
 fi
