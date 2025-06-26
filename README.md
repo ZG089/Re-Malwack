@@ -106,7 +106,6 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 ## Contributors
 - [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
-- [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
 - [@person0z](https://github.com/Person0z) - Malwack founder
