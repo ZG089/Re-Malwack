@@ -97,7 +97,7 @@ else
 fi
 
 # set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk. $MODPATH/uninstall.sh
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
