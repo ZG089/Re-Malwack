@@ -6,7 +6,6 @@
 # Now enjoy reading the code
 # - ZG089, Founder of Re-Malwack.
 
-
 # ====== Variables ======
 quiet_mode=0
 persist_dir="/data/adb/Re-Malwack"
@@ -17,18 +16,16 @@ system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
-mkdir -p "$persist_dir/logs"
+mkdir -p $persist_dir/logs $persist_dir/counts $persist_dir/cache/whitelist
 
+# we need to change PATH in order to achieve some stuff.
+# this will get overritten after a new login.
+export PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH 
 
 # ====== Functions ======
-
-# Banner function
 function rmlwk_banner() {
     # Skip banner if quiet mode is enabled
-    [ "$quiet_mode" -eq 1 ] && return
-
-    clear
-
+    [ "$quiet_mode" -eq 1 ] && return 0
     banner1=$(cat <<'EOF'
 \033[0;31m    ____             __  ___      __                    __            
    / __ \___        /  |/  /___ _/ /      ______ ______/ /__          
@@ -47,25 +44,29 @@ EOF
 ╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 EOF
 )
-
-    if command -v shuf >/dev/null 2>&1; then
-        random_index=$(shuf -i 1-2 -n 1)
-    else
-        random_index=$(( ($(date +%s) % 2) + 1 ))
-    fi
-
-    case $random_index in
-        1) echo -e "$banner1" ;;
-        2) echo -e "$banner2" ;;
+    printf "\033c"
+    case "$((($(date +%s) % 2) + 1))" in
+        1)
+            for seq in $(seq 0 59); do
+                printf "#"
+            done
+            echo -e "\n\n$banner1"
+        ;;
+        2)
+            for seq in $(seq 0 83); do
+                printf "#"
+            done
+            echo -e "\n\n$banner2"
+        ;;
     esac
-
     printf '\033[0m'
     update_status
-    echo " "
-    echo "$version - $status_msg"
+    #echo "$version - $status_msg"
     printf '\033[0;31m'
-    echo "================================================================="
-    printf '\033[0m'
+    for seqq in $(seq 0 $seq); do
+        printf "#"
+    done
+    printf '\n\033[0m'
 }
 
 # Function to check hosts file reset state
@@ -77,29 +78,19 @@ is_default_hosts() {
 
 # Function to count blocked entries and store them
 refresh_blocked_counts() {
-    mkdir -p "$persist_dir/counts"
-
     blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
-
     blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    #
+    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
-
-# Functions for pause and resume ad-block
 
 # 1 - Pause adblock
 function pause_adblock() {
     # Check if protection is already paused
-    if is_adblock_paused; then
-        echo "protection is already paused!"
-        exit
-    fi
+    is_adblock_paused && abort "Protection is already passed."
     # Check if hosts file is reset
-    if is_default_hosts "$hosts_file"; then
-        echo "You cannot pause Ad-block while hosts is reset"
-        exit
-    fi    
+    is_default_hosts "$hosts_file" && abort "You cannot pause Ad-block while hosts is reset" 
     log_message "Pausing Protections"
     echo "- Pausing Protections"
     cat $hosts_file > "$persist_dir/hosts.bak"
@@ -133,18 +124,13 @@ function resume_adblock() {
 
 # function to check adblock pause
 function is_adblock_paused() {
-    if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
-        return 0
-    else
-        return 1
-    fi
+    [[ -f "$persist_dir/hosts.bak" && "adblock_switch" -eq 1 ]]
 }
 
-# Logging func - Literally helpful for any dev :D
+# Logging func - Literally helpful for any dev :D no it's not.
 function log_message() {
-    message="$1"
     [ -f "$LOGFILE" ] || touch "$LOGFILE"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $1" >> $LOGFILE
 }
 
 # Helper to log duration
@@ -170,7 +156,6 @@ function install_hosts() {
     type="$1"
     log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
-    mkdir -p "$persist_dir/cache/whitelist"
     fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
     fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
     log_message "Starting to install $type hosts."
@@ -218,8 +203,7 @@ function install_hosts() {
     sed '/#/d; /!/d; s/[[:space:]]\+/ /g; /^$/d; s/\r$//; /^127\.0\.0\.1[ \t]*localhost$/! s/^127\.0\.0\.1[ \t]*/0.0.0.0 /' "${tmp_hosts}"[!0] |
     sort -u - "${tmp_hosts}0" |
     grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
-    echo "# Re-Malwack $version" >> "$hosts_file"
-
+    echo "# Re-Malwack $version" >> "$hosts_file" # i need explaination buddy.
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -320,7 +304,7 @@ function abort() {
     exit 1
 }
 
-# Bruh It's clear already what this function does ._.
+# Bruh It's clear already what this function does ._. yeah so what? i was a bit dumb and came up with this dumb ahh idea to name a function.
 function nuke_if_we_dont_have_internet() {
     ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "No internet connection detected, Aborting..."
 }
@@ -330,11 +314,10 @@ function nuke_if_we_dont_have_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local output_file="$1"
     local url="$2"
 
-    # Curly hairyyy- *ahem*
+    # Curly hairyyy- *ahem* bruh what???? you deadahh fr?? =
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
         curl -Ls "$url" > "$output_file" || { 
@@ -510,6 +493,13 @@ done
 # Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
+# are we deadahh? like fr? why we need to check the dependencies everytime when we need to access it? it feels dumb bro
+for requiredDependencies in curl shuf; do
+    command -v $requiredDependencies &>/dev/null || abort "Missing dependencies. Please install curl and shuf to proceed."
+done
+
+# and i wonder......
+[ "$(tolower "$1")" == "--reset|-r|--block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--whitelist|-w|--blacklist|-b|--update-hosts|-u" ] && is_adblock_paused && abort "- Ad-block is paused. Please resume before running this command."
 
 # ====== Main Logic ======
 case "$(tolower "$1")" in
@@ -525,10 +515,6 @@ case "$(tolower "$1")" in
         ;;
     --reset|-r)
         start_time=$(date +%s)
-        if is_adblock_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
         log_message "Resetting hosts command triggered, resetting..."
         echo "- Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -545,10 +531,6 @@ case "$(tolower "$1")" in
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
         start_time=$(date +%s)
-        if is_adblock_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi    
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -582,10 +564,6 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
-        if is_adblock_paused; then
-            echo "- Ad-block is paused. Please resume it before running this command."
-            exit 1
-        fi
         option="$2"
         domain="$3"
         
@@ -617,13 +595,8 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
-        if is_adblock_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
         option="$2"
         domain="$3"
-
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --blacklist <add/remove> <domain>"
             display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
@@ -663,20 +636,17 @@ case "$(tolower "$1")" in
     
     if [ -z "$option" ]; then
         echo "- Missing argument: You must specify 'add' or 'remove'."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
+        abort "Usage: rmlwk --custom-source <add/remove> <domain>"
     fi
     
     if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
         echo "- Invalid option: Use 'add' or 'remove'."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
+        abort "Usage: rmlwk --custom-source <add/remove> <domain>"
     fi
 
     if [ -z "$domain" ]; then
         echo "- Missing domain: You must specify a domain."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
+        abort "Usage: rmlwk --custom-source <add/remove> <domain>"
     fi
     
     touch "$persist_dir/sources.txt"
@@ -719,15 +689,11 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        if is_adblock_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
         if [ -d /data/adb/modules/Re-Malwack ]; then
-            echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
+            echo "Updating hosts..."
             log_message "Updating protections..."
         else
-            echo "[BUILDING ANTI-ADS FORTRESS 🏰]"
+            echo "Installing necessory stuff for the first time setup..."
             log_message "Installing protection for the first time"
         fi 
         nuke_if_we_dont_have_internet
@@ -739,17 +705,15 @@ case "$(tolower "$1")" in
         # Download hosts in parallel
         for host in $hosts_list; do
             counter="$((counter + 1))"
-            fetch "${tmp_hosts}${counter}" "$host" &
+            fetch "${tmp_hosts}${counter}" "$host"
         done
-        wait
-
 
         # Update hosts for custom block
-        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
-        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
-        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
-        [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
-        wait
+        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update"
+        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update"
+        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update"
+        [ -d "$persist_dir/cache/social" ] && block_content "social" "update" 
+
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
@@ -759,16 +723,14 @@ case "$(tolower "$1")" in
         [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Updating gambling sites blocklist..."
         [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
         [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
+
         refresh_blocked_counts
         update_status
         log_message "Successfully updated hosts."
-        if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
-            echo "- Everything is now Good!"
-        fi
+        [ "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] || echo "- Everything is now Good!"
         log_duration "update-hosts" "$start_time"
         ;;
 
-    
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
