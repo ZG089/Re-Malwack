@@ -57,8 +57,8 @@ if is_default_hosts "$system_hosts"; then
     blocked_sys=0
     log_message "System hosts file has default entries only."
 else
-    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" > $persist_dir/counts/blocked_sys.count)
-    blocked_sys=${blocked_sys:-0}
+    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 fi
 log_message "System hosts entries count: $blocked_sys"
 
@@ -67,9 +67,8 @@ if is_default_hosts "$hosts_file"; then
     blocked_mod=0
     log_message "Module hosts file seems to be reset."
 else
-    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" > $persist_dir/counts/blocked_mod.count)
-    blocked_mod=${blocked_mod:-0}
-fi
+    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
