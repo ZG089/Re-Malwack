@@ -9,6 +9,7 @@
     --bg-secondary: #fff;
     --bg-overlay: #FFF2F1;
     --bg-input: #F5F5F5;
+    --bg-theme: #FFCFCF;
 
     /* Text colors */
     --text-primary: #000;
@@ -32,6 +33,7 @@
     --bg-secondary: #292929;
     --bg-overlay: #292929;
     --bg-input: #1b1b1b;
+    --bg-theme: #FFB3B3;
 
     /* Text colors */
     --text-primary: #fff;
@@ -68,35 +70,69 @@ body.input-focused {
 }
 
 .header {
-    color: var(--text-primary);
-    background-color: var(--border-color);
-    width: 90vw;
-    max-width: 800px;
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    overflow: hidden;
-    user-select: none;
-}
-
-.header-inner {
     font-size: 35px;
     font-weight: bold;
     color: var(--btn-primary-text);
     background-color: var(--btn-primary);
+    width: 90vw;
+    max-width: 800px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 5px;
+    border: none;
     border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
     padding: 25px 15px;
+    overflow: hidden;
+    user-select: none;
+
+    svg {
+        fill: var(--btn-primary-text);
+    }
 }
 
-.sub-header {
-    font-size: 14px;
-    font-weight: bold;
+.header-disabled {
+    display: none;
+    font-size: 16px;
     padding: 10px 15px;
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+
+    svg {
+        fill: var(--text-secondary)
+    }
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 90vw;
+    max-width: 800px;
+    background-color: var(--bg-theme);
+    color: var(--btn-primary);
+    border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    font-weight: bold;
+    text-align: center;
+    overflow: hidden;
+}
+
+.dashboard-item {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 5px;
+}
+
+.dashboard-item-title {
+    font-size: 14px;
+}
+
+.dashboard-item-content {
+    font-size: 20px;
 }
 
 .festival {
