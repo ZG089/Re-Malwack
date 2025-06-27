@@ -69,14 +69,12 @@ EOF
 }
 
 # Function to check hosts file reset state
-is_default_hosts() {
-    grep -qvE '^#|^$' "$1" || return 1
-    grep -qvE '^127\.0\.0\.1 localhost$|^::1 localhost$' "$1" && return 1
-    return 0
+function is_default_hosts() {
+    [ "blocked_mod" -eq 0 ] && [ "blocked_sys" -eq 0 ] && return 0
 }
 
 # Function to count blocked entries and store them
-refresh_blocked_counts() {
+function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
 
     blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
@@ -96,10 +94,10 @@ function pause_adblock() {
         exit
     fi
     # Check if hosts file is reset
-    if is_default_hosts "$hosts_file"; then
+    if is_default_hosts; then
         echo "You cannot pause Ad-block while hosts is reset"
         exit
-    fi    
+    fi
     log_message "Pausing Protections"
     echo "- Pausing Protections"
     cat $hosts_file > "$persist_dir/hosts.bak"
@@ -133,7 +131,7 @@ function resume_adblock() {
 
 # function to check adblock pause
 function is_adblock_paused() {
-    if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
+    if [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ] ; then
         return 0
     else
         return 1
@@ -361,25 +359,11 @@ function update_status() {
 
     # System hosts count
     if [ ! -d "/data/adb/modules/Re-Malwack" ]; then
-        blocked_sys=0
         log_message "First install detected (module directory missing)."
-    elif is_default_hosts "$system_hosts"; then
-        blocked_sys=0
-        log_message "System hosts file has default entries only."
-    else
-        blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
-        blocked_sys=${blocked_sys:-0}
     fi
-    log_message "System hosts entries count: $blocked_sys"
 
     # Module hosts count
-    if is_default_hosts "$hosts_file"; then
-        blocked_mod=0
-        log_message "Module hosts file seems to be reset."
-    else
-        blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
-        blocked_mod=${blocked_mod:-0}
-    fi
+    log_message "System hosts entries count: $blocked_sys"
     log_message "Module hosts entries count: $blocked_mod"
 
     # Here goes the part where we actually determine module status
@@ -395,7 +379,7 @@ function update_status() {
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
         fi
-    elif is_default_hosts "$system_hosts" && is_default_hosts "$hosts_file"; then
+    elif is_default_hosts; then
         status_msg="Status: Protection is disabled due to reset ❌"
     fi
 
