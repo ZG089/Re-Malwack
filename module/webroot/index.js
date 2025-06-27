@@ -65,7 +65,7 @@ function aboutMenu() {
 async function getVersion() {
     try {
         const version = await execCommand("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
-        document.getElementById('version-text').textContent = `${version} | `;
+        document.getElementById('version-text').textContent = version;
         getStatus();
     } catch (error) {
         console.log("Error getting version:", error);
@@ -97,12 +97,65 @@ async function checkMMRL() {
 // Function to get working status
 async function getStatus() {
     const statusElement = document.getElementById('status-text');
+    const disableBox = document.querySelector('.header-disabled');
     try {
-        const status = await execCommand("grep '^description=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
-        statusElement.textContent = status.trim();
+        const rawStatus = await execCommand("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
+        let status = rawStatus.trim();
+        if (parseInt(status) === 0) {
+            disableBox.style.display = 'flex';
+            statusElement.textContent = '-';
+            getlastUpdated(false);
+            return;
+        // Convert 1 000 000 to 1M
+        } else if (parseInt(status) > 999999) {
+            status = (parseInt(status) / 1000000).toFixed(1) + 'M';
+        // Convert 1 000 to 1k
+        } else if (parseInt(status) > 9999) {
+            status = (parseInt(status) / 1000).toFixed(1) + 'k';
+        }
+        statusElement.textContent = status;
+        disableBox.style.display = 'none';
     } catch (error) {
-        statusElement.textContent = "Error reading module status";
-        console.log("Error getting status:", error);
+        console.error("Error getting status:", error);
+    }
+    getlastUpdated();
+}
+
+// Function to get last updated time of hosts file
+async function getlastUpdated(isEnable = true) {
+    const lastUpdatedElement = document.getElementById('last-update');
+
+    if (!isEnable) {
+        lastUpdatedElement.textContent = '-';
+        return;
+    }
+
+    try {
+        const last = await execCommand("date -r '/data/adb/modules/Re-Malwack/system/etc/hosts' '+%H %d/%m'");
+        const now = await execCommand("date +'%H %d/%m'");
+        // Last update today
+        if (last.split(' ')[1] === now.split(' ')[1]) {
+            if (last.split(' ')[0] === now.split(' ')[0]) {
+                // Last update less than 1hr
+                lastUpdatedElement.textContent = 'Just Now';
+            } else {
+                // Last update less than 24hr
+                const hours = parseInt(now.split(' ')[0]) - parseInt(last.split(' ')[0]);
+                lastUpdatedElement.textContent = `${hours}h ago`;
+            }
+        } else {
+            // Last update yesterday
+            if (parseInt(now.split(' ')[1].split('/')[0]) - parseInt(last.split(' ')[1].split('/')[0]) === 1) {
+                lastUpdatedElement.textContent = 'Yesterday';
+            }
+            // Last update XX days ago
+            else {
+                const days = parseInt(now.split(' ')[1].split('/')[0]) - parseInt(last.split(' ')[1].split('/')[0]);
+                lastUpdatedElement.textContent = `${days}d ago`;
+            }
+        }
+    } catch (error) {
+        console.error("Error getting last update:", error);
     }
 }
 
@@ -330,7 +383,7 @@ async function handleAdd(fileType) {
 }
 
 // Execute shell commands
-async function execCommand(command) {
+async function execCommand(command, args = "{}") {
     return new Promise((resolve, reject) => {
         const callbackName = `exec_callback_${Date.now()}`;
         window[callbackName] = (errno, stdout, stderr) => {
@@ -343,7 +396,7 @@ async function execCommand(command) {
             }
         };
         try {
-            ksu.exec(command, "{}", callbackName);
+            ksu.exec(command, args, callbackName);
         } catch (error) {
             console.error(`Execution error: ${error}`);
             reject(error);
