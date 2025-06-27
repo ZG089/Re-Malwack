@@ -69,6 +69,7 @@ if is_default_hosts "$hosts_file"; then
 else
     blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+fi
 log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
