@@ -288,8 +288,8 @@ function block_content() {
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
-            echo "- Downloading hosts for $block_type."
-            log_message "Downloading hosts for $block_type."
+            echo "- Downloading hosts for $block_type block."
+            log_message "Downloading hosts for $block_type block."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
             if [ "$block_type" = "porn" ]; then
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt & 
