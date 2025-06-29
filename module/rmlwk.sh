@@ -363,6 +363,8 @@ function update_status() {
     fi
 
     # Module hosts count
+    blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
+    blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
     log_message "System hosts entries count: $blocked_sys"
     log_message "Module hosts entries count: $blocked_mod"
 
