@@ -573,7 +573,8 @@ case "$(tolower "$1")" in
             exit 1
         fi
         option="$2"
-        domain="$3"
+        raw_input="$3"
+        domain=$(printf "%s" "$raw_input" | sed -E 's~^https?://~~; s~/.*~~')
         
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --whitelist <add/remove> <domain>"
@@ -584,14 +585,15 @@ case "$(tolower "$1")" in
             if [ "$option" = "add" ]; then
                 # Add domain to whitelist.txt and remove from hosts
                 grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
-                sed "/0\.0\.0\.0 $domain/d" "$hosts_file" > "$tmp_hosts"
+                escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
+                sed "/0\.0\.0\.0 $escaped_domain/d" "$hosts_file" > "$tmp_hosts"
                 cat "$tmp_hosts" > "$hosts_file"
                 rm -f "$tmp_hosts"
                 log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
             else
                 # Remove domain from whitelist.txt if found
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
-                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
+                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]   \/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
                     log_message "Removed $domain from whitelist." && echo "- $domain removed from whitelist."
                 else
                     echo "- $domain isn't in whitelist."
