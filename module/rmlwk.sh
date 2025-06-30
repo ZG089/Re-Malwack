@@ -587,14 +587,13 @@ case "$(tolower "$1")" in
         else
             touch "$persist_dir/whitelist.txt"
             if [ "$option" = "add" ]; then
-                if ! grep -Eq "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file"; then
-                    echo "- $domain not found in hosts file. Nothing to whitelist."
-                    exit 1
-                fi
 
                 # Add domain to whitelist.txt and remove from hosts
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
                     echo "$domain is already whitelisted"
+                elif ! grep -Eq "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file"; then
+                    echo "- $domain not found in hosts file. Nothing to whitelist."
+                    exit 1
                 else
                     echo "$domain" >> "$persist_dir/whitelist.txt"
                     sed -E "/^0\.0\.0\.0 (.*\.)?$escaped_domain\$/d" "$hosts_file" > "$tmp_hosts"
