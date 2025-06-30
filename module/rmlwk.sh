@@ -572,10 +572,14 @@ case "$(tolower "$1")" in
             echo "- Ad-block is paused. Please resume it before running this command."
             exit 1
         fi
+        if is_default_hosts; then
+            echo "- You cannot whitelist links while hosts is reset."
+            exit 1
+        fi
         option="$2"
         raw_input="$3"
         domain=$(printf "%s" "$raw_input" | sed -E 's~^https?://~~; s~/.*~~')
-        
+        escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --whitelist <add/remove> <domain>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
@@ -583,20 +587,29 @@ case "$(tolower "$1")" in
         else
             touch "$persist_dir/whitelist.txt"
             if [ "$option" = "add" ]; then
+                if ! grep -Eq "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file"; then
+                    echo "- $domain not found in hosts file. Nothing to whitelist."
+                    exit 1
+                fi
+
                 # Add domain to whitelist.txt and remove from hosts
-                grep -qx "$domain" "$persist_dir/whitelist.txt" && echo "$domain is already whitelisted" || echo "$domain" >> "$persist_dir/whitelist.txt"
-                escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
-                sed "/0\.0\.0\.0 $escaped_domain/d" "$hosts_file" > "$tmp_hosts"
-                cat "$tmp_hosts" > "$hosts_file"
-                rm -f "$tmp_hosts"
-                log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
+                if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
+                    echo "$domain is already whitelisted"
+                else
+                    echo "$domain" >> "$persist_dir/whitelist.txt"
+                    sed -E "/^0\.0\.0\.0 (.*\.)?$escaped_domain\$/d" "$hosts_file" > "$tmp_hosts"
+                    cat "$tmp_hosts" > "$hosts_file"
+                    rm -f "$tmp_hosts"
+                    log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
+                fi
             else
                 # Remove domain from whitelist.txt if found
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]   \/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
-                    log_message "Removed $domain from whitelist." && echo "- $domain removed from whitelist."
+                    log_message "Removed $domain from whitelist, It will be re-blocked on the next update." && echo "- $domain removed from whitelist, It will be re-blocked on the next update."
                 else
                     echo "- $domain isn't in whitelist."
+                    exit 1
                 fi
             fi
         fi
