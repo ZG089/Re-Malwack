@@ -69,8 +69,9 @@ EOF
 }
 
 # Function to check hosts file reset state
-function is_default_hosts() {
-    [ "blocked_mod" -eq 0 ] && [ "blocked_sys" -eq 0 ] && return 0
+is_default_hosts() {
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] && return 0
+    return 1
 }
 
 # Function to count blocked entries and store them
@@ -626,7 +627,7 @@ case "$(tolower "$1")" in
                 else          
                     # Show which exact domains will be whitelisted (i.e., removed)
                     matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
-                    
+
                     # Append matching domains
                     printf "%s\n" "$matched_domains" | sort -u >> "$persist_dir/whitelist.txt"
                     echo "- The following domain(s) matched and were whitelisted:"
