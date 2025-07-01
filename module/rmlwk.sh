@@ -586,7 +586,14 @@ case "$(tolower "$1")" in
         fi
         option="$2"
         raw_input="$3"
-        domain=$(printf "%s" "$raw_input" | sed -E 's~^https?://~~; s~/.*~~')
+
+        # Normalize full URL or wildcard input
+        if printf "%s" "$raw_input" | grep -qE '^https?://'; then
+            domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
+        else
+            domain="$raw_input"
+        fi
+        domain=$(printf "%s" "$domain" | sed 's/^\*\.\?//')
         escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --whitelist <add/remove> <domain>"
@@ -604,15 +611,20 @@ case "$(tolower "$1")" in
                     exit 1
                 else
                     echo "$domain" >> "$persist_dir/whitelist.txt"
+                    
+                    # Show which exact domains will be whitelisted (i.e., removed)
+                    matched_domains=$(grep -E "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file" | awk '{print $2}' | sort -u)
+                    echo "- The following domain(s) matched and were whitelisted:"
+                    printf "%s\n" "$matched_domains"
+                    log_message "Whitelisted domains: $(printf "%s " $matched_domains)"
                     sed -E "/^0\.0\.0\.0 (.*\.)?$escaped_domain\$/d" "$hosts_file" > "$tmp_hosts"
                     cat "$tmp_hosts" > "$hosts_file"
                     rm -f "$tmp_hosts"
-                    log_message "Added $domain to whitelist." && echo "- Added $domain to whitelist."
                 fi
             else
                 # Remove domain from whitelist.txt if found
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
-                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]   \/$*.^|[]/\\&/g')$/d" "$persist_dir/whitelist.txt";
+                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]   \/$*.^|[]/\\&/g')\$/d" "$persist_dir/whitelist.txt"
                     log_message "Removed $domain from whitelist, It will be re-blocked on the next update." && echo "- $domain removed from whitelist, It will be re-blocked on the next update."
                 else
                     echo "- $domain isn't in whitelist."
