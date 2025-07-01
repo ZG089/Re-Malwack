@@ -593,8 +593,15 @@ case "$(tolower "$1")" in
         else
             domain="$raw_input"
         fi
+
+        wildcard_match=0
+        if echo "$raw_input" | grep -q '^\*\.'; then
+            wildcard_match=1
+        fi
+
         domain=$(printf "%s" "$domain" | sed 's/^\*\.\?//')
         escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
+
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --whitelist <add/remove> <domain>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
@@ -603,29 +610,46 @@ case "$(tolower "$1")" in
             touch "$persist_dir/whitelist.txt"
             if [ "$option" = "add" ]; then
 
+                # Determine match pattern based on wildcard presence
+                if [ "$wildcard_match" -eq 1 ]; then
+                    pattern="^0\.0\.0\.0 (.*\.)?$escaped_domain\$"
+                else
+                    pattern="^0\.0\.0\.0 $escaped_domain\$"
+                fi
+
                 # Add domain to whitelist.txt and remove from hosts
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
                     echo "$domain is already whitelisted"
-                elif ! grep -Eq "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file"; then
+                elif ! grep -Eq "$pattern" "$hosts_file"; then
                     echo "- $domain not found in hosts file. Nothing to whitelist."
                     exit 1
-                else
-                    echo "$domain" >> "$persist_dir/whitelist.txt"
-                    
+                else          
                     # Show which exact domains will be whitelisted (i.e., removed)
-                    matched_domains=$(grep -E "^0\.0\.0\.0 (.*\.)?$escaped_domain$" "$hosts_file" | awk '{print $2}' | sort -u)
+                    matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
+                    
+                    # Append matching domains
+                    printf "%s\n" "$matched_domains" | sort -u >> "$persist_dir/whitelist.txt"
                     echo "- The following domain(s) matched and were whitelisted:"
                     printf "%s\n" "$matched_domains"
                     log_message "Whitelisted domains: $(printf "%s " $matched_domains)"
-                    sed -E "/^0\.0\.0\.0 (.*\.)?$escaped_domain\$/d" "$hosts_file" > "$tmp_hosts"
+                    sed -E "/$pattern/d" "$hosts_file" > "$tmp_hosts"
                     cat "$tmp_hosts" > "$hosts_file"
+
+                    # Cleanup whitelist file
+                    sort -u "$persist_dir/whitelist.txt" -o "$persist_dir/whitelist.txt"
                     rm -f "$tmp_hosts"
                 fi
             else
-                # Remove domain from whitelist.txt if found
-                if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
-                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]   \/$*.^|[]/\\&/g')\$/d" "$persist_dir/whitelist.txt"
-                    log_message "Removed $domain from whitelist, It will be re-blocked on the next update." && echo "- $domain removed from whitelist, It will be re-blocked on the next update."
+                # Remove domain(s) from whitelist.txt based on wildcard or exact
+                if [ "$wildcard_match" -eq 1 ]; then
+                    removal_pattern="(.*\.)?$escaped_domain"
+                else
+                    removal_pattern="^$escaped_domain\$"
+                fi
+
+                if grep -Eq "$removal_pattern" "$persist_dir/whitelist.txt"; then
+                    sed -i -E "/$removal_pattern/d" "$persist_dir/whitelist.txt"
+                    log_message "Removed $domain and matching entries from whitelist. They will be re-blocked on the next update." && echo "- $domain removed from whitelist."
                 else
                     echo "- $domain isn't in whitelist."
                     exit 1
@@ -788,7 +812,6 @@ case "$(tolower "$1")" in
         log_duration "update-hosts" "$start_time"
         ;;
 
-    
     --help|-h|*)
         echo ""
         echo "Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
