@@ -11,8 +11,9 @@ last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last
 # =========== Functions ===========
 
 # Function to check hosts file reset state
-function is_default_hosts() {
-    [ "blocked_mod" -eq 0 ] && [ "blocked_sys" -eq 0 ] && return 0
+is_default_hosts() {
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] && return 0
+    return 1
 }
 
 # Logging function
