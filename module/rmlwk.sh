@@ -297,7 +297,15 @@ function block_content() {
         fi
 
         # Skip install if called from hosts update
-        [ "$status" = "update" ] && return 0
+        if [ "$status" = "update" ]; then
+            block_var="block_${block_type}"
+            eval enabled=\$$block_var
+            if [ "$enabled" != "1" ]; then
+                log_message "Skipping install of '$block_type' blocklist: toggle is OFF"
+                echo "INFO: Skipping install of '$block_type' blocklist: toggle is OFF."
+            fi
+            return 0
+        fi
         sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
         cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
