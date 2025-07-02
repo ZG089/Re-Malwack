@@ -7,7 +7,7 @@
 [![Module Version](https://img.shields.io/badge/Module_Version-v6.0-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v6.0)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
-[![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?style=for-the-badge&color=gray&logo=telegram)](https://t.me/Re_Malwack)
+[![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-Re--Malwack_Community-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/Re_Malwack)
 [![Channel](https://img.shields.io/badge/Follow_Channel-ZGTechs-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZG089)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?style=for-the-badge&color=orange&logo=xdadevelopers)](https://xdaforums.com/m/ZG089.11432109/)
