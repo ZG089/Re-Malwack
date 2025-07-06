@@ -291,7 +291,7 @@ function block_content() {
             log_message "Downloading hosts for $block_type block."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
             if [ "$block_type" = "porn" ]; then
-                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt & 
+                fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
                 fetch "${cache_hosts}3" https://www.someonewhocares.org/hosts/hosts &
                 wait
             fi
@@ -344,13 +344,13 @@ function fetch() {
     # Curly hairyyy- *ahem*
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
-        curl -Ls "$url" > "$output_file" || { 
+        curl -Ls "$url" > "$output_file" || {
             log_message "Failed to download $url with curl"
             echo "WARNING: Failed to download hosts from $url"
         }
         echo "" >> "$output_file"
-    else # Else we gotta just fallback to windows ge- my bad I mean winget. 
-        busybox wget --no-check-certificate -qO - "$url" > "$output_file" || { 
+    else # Else we gotta just fallback to windows ge- my bad I mean winget.
+        busybox wget --no-check-certificate -qO - "$url" > "$output_file" || {
             log_message "Failed to download $url with wget"
             echo "WARNING: Failed to download hosts from $url"
         }
@@ -408,10 +408,10 @@ function enable_cron() {
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo '[AUTO UPDATE TIME!!!]' >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-    
+
     if [ -d "$JOB_DIR" ]; then
         echo "- Auto update is already enabled"
-    else    
+    else
         # Create directory and file if they don't exist
         mkdir -p "$JOB_DIR"
         touch "$JOB_FILE"
@@ -419,7 +419,7 @@ function enable_cron() {
         if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
             echo "Failed to enable auto update: cron-side error."
             log_message "Failed to enable auto update: cron-side error."
-        else    
+        else
             log_message "Cron job added."
             crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
@@ -543,7 +543,7 @@ case "$(tolower "$1")" in
         if is_adblock_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
-        fi    
+        fi
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -624,19 +624,19 @@ case "$(tolower "$1")" in
                 elif ! grep -Eq "$pattern" "$hosts_file"; then
                     echo "- $domain not found in hosts file. Nothing to whitelist."
                     exit 1
-                else          
-                    # Show which exact domains will be whitelisted (i.e., removed)
-                    matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
-
-                    # Append matching domains
-                    printf "%s\n" "$matched_domains" | sort -u >> "$persist_dir/whitelist.txt"
+                else
+                    # Parse entries to whitelist
+                    grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u | while read -r matched; do
+                        echo "$matched" >> "$persist_dir/whitelist.txt"
+                    done
+                    # Remove entries from hosts
                     echo "- The following domain(s) matched and were whitelisted:"
                     printf "%s\n" "$matched_domains"
                     log_message "Whitelisted domains: $(printf "%s " $matched_domains)"
                     sed -E "/$pattern/d" "$hosts_file" > "$tmp_hosts"
                     cat "$tmp_hosts" > "$hosts_file"
 
-                    # Cleanup whitelist file
+                    # Cleanup whitelist file - deduplicate
                     sort -u "$persist_dir/whitelist.txt" -o "$persist_dir/whitelist.txt"
                     rm -f "$tmp_hosts"
                 fi
@@ -673,7 +673,7 @@ case "$(tolower "$1")" in
             echo "usage: rmlwk --blacklist <add/remove> <domain>"
             display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
-        else            
+        else
             touch "$persist_dir/blacklist.txt"
             if [ "$option" = "add" ]; then
                 # Add domain to blacklist.txt and add to hosts if it isn't there
@@ -705,13 +705,13 @@ case "$(tolower "$1")" in
 	--custom-source|-c)
     option="$2"
     domain="$3"
-    
+
     if [ -z "$option" ]; then
         echo "- Missing argument: You must specify 'add' or 'remove'."
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
         exit 1
     fi
-    
+
     if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
         echo "- Invalid option: Use 'add' or 'remove'."
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
@@ -723,9 +723,9 @@ case "$(tolower "$1")" in
         echo "Usage: rmlwk --custom-source <add/remove> <domain>"
         exit 1
     fi
-    
+
     touch "$persist_dir/sources.txt"
-    
+
     if [ "$option" = "add" ]; then
         if grep -qx "$domain" "$persist_dir/sources.txt"; then
             echo "- $domain is already in sources."
@@ -774,7 +774,7 @@ case "$(tolower "$1")" in
         else
             echo "[BUILDING ANTI-ADS FORTRESS 🏰]"
             log_message "Installing protection for the first time"
-        fi 
+        fi
         nuke_if_we_dont_have_internet
         echo "- Downloading hosts..."
         # Re-Malwack general hosts
