@@ -7,7 +7,7 @@
 [![Module Version](https://img.shields.io/badge/Module_Version-v6.0-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v6.0)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2)](https://github.com/ZG089/Re-Malwack/releases)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=gray&logo=xdadevelopers)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
-[![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-252850?style=for-the-badge&color=gray&logo=telegram)](https://t.me/Re_Malwack)
+[![Telegram Support group](https://img.shields.io/badge/Telegram_Support_Group-Re--Malwack_Community-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/Re_Malwack)
 [![Channel](https://img.shields.io/badge/Follow_Channel-ZGTechs-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZGTechs)
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZG089)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?style=for-the-badge&color=orange&logo=xdadevelopers)](https://xdaforums.com/m/ZG089.11432109/)
@@ -74,7 +74,7 @@
   ```
 
 > [!NOTE]
-> Hosts source used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
+> Default hosts sources used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
 
 ## Download Module
 
@@ -126,7 +126,6 @@
 - [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
 
 ## Donations
-
-As a 10th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
+As an 11th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
 
 [![Donation](https://img.shields.io/badge/BUY_ME_A_COFFEE-black?&logo=buymeacoffee&logoColor=black&style=for-the-badge&logoSize=50&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)

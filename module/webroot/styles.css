@@ -9,13 +9,14 @@
     --bg-secondary: #fff;
     --bg-overlay: #FFF2F1;
     --bg-input: #F5F5F5;
+    --bg-theme: #FFCFCF;
 
     /* Text colors */
     --text-primary: #000;
     --text-secondary: #757575;
 
     /* Border colors */
-    --border-color: #ccc;
+    --border-color: #ddd;
 
     /* Button colors */
     --btn-primary: #D51200;
@@ -32,6 +33,7 @@
     --bg-secondary: #292929;
     --bg-overlay: #292929;
     --bg-input: #1b1b1b;
+    --bg-theme: #FFB3B3;
 
     /* Text colors */
     --text-primary: #fff;
@@ -74,20 +76,63 @@ body.input-focused {
     background-color: var(--btn-primary);
     width: 90vw;
     max-width: 800px;
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    padding: 15px;
-    overflow: hidden;
-    user-select: none;
-}
-
-.header-inner {
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 5px;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    padding: 25px 15px;
+    overflow: hidden;
+    user-select: none;
+
+    svg {
+        fill: var(--btn-primary-text);
+    }
+}
+
+.header-disabled {
+    display: none;
+    font-size: 16px;
+    padding: 10px 15px;
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+
+    svg {
+        fill: var(--text-secondary)
+    }
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 90vw;
+    max-width: 800px;
+    background-color: var(--bg-theme);
+    color: var(--btn-primary);
+    border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    font-weight: bold;
+    text-align: center;
+    overflow: hidden;
+}
+
+.dashboard-item {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 15px 5px;
+}
+
+.dashboard-item-title {
+    font-size: 14px;
+}
+
+.dashboard-item-content {
+    font-size: 20px;
 }
 
 .festival {
@@ -109,7 +154,7 @@ body.input-focused {
     margin-left: auto;
 
     svg {
-        fill: var(--text-primary)
+        fill: var(--btn-primary-text);
     }
 }
 
@@ -262,15 +307,13 @@ body.input-focused {
 }
 
 .link-icon {
-    display:inline-block;
+    display: inline-block;
     font-style: normal;
     padding: 3px 10px;
     color: #fff;
     border-radius: 8px;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
-    position: relative;
-    overflow: hidden;
     user-select: none;
 }
 
@@ -321,11 +364,6 @@ body.input-focused {
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 10px;
-    user-select: none;
-}
-
-#version-status {
-    font-size: 14px;
     user-select: none;
 }
 
@@ -489,6 +527,93 @@ li:last-child {
     color: var(--border-color);
 }
 
+.terminal {
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    left: 0;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    padding-top: var(--top-inset);
+    padding-bottom: var(--bottom-inset);
+    background-color: var(--bg-primary);
+    box-sizing: border-box;
+    transform: translateY(100%);
+    transition: transform 0.5s ease;
+    z-index: 1200;
+}
+
+.terminal.show {
+    transform: translateY(0);
+}
+
+.terminal-header {
+    flex-shrink: 0;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    height: 40px;
+    width: 100%;
+    font-size: 20px;
+    padding: 5px 10px;
+    user-select: none;
+}
+
+.back-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+
+    svg {
+        fill: var(--text-primary);
+    }
+}
+
+.terminal-content {
+    width: 100%;
+    flex-grow: 1;
+    padding: 0 15px;
+}
+
+.output-text {
+    max-height: 100%;
+    overflow-y: auto;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.output-line {
+    padding: 0;
+    margin: 0;
+}
+
+.close-terminal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: calc(5% + var(--bottom-inset));
+    right: 20px;
+    height: 60px;
+    width: 60px;
+    border: none;
+    border-radius: 15px;
+    background-color: var(--btn-primary);
+    transform: translateY(calc(100% + 50px + var(--bottom-inset)));
+    transition: transform 0.3s ease;
+
+    svg {
+        fill: var(--btn-primary-text);
+    }
+}
+
+.close-terminal.show {
+    transform: translateY(0);
+}
+
 .prompt {
     position: fixed;
     bottom: 0;
@@ -518,9 +643,13 @@ li:last-child {
     text-align: center;
 }
 
-.ripple-container {
+.ripple-element {
     position: relative;
     overflow: hidden;
+}
+
+.ripple-element.fixed-ripple {
+    position: fixed;
 }
 
 .ripple {
