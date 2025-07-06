@@ -4,15 +4,17 @@
 	"donate": "http://buymeacoffee.com/ZG089",
 	"cover": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/banner.png",
 	"icon": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/assets/logo.png",
+	"homepage": "https://re-malwack.vercel.app",
 	"categories": [
         "Adblocking and Hosts Files",
         "APatch",
         "KernelSU",
         "Magisk",
-	"KernelSU-Next",
-	"Built Different",
-	"Protection",
-	"WebUI"
+		"KernelSU-Next",
+		"Built Different",
+		"Protection",
+		"WebUI",
+		"Privacy"
     ],
 	"require": [],
 	"screenshots": [],

@@ -19,19 +19,27 @@ jobs:
       - name: Set up dependencies
         run: sudo apt update && sudo apt install -y curl
 
-      - name: Download Hosts Files
+      - name: Download Hosts Files (with mirroing hosts from 1hosts)
         run: |
+          mkdir -p mirrors
+          curl -sL "https://o0.pages.dev/Pro/hosts.txt" -o 1hosts.txt
+
           sources=(
             "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
             "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt"
-            "https://o0.pages.dev/Pro/hosts.txt"
+            "1hosts.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
           )
+
           for url in "${sources[@]}"; do
-            curl -sL "$url" >> raw_hosts.txt
-            echo "" >> raw_hosts.txt  # Ensure newline separation
+            if [[ "$url" == 1hosts.txt ]]; then
+              cat "$url" >> raw_hosts.txt
+            else
+              curl -sL "$url" >> raw_hosts.txt
+            fi
+            echo "" >> raw_hosts.txt
           done
 
       - name: Download Whitelist
@@ -62,7 +70,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add hosts
+          git add hosts 1hosts.txt
           LAST_COMMIT_MSG=$(git log -1 --pretty=%B)
           if [[ "$LAST_COMMIT_MSG" == "Update hosts file" ]]; then
             git commit --amend --no-edit
