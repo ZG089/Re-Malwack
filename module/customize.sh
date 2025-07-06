@@ -23,7 +23,31 @@ ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
+# Detect Root Manager
+root_manager=""
+root_version=""
+if command -v magisk >/dev/null 2>&1; then
+    root_manager="Magisk/Variants"
+    root_version="$(magisk -v 2>/dev/null)"
+elif command -v ksud >/dev/null 2>&1; then
+    root_manager="KernelSU/Variants"
+    root_version="$(ksud -V 2>/dev/null | awk '{print $2}')"
+elif command -v apd >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/apd" ]; then
+    root_manager="APatch"
+    root_version="$(/data/adb/ap/bin/apd --version 2>/dev/null | head -n 1)"
+else
+    root_manager="Unknown"
+    root_version=""
+fi
+# Output
+if [ -n "$root_version" ]; then
+    ui_print "- 🔓 Root Manager: $root_manager ($root_version)"
+else
+    ui_print "- 🔓 Root Manager: $root_manager"
+fi
+sleep 0.2
 ui_print "- ⌛ Current Time: $(date "+%d, %b - %H:%M %Z")"
+sleep 0.2
 ui_print ""
 sleep 0.2
 ui_print "                                    /"
@@ -69,10 +93,11 @@ else
     rm -f $MODPATH/common/sources.txt
     # Replace previously used compression hosts source if found
     sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|' $persistent_dir/sources.txt
+    sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/1hosts.txt|' $persistent_dir/sources.txt
 fi
 
 # set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
