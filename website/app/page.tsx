@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
 import { EyeOff, Download, BugOff, ShieldMinus, Shield } from "lucide-react"
 import { ReactNode } from "react"
+import Footer from "@/components/footer"
 
 export default function Home() {
   return (
@@ -80,24 +81,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="flex text-sm text-muted-foreground gap-4">
-            <span>Released under the GPL v3.0</span>
-            <span>© {new Date().getFullYear()} by <Link href="https://github.com/ZG089" target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground">ZG089</Link></span>
-          </p>
-          <div className="flex items-center gap-4">
-            <Link
-              href="https://github.com/ZG089/Re-Malwack"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              GitHub
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
