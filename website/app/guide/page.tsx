@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SiteHeader } from "@/components/site-header"
+import Footer from "@/components/footer"
 
 export default function GuidePage() {
   return (
@@ -173,23 +174,7 @@ export default function GuidePage() {
           </div>
         </div>
       </div>
-      <footer className="border-t py-6 md:py-0 mt-auto">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="text-sm text-muted-foreground">
-            Released under the GPL v3.0 Copyright © {new Date().getFullYear()}-present @ZG089
-          </p>
-          <div className="flex items-center gap-4">
-            <Link
-              href="https://github.com/ZG089/Re-Malwack"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              GitHub
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
