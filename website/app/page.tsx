@@ -10,7 +10,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
-        <section className="container flex flex-col items-center justify-center gap-4 py-24 md:py-32">
+        <section className="container flex flex-col items-center justify-center gap-4 pt-24 sm:pb-24 md:py-32">
           <h1 className="text-center text-3xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl text-red-600">
             Re-Malwack
           </h1>

@@ -18,7 +18,7 @@ export default function DownloadPage() {
             Choose the version that best suits your device and needs
           </p>
         </div>
-        <div className="mx-auto grid max-w-5xl gap-6 py-12 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-5xl gap-6 py-12 grid-cols-1 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-red-600">Stable Release</CardTitle>
@@ -57,11 +57,11 @@ export default function DownloadPage() {
               </Button>
             </CardFooter>
           </Card>
-          <Card className="col-span-2">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex flex-row justify-between">
                 <span className="text-red-600">Installation Guide</span>
-                <Button className="h-8" asChild>
+                <Button className="h-8 hidden sm:block" asChild>
                   <Link href="https://t.me/Re_Malwack" target="_blank" rel="noreferrer">
                     <Send />
                     Get Support
