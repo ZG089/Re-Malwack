@@ -61,8 +61,8 @@ export default function DownloadPage() {
             <CardHeader>
               <CardTitle className="flex flex-row justify-between">
                 <span className="text-red-600">Installation Guide</span>
-                <Button className="h-8 hidden sm:block" asChild>
-                  <Link href="https://t.me/Re_Malwack" target="_blank" rel="noreferrer">
+                <Button className="h-8 hidden sm:block">
+                  <Link href="https://t.me/Re_Malwack" target="_blank" rel="noreferrer" className="flex items-center gap-2">
                     <Send />
                     Get Support
                   </Link>
