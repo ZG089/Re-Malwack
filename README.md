@@ -14,10 +14,11 @@
 [![Donation](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 ![Built with](https://img.shields.io/badge/Made_with-Love-red?style=for-the-badge)
 
-**If you are looking for a final solution to get rid of ads, Malware, and Trackers forever, then Re-Malwack is the best choice for you and your family.**
+**If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family.**
 
 ## Features // What makes this module special?
-- ⛔ It blocks ads, malware and trackers By default, you can also block P*rn sites, fake news sites, gambling sites and social sites as well.
+
+- ⛔ It blocks ads, malware and trackers By default, you can also block p*rn sites, fake news sites, gambling sites and social sites as well.
 - ⚙ Allows you to modify and manage hosts file (whitelist/blacklist urls, reset hosts, auto update adblock)
 - 🤙 Allows you to add custom hosts sources, also modify default ones
 - ✨ Easy to use
@@ -28,6 +29,7 @@
 
 
 ## Requirements
+
 > [!IMPORTANT]
 > - Stable internet connection.
 > - Mid-Range or high-end device.
@@ -36,13 +38,15 @@
 > **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
 
 ## How to use Re-Malwack
+
 > [!TIP]
 > - It's not required to use it on terminal if you want to update hosts, by just clicking the action button it will get updated.
 
-### 1. via Terminal
+### 1. Option 1 - Terminal
+
 - Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
-```
+```sh
  "Usage: rmlwk [--argument]"
          "--update-hosts, -u: Update the hosts file."
          "--auto-update, -a <enable|disable>: Toggle auto hosts update."
@@ -57,20 +61,23 @@
          "--help, -h: Display help."
 ```
 
-### 2. Via WebUI
- - Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
+### Option 2 - Via WebUI
 
-### 3. Local vpn (no-root)
+- Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [KSUWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
+
+### Option 3 - Local VPN (no root)
+
 - You can still protect your device without needing for root access, just copy paste this url into [DNSnet](https://play.google.com/store/apps/details?id=dev.clombardo.dnsnet), or [AdAway](https://f-droid.org/packages/org.adaway/), or any other app of your choice :
 
-```
-https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
-```
+  ```plaintext
+  https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
+  ```
+
 > [!NOTE]
 > Default hosts sources used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
 
-
 ## Download Module
+
 > [!TIP]
 > - You can download the module from:\
 [![MMRL](https://mmrl.dev/assets/badge.svg)](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
@@ -101,14 +108,17 @@ https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
 > - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 ## Activity
+
 ![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
- 
+
 ## Contributors
+
 - [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
 - [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
+
 - [@person0z](https://github.com/Person0z) - Malwack founder
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
 - [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
