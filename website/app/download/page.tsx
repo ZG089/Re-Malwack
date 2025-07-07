@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, MessageCircle, Send } from "lucide-react"
 import { SiteHeader } from "@/components/site-header"
+import Footer from "@/components/footer"
 
 export default function DownloadPage() {
   return (
@@ -56,19 +57,30 @@ export default function DownloadPage() {
               </Button>
             </CardFooter>
           </Card>
-        </div>
-        <div className="mx-auto max-w-[700px] text-center">
-          <h2 className="mb-4 text-2xl font-bold text-red-600">Installation Instructions</h2>
-          <div className="rounded-lg bg-muted p-6 text-left">
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>Download the module zip file</li>
-              <li>Open Magisk Manager</li>
-              <li>Go to Modules section</li>
-              <li>Click on Install from storage</li>
-              <li>Select the downloaded zip file</li>
-              <li>Reboot your device after installation completes</li>
-            </ol>
-          </div>
+          <Card className="col-span-2">
+            <CardHeader>
+              <CardTitle className="flex flex-row justify-between">
+                <span className="text-red-600">Installation Guide</span>
+                <Button className="h-8" asChild>
+                  <Link href="https://t.me/Re_Malwack" target="_blank" rel="noreferrer">
+                    <Send />
+                    Get Support
+                  </Link>
+                </Button>
+              </CardTitle>
+              <CardDescription>Let&apos;s get you started!</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ol className="list-decimal pl-5 space-y-2">
+                <li>Download your desired module ZIP</li>
+                <li>Open your root manager (Magisk, KernelSU, etc.)</li>
+                <li>Go to Modules section</li>
+                <li>Click on Install from storage</li>
+                <li>Select the downloaded ZIP</li>
+                <li>Reboot your device after installation completes</li>
+              </ol>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="mx-auto max-w-[700px] text-center mt-12">
@@ -79,29 +91,13 @@ export default function DownloadPage() {
           </p>
           <Button className="bg-[#0088cc] hover:bg-[#0077b5] text-white" size="lg" asChild>
             <Link href="https://t.me/Re_Malwack" target="_blank" rel="noreferrer">
-              <MessageCircle className="mr-2 h-5 w-5" />
+              <MessageCircle className="mr-2" />
               Join Telegram Support Group
             </Link>
           </Button>
         </div>
       </div>
-      <footer className="border-t py-6 md:py-0 mt-auto">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-          <p className="text-sm text-muted-foreground">
-            Released under the GPL V3.0 Copyright © {new Date().getFullYear()}-present @ZG089
-          </p>
-          <div className="flex items-center gap-4">
-            <Link
-              href="https://github.com/ZG089/Re-Malwack"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              GitHub
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
