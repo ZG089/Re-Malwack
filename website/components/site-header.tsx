@@ -13,8 +13,8 @@ export function SiteHeader() {
             <span className="font-bold">Re-Malwack</span>
           </Link>
         </div>
-        <div className="flex flex-row items-center justify-end space-x-2 md:justify-end">
-          <nav className="flex items-center space-x-2">
+        <div className="flex flex-row items-center justify-end space-x-4 md:justify-end">
+          <nav className="flex items-center space-x-4">
             <Button variant="ghost" className="h-8 w-full justify-start px-2 font-normal" asChild>
               <Link href="/guide" className="text-sm font-medium transition-colors hover:text-primary">
                 <Book />
@@ -32,14 +32,8 @@ export function SiteHeader() {
                 Buy Me A Coffee
               </Link>
             </Button>
-            <Button variant="outline" className="h-8" asChild>
-              <Link href="/download" className="flex items-center">
-                <Download />
-                Download
-              </Link>
-            </Button>
           </nav>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-4">
             <ThemeToggle />
             <Link href="https://github.com/ZG089/Re-Malwack" target="_blank" rel="noreferrer">
               <Button variant="ghost" className="w-8 h-8">
