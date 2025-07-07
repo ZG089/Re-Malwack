@@ -8,7 +8,7 @@ export default function Footer() {
           <p>Released under the GPL v3.0</p>
           <p>© {new Date().getFullYear()} by <Link href="https://github.com/ZG089" target="_blank" rel="noreferrer" className="text-sm text-muted-foreground hover:text-foreground">ZG089</Link></p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="items-center gap-4 hidden sm:flex">
           <Link
             href="https://github.com/ZG089/Re-Malwack"
             target="_blank"
