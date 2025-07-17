@@ -69,9 +69,38 @@ EOF
 }
 
 # Function to check hosts file reset state
-is_default_hosts() {
+function is_default_hosts() {
     [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] && return 0
     return 1
+}
+
+# Function to process hosts, maybe?
+function host_process() {
+    local file="$1"
+    local tmp_file="${file}.tmp"
+    # Unified filtration: remove comments, empty lines, trim whitespaces
+    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+    log_message "Filtering $file..."
+
+    # Convert 127.0.0.1 entries except localhost to 0.0.0.0
+    if grep -vq '^127\.0\.0\.1[[:space:]]*localhost$' "$file"; then
+        log_message "Detected 127.0.0.1 ad-block method in $file, converting to 0.0.0.0..."
+        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+    fi
+
+    # Decompress multi-domain host entries
+    if grep -qE '^0\.0\.0\.0\s+.*\s+.*' "$file"; then
+        log_message "Detected compressed entries in $file, splitting..."
+        awk '
+            /^0\.0\.0\.0[ \t]+/ {
+                for (i = 2; i <= NF; i++) {
+                    print "0.0.0.0", $i
+                }
+                next
+            }
+            { print }
+        ' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+    fi
 }
 
 # Function to count blocked entries and store them
@@ -213,12 +242,8 @@ function install_hosts() {
     fi
 
     # Update hosts
-    log_message "Updating hosts..."
-    sed '/#/d; /!/d; s/[[:space:]]\+/ /g; /^$/d; s/\r$//; /^127\.0\.0\.1[ \t]*localhost$/! s/^127\.0\.0\.1[ \t]*/0.0.0.0 /' "${tmp_hosts}"[!0] |
-    sort -u - "${tmp_hosts}0" |
-    grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
-    echo "# Re-Malwack $version" >> "$hosts_file"
-
+    log_message "Finalizing..."
+    sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -235,8 +260,8 @@ function remove_hosts() {
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
 
-    # Arrange cached hosts
-    sed '/#/d; /^$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' "${cache_hosts}"* | sort -u > "${tmp_hosts}1"
+    # Processing & sorting files
+    cat "$cache_hosts"* | sort -u > "${tmp_hosts}1"
 
     # Remove from hosts file
     awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}1" "${tmp_hosts}0" > "$hosts_file"
@@ -263,12 +288,13 @@ function block_content() {
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
     if [ "$status" = 0 ]; then
-        if [ ! -f "${cache_hosts}1" ]; then
+        if [ ! -f "${cache_hosts}1" ]; then # Fallback in case cached hosts was deleted
             echo "- Warning: Cached blocklist for '$block_type' not found!"
             echo "- Re-downloading the blocklist to proceed with disabling."
             echo "- Please do not modify or delete /data/adb/Re-Malwack directory files."
             echo " - If you think a cleaner app accidentally removed one of the files, Please add the directory to the exceptions list."
             log_message "Missing cached blocklist for $block_type — auto-redownloading."
+            nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
             if [ "$block_type" = "porn" ]; then
@@ -295,6 +321,11 @@ function block_content() {
                 fetch "${cache_hosts}3" https://www.someonewhocares.org/hosts/hosts &
                 wait
             fi
+            
+            # Normalize downloaded hosts
+            for file in "$persist_dir/cache/$block_type/hosts"*; do
+                host_process "$file"
+            done
         fi
 
         # Skip install if called from hosts update
@@ -322,14 +353,14 @@ function tolower() {
 # uhhhhh
 function abort() {
     log_message "Aborting: $1"
-    echo -e "- \033[0;31m$1\033[0m"
+    echo "-$1"
     sleep 0.5
     exit 1
 }
 
 # Bruh It's clear already what this function does ._.
 function nuke_if_we_dont_have_internet() {
-    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "No internet connection detected, Aborting..."
+    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
 }
 
 # Fetches hosts from sources.txt
@@ -337,6 +368,7 @@ function nuke_if_we_dont_have_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
+    start_time=$(date +%s)
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local output_file="$1"
     local url="$2"
@@ -356,7 +388,8 @@ function fetch() {
         }
         echo "" >> "$output_file"
     fi
-    log_message "Downloaded $url, stored in $output_file"
+    log_message "Downloaded hosts from $url, stored in $output_file"
+    log_duration "fetch and process hosts file from ($url)" "$start_time"
 }
 
 # Updates module status, modifying module description in module.prop
@@ -788,13 +821,18 @@ case "$(tolower "$1")" in
         done
         wait
 
-
         # Update hosts for custom block
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
         [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
         wait
+
+        # Process each downloaded hosts file with host_process
+        for i in $(seq 1 $counter); do
+            host_process "${tmp_hosts}${i}"
+        done
+
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "base"
