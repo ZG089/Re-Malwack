@@ -335,7 +335,7 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
         clearTimeout(window.promptTimeout);
     }
     setTimeout(() => {
-        prompt.style.transform = 'translateY(calc((var(--window-inset-bottom, 0px) + 40px) * -1))';
+        prompt.style.transform = 'translateY(calc((var(--window-inset-bottom, 0px) + 30px) * -1))';
         window.promptTimeout = setTimeout(() => {
             prompt.style.transform = 'translateY(100%)';
         }, duration);
@@ -617,11 +617,27 @@ function setupTheme() {
     }
 }
 
+// update adblock swtich
+function updateAdblockSwtich() {
+    const play = document.getElementById('play-icon');
+    const pause = document.getElementById('pause-icon');
+    exec('grep "^adblock_switch=" "/data/adb/Re-Malwack/config.sh" | cut -d= -f2')
+        .then(({ errno, stdout, stderr }) => {
+            if (errno !== 0) {
+                console.error(stderr);
+                return;
+            }
+            play.style.display = stdout === '1' ? 'block' : 'none';
+            pause.style.display = stdout === '0' ? 'block' : 'noen';
+        });
+}
+
 // Scroll event
-let lastScrollY = window.scrollTop;
+let lastScrollY = window.scrollY;
 let isScrolling = false;
 let scrollTimeout;
 const scrollThreshold = 25;
+const floatBtn = document.querySelector('.float-container');
 window.addEventListener('scroll', () => {
     isScrolling = true;
     clearTimeout(scrollTimeout);
@@ -636,7 +652,12 @@ window.addEventListener('scroll', () => {
             li.scrollTo({ left: 0, behavior: 'smooth' });
         });
     }
-    lastScrollY = window.scrollTop;
+    if (window.scrollY > lastScrollY && window.scrollY > scrollThreshold) {
+        floatBtn.classList.remove('show');
+    } else if (window.scrollY < lastScrollY) {
+        floatBtn.classList.add('show');
+    }
+    lastScrollY = window.scrollY;
 });
 
 function setupEventListener() {
@@ -654,6 +675,11 @@ function setupEventListener() {
         document.getElementById(link.element).addEventListener("click", async () => {
             linkRedirect(link.url);
         });
+    });
+
+    // Adblock switch
+    document.getElementById('adblock-switch').addEventListener("click", () => {
+        performAction('--adblock-switch');
     });
 
     // Add button
@@ -679,6 +705,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListener();
     applyRippleEffect();
     getVersion();
+    updateAdblockSwtich();
+    floatBtn.classList.add('show');
     await checkBlockStatus();
     ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
 });
