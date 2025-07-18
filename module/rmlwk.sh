@@ -89,12 +89,12 @@ function host_process() {
     fi
 
     # Decompress multi-domain host entries
-    if grep -qE '^0\.0\.0\.0\s+.*\s+.*' "$file"; then
+    if awk '$1 == "0.0.0.0" && NF > 2 { found = 1; exit } END { exit !found }' "$file"; then
         log_message "Detected compressed entries in $file, splitting..."
         awk '
-            /^0\.0\.0\.0[ \t]+/ {
+            $1 == "0.0.0.0" && NF > 2 {
                 for (i = 2; i <= NF; i++) {
-                    print "0.0.0.0", $i
+                    print $1, $i
                 }
                 next
             }
