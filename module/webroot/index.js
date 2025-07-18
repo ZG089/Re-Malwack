@@ -351,6 +351,11 @@ async function handleAdd(fileType) {
         console.error("Input is empty. Skipping add operation.");
         return;
     }
+    if (fileType === "whitelist") {
+        performAction(`--whitelist add ${inputValue}`);
+        inputElement.value = "";
+        return;
+    }
     const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`);
     if (result.errno === 0) {
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
