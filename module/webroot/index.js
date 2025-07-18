@@ -1,4 +1,4 @@
-import { spawn } from './assets/kernelsu.js';
+import { spawn, exec, toast } from './assets/kernelsu.js';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
@@ -13,10 +13,10 @@ let isShellRunning = false;
 
 // Link redirect
 const links = [
-    { element: 'telegram', url: 'https://t.me/Re_Malwack', name: 'Telegram' },
-    { element: 'github', url: 'https://github.com/ZG089/Re-Malwack', name: 'GitHub' },
-    { element: 'xda', url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/', name: 'XDA' },
-    { element: 'sponsor', url: 'https://buymeacoffee.com/zg089', name: 'Sponsor' }
+    { element: 'telegram', url: 'https://t.me/Re_Malwack' },
+    { element: 'github', url: 'https://github.com/ZG089/Re-Malwack' },
+    { element: 'xda', url: 'https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/' },
+    { element: 'sponsor', url: 'https://buymeacoffee.com/zg089' }
 ];
 
 // Block types
@@ -63,12 +63,10 @@ function aboutMenu() {
 
 // Get module version from module.prop
 async function getVersion() {
-    try {
-        const version = await execCommand("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
-        document.getElementById('version-text').textContent = version;
+    const version = await exec("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
+    if (version.errno === 0) {
+        document.getElementById('version-text').textContent = version.stdout.trim();
         getStatus();
-    } catch (error) {
-        console.log("Error getting version:", error);
     }
 }
 
@@ -99,8 +97,8 @@ async function getStatus() {
     const statusElement = document.getElementById('status-text');
     const disableBox = document.querySelector('.header-disabled');
     try {
-        const rawStatus = await execCommand("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
-        let status = rawStatus.trim();
+        const rawStatus = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
+        let status = rawStatus.stdout.trim();
         if (parseInt(status) === 0) {
             disableBox.style.display = 'flex';
             statusElement.textContent = '-';
@@ -130,32 +128,33 @@ async function getlastUpdated(isEnable = true) {
         return;
     }
 
-    try {
-        const last = await execCommand("date -r '/data/adb/modules/Re-Malwack/system/etc/hosts' '+%H %d/%m'");
-        const now = await execCommand("date +'%H %d/%m'");
+    const last = await exec("date -r '/data/adb/modules/Re-Malwack/system/etc/hosts' '+%H %d/%m'");
+    const now = await exec("date +'%H %d/%m'");
+    if (last.errno === 0 || now.errno === 0) {
         // Last update today
-        if (last.split(' ')[1] === now.split(' ')[1]) {
-            if (last.split(' ')[0] === now.split(' ')[0]) {
+        if (last.stdout.split(' ')[1] === now.stdout.split(' ')[1]) {
+            if (last.stdout.split(' ')[0] === now.stdout.split(' ')[0]) {
                 // Last update less than 1hr
                 lastUpdatedElement.textContent = 'Just Now';
             } else {
                 // Last update less than 24hr
-                const hours = parseInt(now.split(' ')[0]) - parseInt(last.split(' ')[0]);
+                const hours = parseInt(now.stdout.split(' ')[0]) - parseInt(last.stdout.split(' ')[0]);
                 lastUpdatedElement.textContent = `${hours}h ago`;
             }
         } else {
             // Last update yesterday
-            if (parseInt(now.split(' ')[1].split('/')[0]) - parseInt(last.split(' ')[1].split('/')[0]) === 1) {
+            if (parseInt(now.stdout.split(' ')[1].split('/')[0]) - parseInt(last.stdout.split(' ')[1].split('/')[0]) === 1) {
                 lastUpdatedElement.textContent = 'Yesterday';
             }
             // Last update XX days ago
             else {
-                const days = parseInt(now.split(' ')[1].split('/')[0]) - parseInt(last.split(' ')[1].split('/')[0]);
+                const days = parseInt(now.stdout.split(' ')[1].split('/')[0]) - parseInt(last.stdout.split(' ')[1].split('/')[0]);
                 lastUpdatedElement.textContent = `${days}d ago`;
             }
         }
-    } catch (error) {
-        console.error("Error getting last update:", error);
+    } else {
+        console.error("Error getting last updated time:", last.stderr || now.stderr);
+        lastUpdatedElement.textContent = '-';
     }
 }
 
@@ -293,27 +292,27 @@ async function resetHostsFile() {
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const isEnabled = document.getElementById('daily-update-toggle').checked;
-    try {
-        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
+    if (result.errno !== 0) {
+        showPrompt("Failed to toggle daily update", false);
+        console.error("Error toggling daily update:", result.stderr);
+    } else {
         showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
         await checkBlockStatus();
-    } catch (error) {
-        console.error("Failed to toggle daily update:", error);
-        showPrompt("Failed to toggle daily update", false);
     }
 }
 
 // Function to export logs
 async function exportLogs() {
-    try {
-        const result = await execCommand(`
-            LOG_DATE="$(date +%Y-%m-%d_%H%M%S)"
-            tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='${basePath}' -C ${basePath} logs &>/dev/null
-            echo "$LOG_DATE"
-        `);
-        showPrompt(`Logs saved to /sdcard/Download/Re-Malwack_logs_${result.trim()}.tar.gz`, true, 3000);
-    } catch (error) {
-        console.error("Failed to export logs:", error);
+    const result = await exec(`
+        LOG_DATE="$(date +%Y-%m-%d_%H%M%S)"
+        tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='${basePath}' -C ${basePath} logs &>/dev/null
+        echo "$LOG_DATE"
+    `);
+    if (result.errno === 0) {
+        showPrompt(`Logs saved to /sdcard/Download/Re-Malwack_logs_${result.stdout.trim()}.tar.gz`, true, 3000);
+    } else {
+        console.error("Error exporting logs:", result.stderr);
         showPrompt("Failed to export logs", false);
     }
 }
@@ -343,23 +342,6 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
     }, 100);
 }
 
-// Function to attach add button elent listener
-function attachAddButtonListeners() {
-    document.getElementById("whitelist-input").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleAdd("whitelist");
-    });
-    document.getElementById("blacklist-input").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleAdd("blacklist");
-    });
-    document.getElementById("custom-source-input").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleAdd("custom-source");
-    });
-
-    document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
-    document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
-    document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
-}
-
 // Function to handle add whitelist/blacklist
 async function handleAdd(fileType) {
     const inputElement = document.getElementById(`${fileType}-input`);
@@ -369,39 +351,16 @@ async function handleAdd(fileType) {
         console.error("Input is empty. Skipping add operation.");
         return;
     }
-    try {
-        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`);
-        console.log(`${fileType}ed "${inputValue}" successfully.`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`);
+    if (result.errno === 0) {
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
         await loadFile(fileType);
         await getStatus();
-    } catch (error) {
-        console.log(`Fail to ${fileType} "${inputValue}": ${error}`);
-        showPrompt(`Fail to ${fileType} ${inputValue}`, false);
+    } else {
+        console.error(`Error adding ${fileType} "${inputValue}":`, result.stderr);
+        showPrompt(`Failed to add ${fileType} ${inputValue}`, false);
     }
-}
-
-// Execute shell commands
-async function execCommand(command, args = "{}") {
-    return new Promise((resolve, reject) => {
-        const callbackName = `exec_callback_${Date.now()}`;
-        window[callbackName] = (errno, stdout, stderr) => {
-            delete window[callbackName];
-            if (errno === 0) {
-                resolve(stdout);
-            } else {
-                console.error(`Error executing command: ${stderr}`);
-                reject(stderr);
-            }
-        };
-        try {
-            ksu.exec(command, args, callbackName);
-        } catch (error) {
-            console.error(`Execution error: ${error}`);
-            reject(error);
-        }
-    });
 }
 
 // Prevent input box blocked by keyboard
@@ -422,17 +381,6 @@ inputs.forEach(input => {
     });
     input.addEventListener('blur', () => {
         document.body.classList.remove(focusClass);
-    });
-});
-
-// Link redirect
-links.forEach(link => {
-    document.getElementById(link.element).addEventListener("click", async () => {
-        try {
-            await execCommand(`am start -a android.intent.action.VIEW -d ${link.url}`);
-        } catch (error) {
-            console.error(`Error opening ${link.name} link:`, error);
-        }
     });
 });
 
@@ -511,6 +459,17 @@ function applyRippleEffect() {
     });
 }
 
+// Link redirect with am start
+function linkRedirect(url) {
+    toast("Redirecting to " + url);
+    setTimeout(() => {
+        exec(`am start -a android.intent.action.VIEW -d ${url}`, { env: { PATH: '/system/bin' }})
+            .then(({ errno }) => {
+                if (errno !== 0) toast("Failed to open link");
+            });
+    },100);
+}
+
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
@@ -546,26 +505,25 @@ async function loadFile(fileType) {
 
 // Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
-    try {
-        await execCommand(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`);
+    if (result.errno === 0) {
         showPrompt(`Removed ${line} from ${fileType}`, true);
         await loadFile(fileType);
         await getStatus();
-    } catch (error) {
-        console.error(`Failed to remove line from ${fileType}:`, error);
+    } else {
+        console.error(`Failed to remove line from ${fileType}:`, result.stderr);
         showPrompt(`Failed to remove ${line} from ${fileType}`, false);
     }
 }
 
 // Function to link file
 async function linkFile() {
-    try {
-        await execCommand(`
-            mkdir -p ${modulePath}/webroot/link
-            [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir`
-        );
-    } catch (error) {
-        console.error(`Failed to remove link persistent directory to webroot:`, error);
+    const result = await exec(`
+        mkdir -p ${modulePath}/webroot/link
+        [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir`
+    );
+    if (result.errno !== 0) {
+        console.error(`Failed to remove link persistent directory to webroot:`, result.stderr);
     }
 }
 
@@ -596,14 +554,9 @@ function setupPrank() {
         if (e.target === warningOverlay) closeOverlay();
     });
 
-    async function redirectRr() {
+    const redirectRr = () => {
         closeOverlay(); 
-        try {
-            // Redirect to YouTube Rick Roll
-            await execCommand(`am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ"`);
-        } catch (error) {
-            console.error("Error redirect link:", error);
-        }
+        linkRedirect('https://youtu.be/dQw4w9WgXcQ');
     }
 
     function openOverlay() {
@@ -686,11 +639,7 @@ window.addEventListener('scroll', () => {
     lastScrollY = window.scrollTop;
 });
 
-// Initial load
-document.addEventListener('DOMContentLoaded', async () => {
-    setupTheme();
-    checkMMRL();
-    setupPrank();
+function setupEventListener() {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", updateHostsFile);
     document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
@@ -699,9 +648,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     blockTypes.forEach(type => {
         document.getElementById(`block-${type.id}`).addEventListener("click", () => handleBlock(type));
     });
-    attachAddButtonListeners();
+
+    // About page links
+    links.forEach(link => {
+        document.getElementById(link.element).addEventListener("click", async () => {
+            linkRedirect(link.url);
+        });
+    });
+
+    // Add button
+    document.getElementById("whitelist-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("whitelist");
+    });
+    document.getElementById("blacklist-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("blacklist");
+    });
+    document.getElementById("custom-source-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("custom-source");
+    });
+    document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
+    document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
+    document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', async () => {
+    setupTheme();
+    checkMMRL();
+    setupPrank();
+    setupEventListener();
+    applyRippleEffect();
     getVersion();
     await checkBlockStatus();
     ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
-    applyRippleEffect();
 });
