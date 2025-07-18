@@ -78,6 +78,13 @@ function is_default_hosts() {
 function host_process() {
     local file="$1"
     local tmp_file="${file}.tmp"
+    
+    # Exclude whitelist files
+    case "$file" in
+        *whitelist*)
+            return 0
+            ;;
+    esac
     # Unified filtration: remove comments, empty lines, trim whitespaces
     sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
