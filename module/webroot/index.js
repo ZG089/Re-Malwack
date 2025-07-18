@@ -79,14 +79,6 @@ async function checkMMRL() {
         } catch (error) {
             console.error("Error setting status bars theme:", error)
         }
-
-        // Create shortcut button
-        const createShortcut = document.getElementById('create-shortcut');
-        createShortcut.style.display = 'flex';
-        createShortcut.addEventListener('click', () => {
-            $Re_Malwack.createShortcut();
-            showPrompt("Shortcut created");
-        });
     } else {
         console.log("Not running in MMRL environment.");
     }
