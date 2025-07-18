@@ -90,8 +90,10 @@ function host_process() {
     log_message "Filtering $file..."
 
     # Convert 127.0.0.1 entries except localhost to 0.0.0.0
-    if grep -vq '^127\.0\.0\.1[[:space:]]*localhost$' "$file"; then
-        log_message "Detected 127.0.0.1 ad-block method in $file, converting to 0.0.0.0..."
+    total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file")
+    legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file")
+    if [ "$total_entries" -gt 0 ] && [ $((total_entries - legacy_entries)) -ge $((total_entries / 2)) ]; then
+        log_message "Converting 127.0.0.1 to 0.0.0.0 in $file..."
         sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     fi
 
@@ -124,15 +126,15 @@ function refresh_blocked_counts() {
 # Functions for pause and resume ad-block
 
 # 1 - Pause adblock
-function pause_adblock() {
+function pause_protections() {
     # Check if protection is already paused
-    if is_adblock_paused; then
-        resume_adblock
+    if is_protection_paused; then
+        resume_protections
         exit 0
     fi
     # Check if hosts file is reset
     if is_default_hosts; then
-        echo "You cannot pause Ad-block while hosts is reset"
+        echo "You cannot pause protections while hosts is reset"
         exit
     fi
     log_message "Pausing Protections"
@@ -148,7 +150,7 @@ function pause_adblock() {
 }
 
 # 2 - Resume adblock
-function resume_adblock() {
+function resume_protections() {
     log_message "Resuming protection."
     echo "- Resuming protection"
     if [ -f "$persist_dir/hosts.bak" ]; then
@@ -167,7 +169,7 @@ function resume_adblock() {
 }
 
 # function to check adblock pause
-function is_adblock_paused() {
+function is_protection_paused() {
     if [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ] ; then
         return 0
     else
@@ -418,7 +420,7 @@ function update_status() {
     log_message "Module hosts entries count: $blocked_mod"
 
     # Here goes the part where we actually determine module status
-    if is_adblock_paused; then
+    if is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
@@ -550,12 +552,12 @@ done
 case "$(tolower "$1")" in
     --adblock-switch|-as)
         start_time=$(date +%s)
-        pause_adblock
+        pause_protections
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
         start_time=$(date +%s)
-        if is_adblock_paused; then
+        if is_protection_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
         fi
@@ -575,7 +577,7 @@ case "$(tolower "$1")" in
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
         start_time=$(date +%s)
-        if is_adblock_paused; then
+        if is_protection_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
         fi
@@ -612,7 +614,7 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
-        if is_adblock_paused; then
+        if is_protection_paused; then
             echo "- Ad-block is paused. Please resume it before running this command."
             exit 1
         fi
@@ -697,7 +699,7 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
-        if is_adblock_paused; then
+        if is_protection_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
         fi
@@ -799,7 +801,7 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        if is_adblock_paused; then
+        if is_protection_paused; then
             echo "- Ad-block is paused. Please resume before running this command."
             exit 1
         fi
@@ -860,8 +862,7 @@ case "$(tolower "$1")" in
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
         echo "--reset, -r: Restore original hosts file."
-        echo "--pause-adblock, -pa: Pauses protection"
-        echo "--resume-adblock, -ra: Resumes protection"
+        echo "--adblock-switch, -as: Toggle protections on/off"
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."

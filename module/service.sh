@@ -25,7 +25,7 @@ function log_message() {
 }
 
 # function to check adblock pause
-function is_adblock_paused() {
+function is_protection_paused() {
     if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
         return 0
     else
@@ -62,7 +62,7 @@ echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
-if is_adblock_paused; then
+if is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
 elif [ "$blocked_mod" -gt 10 ]; then
     if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
