@@ -120,8 +120,8 @@ function refresh_blocked_counts() {
 function pause_adblock() {
     # Check if protection is already paused
     if is_adblock_paused; then
-        echo "protection is already paused!"
-        exit
+        resume_adblock
+        exit 0
     fi
     # Check if hosts file is reset
     if is_default_hosts; then
@@ -541,15 +541,10 @@ done
 
 # ====== Main Logic ======
 case "$(tolower "$1")" in
-    --pause-adblock|-pa)
+    --adblock-switch|-as)
         start_time=$(date +%s)
         pause_adblock
-        log_duration "pause_adblock" "$start_time"
-        ;;
-    --resume-adblock|-ra)
-        start_time=$(date +%s)
-        resume_adblock
-        log_duration "resume_adblock" "$start_time"
+        log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
         start_time=$(date +%s)
