@@ -176,6 +176,46 @@ body.input-focused {
     color: var(--text-primary);
 }
 
+.float-container {
+    position: fixed;
+    bottom: calc(60px + var(--bottom-inset));
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    transform: translateY(calc(100% + 70px + var(--bottom-inset)));
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.float-container.show {
+    transform: translateY(0);
+}
+
+.float-icon {
+    bottom: 0;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    width: 60px;
+    border-radius: 15px;
+    background-color: var(--btn-primary);
+    pointer-events: auto;
+
+    svg {
+        fill: var(--btn-primary-text);
+        position: absolute;
+    }
+}
+
+#pause-icon {
+    display: none;
+}
+
 .overlay {
     position: fixed;
     top: 0;
