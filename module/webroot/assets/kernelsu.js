@@ -33,7 +33,11 @@ export function exec(command, options = {}) {
             delete window[successName];
         }
         try {
-            ksu.exec(command, JSON.stringify(options), callbackFuncName);
+            if (typeof ksu !== 'undefined') {
+                ksu.exec(command, JSON.stringify(options), callbackFuncName);
+            } else {
+                resolve({ errno: 1, stdout: "", stderr: "ksu is not defined" });
+            }
         } catch (error) {
             reject(error);
             cleanup(callbackFuncName);
@@ -96,7 +100,14 @@ export function spawn(command, args = [], options = {}) {
     window[callbackName] = child;
     child.on("exit", () => delete window[callbackName]);
     try {
-        ksu.spawn(command, JSON.stringify(args), JSON.stringify(options), callbackName);
+        if (typeof ksu !== 'undefined') {
+            ksu.spawn(command, JSON.stringify(args), JSON.stringify(options), callbackName);
+        } else {
+            setTimeout(() => {
+                child.emit("error", "ksu is not defined");
+                child.emit("exit", 1);
+            }, 0);
+        }
     } catch (error) {
         child.emit("error", error);
         delete window[callbackName];
@@ -111,7 +122,11 @@ export function spawn(command, args = [], options = {}) {
  */
 export function toast(message) {
     try {
-        ksu.toast(message);
+        if (typeof ksu !== 'undefined') {
+            ksu.toast(message);
+        } else {
+            console.log(message);
+        }
     } catch (error) {   
         console.error("Error displaying toast:", error);
     }
