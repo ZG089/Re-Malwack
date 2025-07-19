@@ -252,7 +252,9 @@ function install_hosts() {
 
     # Update hosts
     log_message "Finalizing..."
-    sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    cat "${tmp_hosts}"[1-9]* > "${tmp_hosts}merged"
+    cat "${tmp_hosts}0" >> "${tmp_hosts}merged"
+    sort -u "${tmp_hosts}merged" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -342,8 +344,8 @@ function block_content() {
             block_var="block_${block_type}"
             eval enabled=\$$block_var
             if [ "$enabled" != "1" ]; then
-                log_message "Skipping install of '$block_type' blocklist: toggle is OFF"
-                echo "INFO: Skipping install of '$block_type' blocklist: toggle is OFF."
+                log_message "Skipping install of $block_type blocklist: toggle is OFF"
+                echo "INFO: Skipping install of $block_type blocklist: toggle is OFF."
             fi
             return 0
         fi
@@ -398,7 +400,7 @@ function fetch() {
         echo "" >> "$output_file"
     fi
     log_message "Downloaded hosts from $url, stored in $output_file"
-    log_duration "fetch and process hosts file from ($url)" "$start_time"
+    log_duration "fetch and process hosts file from url: $url" "$start_time"
 }
 
 # Updates module status, modifying module description in module.prop
@@ -813,7 +815,7 @@ case "$(tolower "$1")" in
             log_message "Installing protection for the first time"
         fi
         nuke_if_we_dont_have_internet
-        echo "- Downloading hosts..."
+        echo "- Processing hosts..."
         # Re-Malwack general hosts
         # Load sources from the file, ignoring comments
         hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
