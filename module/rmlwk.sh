@@ -566,6 +566,17 @@ case "$(tolower "$1")" in
         log_message "Resetting hosts command triggered, resetting..."
         echo "- Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+
+        # Re-add blacklist entries after reset if they exist
+        if [ -s "$persist_dir/blacklist.txt" ]; then
+            echo "- Reinserting blacklist entries after reset..."
+            grep -vFxf "$persist_dir/blacklist.txt" "$hosts_file" > "${tmp_hosts}_b"
+            while read -r line; do
+                echo "0.0.0.0 $line"
+            done < "$persist_dir/blacklist.txt" >> "${tmp_hosts}_b"
+            cat "${tmp_hosts}_b" > "$hosts_file"
+            rm -f "${tmp_hosts}_b"
+        fi
         chmod 644 "$hosts_file"
 
         # Reset blocklist values to 0
