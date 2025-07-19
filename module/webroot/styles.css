@@ -178,14 +178,14 @@ body.input-focused {
 
 .float-container {
     position: fixed;
-    bottom: calc(60px + var(--bottom-inset));
+    bottom: calc(30px + var(--bottom-inset));
     left: 0;
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     pointer-events: none;
-    transform: translateY(calc(100% + 70px + var(--bottom-inset)));
+    transform: translateY(calc(100% + 40px + var(--bottom-inset)));
     transition: transform 0.3s ease;
     z-index: 1000;
 }
@@ -196,6 +196,7 @@ body.input-focused {
 
 .float-icon {
     bottom: 0;
+    margin: 20px;
     position: relative;
     display: flex;
     justify-content: center;
@@ -205,6 +206,7 @@ body.input-focused {
     border-radius: 15px;
     background-color: var(--btn-primary);
     pointer-events: auto;
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
 
     svg {
         fill: var(--btn-primary-text);
