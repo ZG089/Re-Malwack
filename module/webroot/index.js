@@ -244,11 +244,6 @@ function performAction(commandOption) {
     });
 }
 
-// Function to update hosts file
-function updateHostsFile() {
-    performAction("--update-hosts");
-}
-
 // Function to reset hosts
 async function resetHostsFile() {
     const resetOverlay = document.getElementById("confirmation-overlay");
@@ -659,7 +654,7 @@ window.addEventListener('scroll', () => {
 
 function setupEventListener() {
     document.getElementById("about-button").addEventListener("click", aboutMenu);
-    document.getElementById("update").addEventListener("click", updateHostsFile);
+    document.getElementById("update").addEventListener("click", () => performAction("--update-hosts"));
     document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
@@ -669,7 +664,7 @@ function setupEventListener() {
 
     // About page links
     links.forEach(link => {
-        document.getElementById(link.element).addEventListener("click", async () => {
+        document.getElementById(link.element).addEventListener("click", () => {
             linkRedirect(link.url);
         });
     });
