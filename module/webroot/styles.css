@@ -409,6 +409,28 @@ body.input-focused {
     user-select: none;
 }
 
+.outer-box {
+    width: 90vw;
+    max-width: 800px;
+    border-radius: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+    user-select: none;
+    overflow: hidden;
+}
+
+.inner-box {
+    background-color: var(--bg-secondary);
+    border: none;
+    padding: 5px 15px;
+    user-select: none;
+
+    ul {
+        padding: 0;
+    }
+}
+
 .toggle-container {
     display: flex;
     align-items: center;
