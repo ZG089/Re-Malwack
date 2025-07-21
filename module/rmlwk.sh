@@ -74,28 +74,26 @@ function is_default_hosts() {
 # Function to process hosts, maybe?
 function host_process() {
     local file="$1"
-    local tmp_file="${file}.tmp"
-    
+    local tmp_file=$(mktemp "${file}.XXXXXX")
+    local total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
+    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
+
     # Exclude whitelist files
-    case "$file" in
-        *whitelist*)
-            return 0
-            ;;
-    esac
+    echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
+
     # Unified filtration: remove comments, empty lines, trim whitespaces
     sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
 
     # Convert 127.0.0.1 entries except localhost to 0.0.0.0
-    total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file")
-    legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file")
     if [ "$total_entries" -gt 0 ] && [ $((total_entries - legacy_entries)) -ge $((total_entries / 2)) ]; then
         log_message "Converting 127.0.0.1 to 0.0.0.0 in $file..."
-        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file"
+        mv "$tmp_file" "$file"
     fi
 
     # Decompress multi-domain host entries
-    if awk '$1 == "0.0.0.0" && NF > 2 { found = 1; exit } END { exit !found }' "$file"; then
+    if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
         log_message "Detected compressed entries in $file, splitting..."
         awk '
             $1 == "0.0.0.0" && NF > 2 {
@@ -105,7 +103,8 @@ function host_process() {
                 next
             }
             { print }
-        ' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+        ' "$file" > "$tmp_file"
+        mv "$tmp_file" "$file"
     fi
 }
 
