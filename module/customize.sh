@@ -75,7 +75,7 @@ for module in /data/adb/modules/*; do
 done
 
 # let's check do we have internet or not.
-ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "- This module requires internet connection to download protections."
+ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "- This module requires internet connection to download protections."
 
 # Add a persistent directory to save configuration
 persistent_dir="/data/adb/Re-Malwack"

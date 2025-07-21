@@ -371,7 +371,7 @@ function abort() {
 
 # Bruh It's clear already what this function does ._.
 function nuke_if_we_dont_have_internet() {
-    ping -c 1 -w 5 raw.githubusercontent.com &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
+    ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
 }
 
 # Fetches hosts from sources.txt
