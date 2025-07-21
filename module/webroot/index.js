@@ -84,14 +84,22 @@ async function checkMMRL() {
     }
 }
 
+async function isPaused() {
+    const result = await exec(`[ -f "${basePath}/hosts.bak" ] && grep -q "^adblock_switch=1" "${basePath}/config.sh"`);
+    return result.errno === 0;
+}
+
 // Function to get working status
 async function getStatus() {
     const statusElement = document.getElementById('status-text');
     const disableBox = document.querySelector('.header-disabled');
-    try {
-        const rawStatus = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
-        let status = rawStatus.stdout.trim();
+    const disableText = document.getElementById('disable-text');
+    const result = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
+    if (result.errno === 0) {
+        let status = result.stdout.trim();
         if (parseInt(status) === 0) {
+            const pause = await isPaused();
+            disableText.textContent = pause ? "Protection is paused" : "Protection is disabled due to reset";
             disableBox.style.display = 'flex';
             statusElement.textContent = '-';
             getlastUpdated(false);
@@ -105,8 +113,8 @@ async function getStatus() {
         }
         statusElement.textContent = status;
         disableBox.style.display = 'none';
-    } catch (error) {
-        console.error("Error getting status:", error);
+    } else {
+        console.error("Error getting status:", result.stderr);
     }
     getlastUpdated();
 }
