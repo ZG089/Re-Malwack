@@ -37,7 +37,6 @@ function abort() {
     exit 1
 }
 
-
 # APRIL_FOOLS
 function april_fools() {
     touch $persist_dir/get_pranked
