@@ -507,7 +507,11 @@ function disable_cron() {
 # Sourcing config file
 . "$persist_dir/config.sh"
 
-
+# Trigger force stats refresh on WebUI
+if [ "$WEBUI" = "true" ]; then
+    refresh_blocked_counts
+    update_status
+fi
 #### Error logging lore
 
 # 1 - Include error logging
