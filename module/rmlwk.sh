@@ -720,7 +720,14 @@ case "$(tolower "$1")" in
             exit 1
         fi
         option="$2"
-        domain="$3"
+        raw_input="$3"
+
+        # Sanitize input
+        if printf "%s" "$raw_input" | grep -qE '^https?://'; then
+            domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
+        else
+            domain="$raw_input"
+        fi
 
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
             echo "usage: rmlwk --blacklist <add/remove> <domain>"
@@ -729,21 +736,23 @@ case "$(tolower "$1")" in
         else
             touch "$persist_dir/blacklist.txt"
             if [ "$option" = "add" ]; then
-                # Add domain to blacklist.txt and add to hosts if it isn't there
-                grep -qx "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
-                if grep -q "0\.0\.0\.0 $domain" "$hosts_file"; then
+                # Add to blacklist.txt if not already there
+                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+
+                # Add to hosts file if not already present
+                if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
                     echo "- $domain is already blacklisted."
                 else
                     # Ensure newline at end before appending
                     [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "- Blacklisted $domain."
-                    update_status
                     log_message "Blacklisted $domain."
+                    update_status
                 fi
             else
-                # Remove domain from blacklist.txt if found
+                # Remove from blacklist.txt if present
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
-                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt";
+                    sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
                     log_message "Removed $domain from blacklist."
                     echo "- $domain removed from blacklist."
                 else
