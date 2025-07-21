@@ -229,7 +229,7 @@ function performAction(commandOption) {
     closeBtn.addEventListener('click', () => closeTerminal());
 
     isShellRunning = true;
-    const output = spawn('sh', ['/data/adb/modules/Re-Malwack/rmlwk.sh', `${commandOption}`], { env: { MAGISKTMP: 'true' }});
+    const output = spawn('sh', ['/data/adb/modules/Re-Malwack/rmlwk.sh', `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' }});
     output.stdout.on('data', (data) => {
         const newline = document.createElement('p');
         newline.className = 'output-line';
@@ -279,7 +279,7 @@ async function resetHostsFile() {
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const isEnabled = document.getElementById('daily-update-toggle').checked;
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
     if (result.errno !== 0) {
         showPrompt("Failed to toggle daily update", false);
         console.error("Error toggling daily update:", result.stderr);
@@ -343,7 +343,7 @@ async function handleAdd(fileType) {
         inputElement.value = "";
         return;
     }
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`, { env: { WEBUI: 'true' }});
     if (result.errno === 0) {
         showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
         inputElement.value = "";
@@ -497,7 +497,7 @@ async function loadFile(fileType) {
 
 // Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`);
+    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`, { env: { WEBUI: 'true' }});
     if (result.errno === 0) {
         showPrompt(`Removed ${line} from ${fileType}`, true);
         await loadFile(fileType);
