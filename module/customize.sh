@@ -23,8 +23,8 @@ ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
+
 # Detect Root Manager 
-# L weird rom.
 root_manager=""
 root_version=""
 if command -v magisk >/dev/null 2>&1; then
