@@ -542,7 +542,6 @@ for arg in "$@"; do
 done
 
 # Show banner if not running from Magisk Manager / quiet mode is disabled
-# quiet mode is useless. i aint removin' crap ista.
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
 # ====== Main Logic ======
