@@ -121,9 +121,9 @@
 
 - [@person0z](https://github.com/Person0z) - Malwack founder
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
-- [@Hagezi](https://github.com/hagezi/dns-blocklists) - Hosts file
-- [@hBlock](https://github.com/hectorm/hblock) - Hosts file
-- [@StevenBlack](https://github.com/StevenBlack/hosts) - fake news sites and gambling sites blocklist
+- [@Hagezi](https://github.com/hagezi) - Hosts file source
+- [@badmojr](https://github.com/badmojr) - Hosts file source
+- [@StevenBlack](https://github.com/StevenBlack) - fake news sites and gambling sites blocklist
 
 ## Donations
 As an 11th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
