@@ -74,16 +74,19 @@ function is_default_hosts() {
 # Function to process hosts, maybe?
 function host_process() {
     local file="$1"
-    local tmp_file=$(mktemp "${file}.XXXXXX")
-    local total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
-    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
-
+    local tmp_file="${file}.tmp"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
 
-    # Unified filtration: remove comments, empty lines, trim whitespaces
-    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
+    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
+
+    # Count 127.0.0.1 based entries (if there's any), after filtering target host file
+    local total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
+    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
+    log_message "Total entries count found in $file: $local_entries"
+    log_message "Legacy entries (including localhost) count found in $file: $legacy_entries"
 
     # Convert 127.0.0.1 entries except localhost to 0.0.0.0
     if [ "$total_entries" -gt 0 ] && [ $((total_entries - legacy_entries)) -ge $((total_entries / 2)) ]; then
