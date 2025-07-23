@@ -23,7 +23,8 @@ ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
-# Detect Root Manager
+
+# Detect Root Manager 
 root_manager=""
 root_version=""
 if command -v magisk >/dev/null 2>&1; then
@@ -102,12 +103,12 @@ chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPA
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
 rm -rf $persistent_dir/logs/*
-sh $MODPATH/rmlwk.sh --update-hosts --quiet || {
+if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
     ui_print "- Failed to initialize host files"
-    ui_print "- Logs are saved in /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
-    tar -czvf /sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz --exclude="$persistent_dir" -C $persistent_dir logs
-    abort
-}
+    tarFileName="/sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+    tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+    abort "- Logs are saved in ${tarFileName}"
+fi
 
 # Create symlink on install for ksu/ap
 for i in /data/adb/ap/bin /data/adb/ksu/bin; do
