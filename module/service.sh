@@ -12,25 +12,19 @@ last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last
 
 # Function to check hosts file reset state
 is_default_hosts() {
-    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] && return 0
-    return 1
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ]
 }
 
 # Logging function
 function log_message() {
     local message="$1"
     touch "$persist_dir/logs/service.log"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "$persist_dir/logs/service.log"
-    
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "$persist_dir/logs/service.log"   
 }
 
 # function to check adblock pause
 function is_protection_paused() {
-    if [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ] ; then
-        return 0
-    else
-        return 1
-    fi
+    [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ]
 }
 
 # =========== Main script logic ===========

@@ -21,8 +21,6 @@ mkdir -p "$persist_dir/logs"
 
 
 # ====== Functions ======
-
-# Banner function
 function rmlwk_banner() {
     # Skip banner if quiet mode is enabled
     [ "$quiet_mode" -eq 1 ] && return
@@ -70,35 +68,35 @@ EOF
 
 # Function to check hosts file reset state
 function is_default_hosts() {
-    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] && return 0
-    return 1
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ]
 }
 
 # Function to process hosts, maybe?
 function host_process() {
     local file="$1"
     local tmp_file="${file}.tmp"
-    
     # Exclude whitelist files
-    case "$file" in
-        *whitelist*)
-            return 0
-            ;;
-    esac
-    # Unified filtration: remove comments, empty lines, trim whitespaces
-    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+    echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
+
+    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
+    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
 
+    # Count 127.0.0.1 based entries (if there's any), after filtering target host file
+    local total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
+    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
+    log_message "Total entries count found in $file: $local_entries"
+    log_message "Legacy entries (including localhost) count found in $file: $legacy_entries"
+
     # Convert 127.0.0.1 entries except localhost to 0.0.0.0
-    total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file")
-    legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file")
     if [ "$total_entries" -gt 0 ] && [ $((total_entries - legacy_entries)) -ge $((total_entries / 2)) ]; then
         log_message "Converting 127.0.0.1 to 0.0.0.0 in $file..."
-        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file"
+        mv "$tmp_file" "$file"
     fi
 
     # Decompress multi-domain host entries
-    if awk '$1 == "0.0.0.0" && NF > 2 { found = 1; exit } END { exit !found }' "$file"; then
+    if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
         log_message "Detected compressed entries in $file, splitting..."
         awk '
             $1 == "0.0.0.0" && NF > 2 {
@@ -108,7 +106,8 @@ function host_process() {
                 next
             }
             { print }
-        ' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
+        ' "$file" > "$tmp_file"
+        mv "$tmp_file" "$file"
     fi
 }
 
@@ -170,11 +169,7 @@ function resume_protections() {
 
 # function to check adblock pause
 function is_protection_paused() {
-    if [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ] ; then
-        return 0
-    else
-        return 1
-    fi
+    [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
 # Logging func - Literally helpful for any dev :D
@@ -411,9 +406,7 @@ function update_status() {
     log_message "Last hosts file update was in: $last_mod"
 
     # System hosts count
-    if [ ! -d "/data/adb/modules/Re-Malwack" ]; then
-        log_message "First install detected (module directory missing)."
-    fi
+    [ ! -d "/data/adb/modules/Re-Malwack" ] && log_message "First install detected (module directory missing)."
 
     # Module hosts count
     blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
@@ -554,7 +547,6 @@ done
 # Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
-
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
@@ -563,11 +555,8 @@ case "$(tolower "$1")" in
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
+        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
         start_time=$(date +%s)
-        if is_protection_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
         log_message "Resetting hosts command triggered, resetting..."
         echo "- Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -595,10 +584,7 @@ case "$(tolower "$1")" in
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
         start_time=$(date +%s)
-        if is_protection_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
+        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -632,14 +618,8 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
-        if is_protection_paused; then
-            echo "- Ad-block is paused. Please resume it before running this command."
-            exit 1
-        fi
-        if is_default_hosts; then
-            echo "- You cannot whitelist links while hosts is reset."
-            exit 1
-        fi
+        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
+        is_default_hosts && abort "- You cannot whitelist links while hosts is reset."
         option="$2"
         raw_input="$3"
 
@@ -717,10 +697,7 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
-        if is_protection_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
+        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
         option="$2"
         raw_input="$3"
 
@@ -828,10 +805,7 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        if is_protection_paused; then
-            echo "- Ad-block is paused. Please resume before running this command."
-            exit 1
-        fi
+        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[UPGRADING ANTI-ADS FORTRESS 🏰]"
             log_message "Updating protections..."
@@ -876,9 +850,7 @@ case "$(tolower "$1")" in
         refresh_blocked_counts
         update_status
         log_message "Successfully updated hosts."
-        if [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ]; then
-            echo "- Everything is now Good!"
-        fi
+        [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "- Everything is now Good!"
         log_duration "update-hosts" "$start_time"
         ;;
 
