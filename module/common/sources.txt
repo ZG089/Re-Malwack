@@ -1,7 +1,7 @@
 # Base Hosts Sources
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt
-https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/1hosts.txt
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt
+https://badmojr.github.io/1Hosts/Lite/hosts.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt

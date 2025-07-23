@@ -92,9 +92,9 @@ if [ ! -s "$persistent_dir/sources.txt" ]; then
     mv -f $MODPATH/common/sources.txt $persistent_dir/sources.txt
 else
     rm -f $MODPATH/common/sources.txt
-    # Replace previously used compression hosts source if found
-    sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|' $persistent_dir/sources.txt
-    sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/1hosts.txt|' $persistent_dir/sources.txt
+    # Replace some hosts sources with recommended ones
+    sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt|' $persistent_dir/sources.txt
+    sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://badmojr.github.io/1Hosts/Lite/hosts.txt|' $persistent_dir/sources.txt
 fi
 
 # set permissions
