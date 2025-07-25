@@ -249,6 +249,7 @@ function performAction(commandOption) {
         closeBtn.classList.add('show');
         getStatus();
         checkBlockStatus();
+        updateAdblockSwtich();
     });
 }
 
@@ -618,18 +619,12 @@ function setupTheme() {
 }
 
 // update adblock swtich
-function updateAdblockSwtich() {
+async function updateAdblockSwtich() {
     const play = document.getElementById('play-icon');
     const pause = document.getElementById('pause-icon');
-    exec('grep "^adblock_switch=" "/data/adb/Re-Malwack/config.sh" | cut -d= -f2')
-        .then(({ errno, stdout, stderr }) => {
-            if (errno !== 0) {
-                console.error(stderr);
-                return;
-            }
-            play.style.display = stdout === '1' ? 'block' : 'none';
-            pause.style.display = stdout === '0' ? 'block' : 'noen';
-        });
+    const protection = await isPaused();
+    play.style.display = protection ? 'block' : 'none';
+    pause.style.display = !protection ? 'block' : 'none';
 }
 
 // Scroll event
