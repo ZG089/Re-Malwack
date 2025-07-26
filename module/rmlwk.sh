@@ -17,9 +17,12 @@ system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+
+# ====== Pre-func ======
+
+# Pre-exec
+. "$persist_dir/config.sh"
 mkdir -p "$persist_dir/logs"
-
-
 # ====== Functions ======
 function rmlwk_banner() {
     # Skip banner if quiet mode is enabled
@@ -121,7 +124,12 @@ function refresh_blocked_counts() {
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
 
-# Functions for pause and resume ad-block
+####### Functions for protection switch
+
+# function to check adblock pause
+function is_protection_paused() {
+    [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
+}
 
 # 1 - Pause adblock
 function pause_protections() {
@@ -137,7 +145,7 @@ function pause_protections() {
     fi
     log_message "Pausing Protections"
     echo "- Pausing Protections"
-    cat $hosts_file > "$persist_dir/hosts.bak"
+    cp "$hosts_file" "$persist_dir/hosts.bak"
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
     chmod 644 "$hosts_file"
     sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
@@ -164,11 +172,6 @@ function resume_protections() {
         log_message "No backup hosts file found to resume."
         echo "- No backup hosts file found to resume."
     fi
-}
-
-# function to check adblock pause
-function is_protection_paused() {
-    [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
 # Logging func - Literally helpful for any dev :D
@@ -495,9 +498,6 @@ function disable_cron() {
 }
 
 # Now enough functions and variables, Let's start the real work 😎
-
-# Sourcing config file
-. "$persist_dir/config.sh"
 
 # Trigger force stats refresh on WebUI
 if [ "$WEBUI" = "true" ]; then
