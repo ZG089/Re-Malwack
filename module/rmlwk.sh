@@ -24,29 +24,30 @@ mkdir -p "$persist_dir/logs"
 
 # ====== Functions ======
 function rmlwk_banner() {
+    
     # Skip banner if quiet mode is enabled
     [ "$quiet_mode" -eq 1 ] && return
 
     clear
 
-    banner1=$(cat <<'EOF'
-\033[0;31m    ____             __  ___      __                    __            
-   / __ \___        /  |/  /___ _/ /      ______ ______/ /__          
-  / /_/ / _ \______/ /|_/ / __ `/ / | /| / / __ `/ ___/ //_/       
- / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<             
-/_/ |_|\___/     /_/  /_/\__,_/_/ |__/|__/\__,_/\___/_/|_|           
- 
-EOF
-)
-    banner2=$(cat <<'EOF'
-\033[0;31m██████╗ ███████╗    ███╗   ███╗ █████╗ ██╗     ██╗    ██╗ █████╗  ██████╗██╗  ██╗
-██╔══██╗██╔════╝    ████╗ ████║██╔══██╗██║     ██║    ██║██╔══██╗██╔════╝██║ ██╔╝
-██████╔╝█████╗█████╗██╔████╔██║███████║██║     ██║ █╗ ██║███████║██║     █████╔╝ 
-██╔══██╗██╔══╝╚════╝██║╚██╔╝██║██╔══██║██║     ██║███╗██║██╔══██║██║     ██╔═██╗ 
-██║  ██║███████╗    ██║ ╚═╝ ██║██║  ██║███████╗╚███╔███╔╝██║  ██║╚██████╗██║  ██╗
-╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
-EOF
-)
+    banner1=$(
+        echo -e "\033[0;31m"
+        echo -e "    ____             __  ___      __                    __            "
+        echo -e "   / __ \\___        /  |/  /___ _/ /      ______ ______/ /__          "
+        echo -e "  / /_/ / _ \\______/ /|_/ / __ \`/ / | /| / / __ \`/ ___/ //_/       "
+        echo -e " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<              "
+        echo -e "/_/ |_|\\___/     /_/  /_/\\__,_/_/ |__/|__/\\__,_/\\___/_/|_|      "
+    )
+
+    banner2=$(
+        echo -e "\033[0;31m"
+        echo -e "██████╗ ███████╗    ███╗   ███╗ █████╗ ██╗     ██╗    ██╗ █████╗  ██████╗██╗  ██╗"
+        echo -e "██╔══██╗██╔════╝    ████╗ ████║██╔══██╗██║     ██║    ██║██╔══██╗██╔════╝██║ ██╔╝"
+        echo -e "██████╔╝█████╗█████╗██╔████╔██║███████║██║     ██║ █╗ ██║███████║██║     █████╔╝ "
+        echo -e "██╔══██╗██╔══╝╚════╝██║╚██╔╝██║██╔══██║██║     ██║███╗██║██╔══██║██║     ██╔═██╗ "
+        echo -e "██║  ██║███████╗    ██║ ╚═╝ ██║██║  ██║███████╗╚███╔███╔╝██║  ██║╚██████╗██║  ██╗"
+        echo -e "╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝"
+    )
 
     if command -v shuf >/dev/null 2>&1; then
         random_index=$(shuf -i 1-2 -n 1)
@@ -55,8 +56,8 @@ EOF
     fi
 
     case $random_index in
-        1) echo -e "$banner1" ;;
-        2) echo -e "$banner2" ;;
+        1) eval "$banner1" ;;
+        2) eval "$banner2" ;;
     esac
 
     printf '\033[0m'
@@ -730,48 +731,48 @@ case "$(tolower "$1")" in
         ;;
 
 	--custom-source|-c)
-    option="$2"
-    domain="$3"
+        option="$2"
+        domain="$3"
 
-    if [ -z "$option" ]; then
-        echo "- Missing argument: You must specify 'add' or 'remove'."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
-    fi
-
-    if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
-        echo "- Invalid option: Use 'add' or 'remove'."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
-    fi
-
-    if [ -z "$domain" ]; then
-        echo "- Missing domain: You must specify a domain."
-        echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-        exit 1
-    fi
-
-    touch "$persist_dir/sources.txt"
-
-    if [ "$option" = "add" ]; then
-        if grep -qx "$domain" "$persist_dir/sources.txt"; then
-            echo "- $domain is already in sources."
-        else
-            echo "$domain" >> "$persist_dir/sources.txt"
-            log_message "Added $domain to sources."
-            echo "- Added $domain to sources."
+        if [ -z "$option" ]; then
+            echo "- Missing argument: You must specify 'add' or 'remove'."
+            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+            exit 1
         fi
-    else
-        if grep -qx "$domain" "$persist_dir/sources.txt"; then
-            sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
-            log_message "Removed $domain from sources."
-            echo "- Removed $domain from sources."
-        else
-            log_message "Failed to remove $domain from sources, maybe wasn't even found?."
-            echo "- $domain was not even found in sources."
+
+        if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
+            echo "- Invalid option: Use 'add' or 'remove'."
+            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+            exit 1
         fi
-    fi
-    ;;
+
+        if [ -z "$domain" ]; then
+            echo "- Missing domain: You must specify a domain."
+            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+            exit 1
+        fi
+
+        touch "$persist_dir/sources.txt"
+
+        if [ "$option" = "add" ]; then
+            if grep -qx "$domain" "$persist_dir/sources.txt"; then
+                echo "- $domain is already in sources."
+            else
+                echo "$domain" >> "$persist_dir/sources.txt"
+                log_message "Added $domain to sources."
+                echo "- Added $domain to sources."
+            fi
+        else
+            if grep -qx "$domain" "$persist_dir/sources.txt"; then
+                sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
+                log_message "Removed $domain from sources."
+                echo "- Removed $domain from sources."
+            else
+                log_message "Failed to remove $domain from sources, maybe wasn't even found?."
+                echo "- $domain was not even found in sources."
+            fi
+        fi
+        ;;
 
 
     --auto-update|-a)
