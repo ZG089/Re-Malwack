@@ -2,16 +2,22 @@
 # This is the service script of Re-Malwack
 # It is executed during device boot
 
+#  =========== Preparation ===========
+source $persist_dir/config.sh
+mkdir -p "$persist_dir/logs"
+rm -rf "$persist_dir/logs/"*
+
 # =========== Variables ===========
 MODDIR="${0%/*}"
 hosts_file="$MODDIR/system/etc/hosts"
 persist_dir="/data/adb/Re-Malwack"
 system_hosts="/system/etc/hosts"
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
+
 # =========== Functions ===========
 
 # Function to check hosts file reset state
-is_default_hosts() {
+function is_default_hosts() {
     [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ]
 }
 
@@ -28,11 +34,6 @@ function is_protection_paused() {
 }
 
 # =========== Main script logic ===========
-
-# preparation
-source $persist_dir/config.sh
-mkdir -p "$persist_dir/logs"
-rm -rf "$persist_dir/logs/"*
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
