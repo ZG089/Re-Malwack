@@ -84,24 +84,6 @@ function host_process() {
     sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
 
-    # Count 127.0.0.1 based entries (if there's any), after filtering target host file
-    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
-    local default_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
-    local main_entries=$((legacy_entries - default_entries))
-    local total_hosts=$(grep -c '^\(0\.0\.0\.0\|127\.0\.0\.1\) ' "$file" || true)
-    log_message "Legacy entries count found in $file: $legacy_entries"
-    log_message "Default entries count found in $file: $default_entries"
-    log_message "Main entries count found in $file: $main_entries"
-    log_message "Total entries count found in $file: $total_hosts"
-
-    # Only convert if:
-    # - More than 50% of entries are 127.0.0.1 (excluding localhost)
-    # - At least 100 such entries exist
-    if [ "$main_entries" -gt 0 ] && [ "$main_entries" -ge 100 ] && [ "$main_entries" -ge $((total_hosts / 2)) ]; then
-        log_message "Detected 127.0.0.1 blocking pattern in $file ($main_entries/$total_hosts), converting..."
-        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
-    fi
-
     # Decompress multi-domain host entries
     if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
         log_message "Detected compressed entries in $file, splitting..."
