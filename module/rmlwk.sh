@@ -24,7 +24,7 @@ mkdir -p "$persist_dir/logs"
 
 # ====== Functions ======
 function rmlwk_banner() {
-    
+
     # Skip banner if quiet mode is enabled
     [ "$quiet_mode" -eq 1 ] && return
 
@@ -135,7 +135,6 @@ function pause_protections() {
     echo "- Pausing Protections"
     cp "$hosts_file" "$persist_dir/hosts.bak"
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
-    chmod 644 "$hosts_file"
     sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
     refresh_blocked_counts
     update_status
@@ -149,7 +148,6 @@ function resume_protections() {
     echo "- Resuming protection"
     if [ -f "$persist_dir/hosts.bak" ]; then
         cat "$persist_dir/hosts.bak" > "$hosts_file"
-        chmod 644 "$hosts_file"
         rm -f $persist_dir/hosts.bak
         sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         refresh_blocked_counts
