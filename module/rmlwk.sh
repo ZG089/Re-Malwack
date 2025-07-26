@@ -83,16 +83,15 @@ function host_process() {
     log_message "Filtering $file..."
 
     # Count 127.0.0.1 based entries (if there's any), after filtering target host file
-    local total_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
-    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
+    local legacy_entries=$(grep -c '^127\.0\.0\.1[[:space:]]\+' "$file" || true)
+    local default_entries=$(grep -c '^127\.0\.0\.1[[:space:]]*localhost$' "$file" || true)
     log_message "Total entries count found in $file: $local_entries"
     log_message "Legacy entries (including localhost) count found in $file: $legacy_entries"
 
     # Convert 127.0.0.1 entries except localhost to 0.0.0.0
-    if [ "$total_entries" -gt 0 ] && [ $((total_entries - legacy_entries)) -ge $((total_entries / 2)) ]; then
-        log_message "Converting 127.0.0.1 to 0.0.0.0 in $file..."
-        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file"
-        mv "$tmp_file" "$file"
+    if [ "$((legacy_entries - default_entries))" -gt 0 ]; then
+        log_message "Converting 127.0.0.1-based hosts to 0.0.0.0 in $file..."
+        sed '/^127\.0\.0\.1[[:space:]]*localhost$/! s/^127\.0\.0\.1[[:space:]]\+/0.0.0.0 /' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     fi
 
     # Decompress multi-domain host entries
