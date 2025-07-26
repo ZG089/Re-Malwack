@@ -102,7 +102,8 @@ chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPA
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
-rm -rf $persistent_dir/logs/*
+rm -rf $persistent_dir/logs/* 2>/dev/null
+rm -rf $persistent_dir/cache/* 2>/dev/null
 if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
     ui_print "- Failed to initialize host files"
     tarFileName="/sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
