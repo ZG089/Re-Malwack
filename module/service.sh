@@ -10,9 +10,24 @@ system_hosts="/system/etc/hosts"
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
 
 #  =========== Preparation ===========
+
+# 1 - Sourcing config file
 . $persist_dir/config.sh
+
+# 2 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
+# 3 - Remove previous logs
 rm -rf "$persist_dir/logs/"*
+
+# System hosts count
+blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+log_message "System hosts entries count: $blocked_sys"
+
+# Module hosts count
+blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+log_message "Module hosts entries count: $blocked_mod"
 
 # =========== Functions ===========
 
@@ -30,7 +45,7 @@ function log_message() {
 
 # function to check adblock pause
 function is_protection_paused() {
-    [ -f "$persist_dir/hosts.bak" ] && [ "adblock_switch" -eq 1 ]
+    [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
 # =========== Main script logic ===========
@@ -45,16 +60,6 @@ else
     [ -w /debug_ramdisk ] && magisktmp=/debug_ramdisk
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
-
-# System hosts count
-blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
-log_message "System hosts entries count: $blocked_sys"
-
-# Module hosts count
-blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
-log_message "Module hosts entries count: $blocked_mod"
 
 # Here goes the part where we actually determine module status
 if is_protection_paused; then
