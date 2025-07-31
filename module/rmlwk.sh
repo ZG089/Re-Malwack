@@ -368,20 +368,20 @@ function fetch() {
     if command -v curl >/dev/null 2>&1; then
         dl_tool=curl
         curl -Ls "$url" > "$output_file" || {
-            log_message "Failed to download $url with curl"
-            echo "WARNING: Failed to download hosts from $url"
+            log_message "Failed to download from $url with curl"
+            echo "WARNING: Failed to download from $url"
         }
         echo "" >> "$output_file"
-    else # Else we gotta just fallback to windows ge- my bad I mean winget.
+    else # Else we gotta just fallback to windows ge- my bad I mean winget- BRUH it's wget :sob:
         dl_tool=wget
         busybox wget --no-check-certificate -qO - "$url" > "$output_file" || {
-            log_message "Failed to download $url with wget"
-            echo "WARNING: Failed to download hosts from $url"
+            log_message "Failed to download from $url with wget"
+            echo "WARNING: Failed to download from $url"
         }
         echo "" >> "$output_file"
     fi
-    log_message "Downloaded hosts from $url using $dl_tool, stored in $output_file"
-    log_duration "fetch and process hosts file from url: $url" "$start_time"
+    log_message "Downloaded from $url using $dl_tool, stored in $output_file"
+    log_duration "fetch file from url: $url" "$start_time"
 }
 
 # Updates module status, modifying module description in module.prop
