@@ -230,9 +230,7 @@ function install_hosts() {
 
     # Update hosts
     log_message "Finalizing..."
-    cat "${tmp_hosts}"[1-9]* > "${tmp_hosts}merged"
-    cat "${tmp_hosts}0" >> "${tmp_hosts}merged"
-    sort -u "${tmp_hosts}merged" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
