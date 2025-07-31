@@ -77,8 +77,8 @@ function host_process() {
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
 
     # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
-    sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file" > "$tmp_file" && mv "$tmp_file" "$file"
     log_message "Filtering $file..."
+    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file"
 
     # Decompress multi-domain host entries
     if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
@@ -230,7 +230,7 @@ function install_hosts() {
 
     # Update hosts
     log_message "Finalizing..."
-    sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -312,8 +312,9 @@ function block_content() {
             
             # Normalize downloaded hosts
             for file in "$persist_dir/cache/$block_type/hosts"*; do
-                host_process "$file"
+                host_process "$file" &
             done
+            wait
         fi
 
         # Skip install if called from hosts update
@@ -814,8 +815,9 @@ case "$(tolower "$1")" in
 
         # Process each downloaded hosts file with host_process
         for i in $(seq 1 $counter); do
-            host_process "${tmp_hosts}${i}"
+            host_process "${tmp_hosts}${i}" &
         done
+        wait
 
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
