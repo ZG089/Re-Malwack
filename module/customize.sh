@@ -56,10 +56,10 @@ ui_print " ----------------------------------"
 ui_print " "
 
 # abort if we are in recovery mode.
-[ $BOOTMODE == true ] || abort "[!] Not supported to install in recovery"
+[ $BOOTMODE == true ] || abort "[✗] Not supported to install in recovery"
 
 # check if adaway is detected or not.
-pm list packages | grep -q org.adaway && abort "[!] Adaway is detected, Please uninstall it to prevent conflicts."
+pm list packages | grep -q org.adaway && abort "[✗] Adaway is detected, Please uninstall it to prevent conflicts."
 
 # iterrate throughout the /data/adb/modules and
 # - Skip if we stumbled upon on our own module
@@ -70,16 +70,16 @@ for module in /data/adb/modules/*; do
     if [ -f "${module}/system/etc/hosts" ]; then
         [ -f "/data/adb/modules/$module_id/disable" ] && continue
         module_name="$(grep_prop name "${module}/module.prop")"
-        ui_print "[>] Disabling conflicting module: $module_name"
         touch "/data/adb/modules/$module_id/disable"
+        ui_print "[i] Disabled conflicting module: $module_name"
     fi
 done
 
 # let's check do we have internet or not.
-ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "[!] Failed to connect to the internet"
+ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "[✗] Failed to connect to the internet"
 
 # Add a persistent directory to save configuration
-ui_print "[>] Preparing Re-Malwack environment"
+ui_print "[*] Preparing Re-Malwack environment"
 persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
 mkdir -p "$persistent_dir"
@@ -106,7 +106,7 @@ mkdir -p $MODPATH/system/etc
 rm -rf $persistent_dir/logs/* 2>/dev/null
 rm -rf $persistent_dir/cache/* 2>/dev/null
 if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
-    ui_print "[!] Failed to initialize host files"
+    ui_print "[✗] Failed to initialize host files"
     tarFileName="/sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
     tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
     abort "[i] Logs are saved in ${tarFileName}"
