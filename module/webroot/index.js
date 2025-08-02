@@ -617,7 +617,7 @@ async function updateAdblockSwtich() {
 }
 
 function initCredit() {
-    const credit = document.querySelector('.credit');
+    const credit = document.querySelector('.credit-list');
     fetch('contributors.json')
         .then(response => response.json())
         .then(data => {
@@ -636,8 +636,6 @@ function initCredit() {
                     linkRedirect(`https://github.com/${contributor.username}`);
                 });
             });
-            const spacer = document.createElement('div');
-            credit.appendChild(spacer);
             applyRippleEffect();
         })
         .catch(error => {
@@ -671,6 +669,14 @@ window.addEventListener('scroll', () => {
         floatBtn.classList.add('show');
     }
     lastScrollY = window.scrollY;
+});
+
+document.querySelector('.credit').addEventListener('scroll', () => {
+    isScrolling = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+    }, 200);
 });
 
 function setupEventListener() {
