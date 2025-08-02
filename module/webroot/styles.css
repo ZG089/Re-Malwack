@@ -333,25 +333,30 @@ body.input-focused {
 }
 
 .link {
-    width: auto;
+    margin: 15px 0;
 }
 
 .link-icon {
-    display: inline-block;
-    font-style: normal;
+    font-size: 17px;
+    font-weight: bold;
+    min-height: calc(1em + 15px);
     padding: 3px 10px;
-    color: #fff;
+    color: white;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    font-style: normal;
     border-radius: 8px;
+    box-sizing: border-box;
     margin-bottom: 5px;
     transition: background-color 0.2s ease;
-    user-select: none;
-}
 
-.link-icon object {
-    padding-bottom: 2px;
-    vertical-align: bottom;
-    height: 17px;
-    width: 17px;
+    svg {
+        height: 17px;
+        width: 17px;
+        fill: white;
+        padding-right: 5px;
+    }
 }
 
 #telegram {
@@ -371,14 +376,8 @@ body.input-focused {
     background-color: #E7D705;
 }
 
-#link-text {
-    font-size: 17px;
-    font-weight: bold;
-}
-
 .credit {
     display: flex;
-    margin-top: 10px;
     width: 100%;
     mask-image: linear-gradient(to right, black 0%, black calc(100% - 25px), transparent 100%);
     overflow-x: auto;
