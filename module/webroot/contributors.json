@@ -1,0 +1,47 @@
+[
+    {
+        "username": "ZG089",
+        "type": "Author",
+        "description": "Main developer"
+    },
+    {
+        "username": "KOWX712",
+        "type": "Contributor",
+        "description": "WebUI + Contributor"
+    },
+    {
+        "username": "GalaxyA14user",
+        "type": "Contributor",
+        "description": "Fixing bugs + Contributor"
+    },
+    {
+        "username": "ayumi-aiko",
+        "type": "Contributor",
+        "description": "Contributor"
+    },
+    {
+        "username": "person0z",
+        "type": "Foundational Supporters",
+        "description": "Malwack Magisk module creator"
+    },
+    {
+        "username": "topjohnwu",
+        "type": "Foundational Supporters",
+        "description": "Magisk Founder"
+    },
+    {
+        "username": "Hagezi",
+        "type": "Hosts Provider",
+        "description": "Hosts file source"
+    },
+    {
+        "username": "badmojr",
+        "type": "Hosts Provider",
+        "description": "Hosts file source"
+    },
+    {
+        "username": "StevenBlack",
+        "type": "Hosts Provider",
+        "description": "fake news sites and gambling sites blocklist"
+    }
+]

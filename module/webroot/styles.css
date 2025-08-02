@@ -321,10 +321,6 @@ body.input-focused {
     font-size: 14px;
 }
 
-.credit-list {
-    text-align: left;
-}
-
 #module-name {
     padding-top: 5px;
     font-size: 28px;
@@ -333,14 +329,6 @@ body.input-focused {
 
 #author {
     font-size: 14px;
-    user-select: none;
-}
-
-#credits {
-    padding-top: 10px;
-    padding-bottom: 5px;
-    font-weight: bold;
-    font-size: 20px;
     user-select: none;
 }
 
@@ -386,6 +374,49 @@ body.input-focused {
 #link-text {
     font-size: 17px;
     font-weight: bold;
+}
+
+.credit {
+    margin-top: 10px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 200px);
+    grid-auto-flow: column;
+    grid-auto-columns: 200px;
+    gap: 15px;
+    mask-image: linear-gradient(to right, black 0%, black calc(100% - 25px), transparent 100%);
+    overflow-x: auto;
+    grid-template-rows: 1fr;
+    height: fit-content;
+}
+
+.credit-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    border-radius: 15px;
+    background-color: var(--bg-primary);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    box-sizing: border-box;
+    width: 200px;
+    min-height: 150px;
+    user-select: none;
+}
+
+.credit-box img {
+    height: 80px;
+    width: 80px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.credit-box h3,
+.credit-box h4,
+.credit-box p {
+    text-align: left;
+    margin: 0;
 }
 
 .box {
