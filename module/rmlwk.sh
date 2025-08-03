@@ -817,9 +817,8 @@ case "$(tolower "$1")" in
 
         # Process each downloaded hosts file with host_process
         for i in $(seq 1 $counter); do
-            host_process "${tmp_hosts}${i}" &
+            host_process "${tmp_hosts}${i}"
         done
-        wait
 
         echo "- Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
