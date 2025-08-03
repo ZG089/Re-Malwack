@@ -313,9 +313,8 @@ function block_content() {
             
             # Normalize downloaded hosts
             for file in "$persist_dir/cache/$block_type/hosts"*; do
-                host_process "$file" &
+                host_process "$file"
             done
-            wait
         fi
 
         # Skip install if called from hosts update
