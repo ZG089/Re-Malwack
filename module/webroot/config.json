@@ -1,4 +1,5 @@
 {
     "title": "Re-Malwack",
-    "icon": "icon.png"
+    "icon": "icon.png",
+    "contentSecurityPolicy": "default-src 'self' data: blob: {domain}; script-src * 'unsafe-inline' 'unsafe-eval' {domain}; style-src 'self' 'unsafe-inline' {domain}; connect-src *; img-src *;"
 }

@@ -191,21 +191,9 @@ async function checkBlockStatus() {
     } catch (error) {
         console.error('Failed to check status:', error);
         if (error.message === 'Config file not found') {
-            try {
-                await linkFile();
-                await checkBlockStatus();
-                return;
-            } catch (linkError) {
-                console.error('Failed to link file:', linkError);
-            }
+            const success = await linkFile();
+            if (success) await checkBlockStatus();
         }
-        // Set all toggles to false on error
-        for (const type of blockTypes) {
-            const toggle = document.getElementById(type.toggle);
-            toggle.checked = false;
-        }
-        // Set daily update toggle to false on error
-        document.getElementById('daily-update-toggle').checked = false;
     }
 }
 
@@ -526,6 +514,7 @@ async function linkFile() {
     if (result.errno !== 0) {
         console.error(`Failed to remove link persistent directory to webroot:`, result.stderr);
     }
+    return errno === 0;
 }
 
 /**
@@ -627,6 +616,33 @@ async function updateAdblockSwtich() {
     pause.style.display = !protection ? 'block' : 'none';
 }
 
+function initCredit() {
+    const credit = document.querySelector('.credit-list');
+    fetch('contributors.json')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(contributor => {
+                const creditBox = document.createElement('div');
+                creditBox.className = 'credit-box';
+                creditBox.classList.add('ripple-element');
+                creditBox.innerHTML = `
+                    <img src="https://github.com/${contributor.username}.png" alt="${contributor.username}">
+                    <h3>${contributor.username}</h3>
+                    <h4>${contributor.type}</h4>
+                    <p>${contributor.description}</p>
+                `;
+                credit.appendChild(creditBox);
+                creditBox.addEventListener('click', () => {
+                    linkRedirect(`https://github.com/${contributor.username}`);
+                });
+            });
+            applyRippleEffect();
+        })
+        .catch(error => {
+            console.error('Error loading contributors:', error);
+        });
+}
+
 // Scroll event
 let lastScrollY = window.scrollY;
 let isScrolling = false;
@@ -653,6 +669,14 @@ window.addEventListener('scroll', () => {
         floatBtn.classList.add('show');
     }
     lastScrollY = window.scrollY;
+});
+
+document.querySelector('.credit').addEventListener('scroll', () => {
+    isScrolling = true;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+    }, 200);
 });
 
 function setupEventListener() {
@@ -701,6 +725,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyRippleEffect();
     getVersion();
     updateAdblockSwtich();
+    initCredit();
     floatBtn.classList.add('show');
     await checkBlockStatus();
     ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
