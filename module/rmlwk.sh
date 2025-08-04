@@ -305,7 +305,7 @@ function block_content() {
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
-            echo "[*] Downloading hosts for $block_type block."
+            echo "[i] Downloading hosts for $block_type block."
             log_message "Downloading hosts for $block_type block."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
             if [ "$block_type" = "porn" ]; then
@@ -821,10 +821,10 @@ case "$(tolower "$1")" in
         log_message "Downloading blocklists for enabled content filters (update mode)"
 
         # Run blocklist updates *in sequence* for better log clarity
-        [ -d "$persist_dir/cache/porn" ] && echo "[i] Downloading hosts for porn block" && block_content "porn" "update"
-        [ -d "$persist_dir/cache/gambling" ] && echo "[i] Downloading hosts for gambling block" && block_content "gambling" "update"
-        [ -d "$persist_dir/cache/fakenews" ] && echo "[i] Downloading hosts for fake news block" && block_content "fakenews" "update"
-        [ -d "$persist_dir/cache/social" ] && echo "[i] Downloading hosts for social block" && block_content "social" "update"
+        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update"
+        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update"
+        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update"
+        [ -d "$persist_dir/cache/social" ] && block_content "social" "update"
 
         echo "[*] Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
