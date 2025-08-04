@@ -230,7 +230,11 @@ function install_hosts() {
 
     # Update hosts
     log_message "Finalizing..."
-    LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" | grep -Fxvf "${tmp_hosts}w" > "$hosts_file"
+    LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
+    
+    # Filter out whitelist domains fast
+    LC_ALL=C comm -23 "${tmp_hosts}merged.sorted" "${tmp_hosts}w" > "$hosts_file"
+
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -537,7 +541,7 @@ case "$(tolower "$1")" in
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
-        is_protection_paused && abort "[i] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
         start_time=$(date +%s)
         log_message "Resetting hosts command triggered, resetting..."
         echo "[*] Reverting the changes..."
@@ -566,7 +570,7 @@ case "$(tolower "$1")" in
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
         start_time=$(date +%s)
-        is_protection_paused && abort "- Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -600,7 +604,7 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
-        is_protection_paused && abort "[i] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "[i] You cannot whitelist links while hosts is reset."
         option="$2"
         raw_input="$3"
@@ -679,7 +683,7 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
-        is_protection_paused && abort "[i] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
         option="$2"
         raw_input="$3"
 
@@ -787,7 +791,8 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        is_protection_paused && abort "[i] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[*] Upgrading Anti-Ads fortress 🏰"
             log_message "Updating protections..."
@@ -801,36 +806,39 @@ case "$(tolower "$1")" in
         hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
         echo "[>] Loaded hosts sources from sources.txt, fetching hosts"
         # Download hosts in parallel
+        counter=0
         for host in $hosts_list; do
-            counter="$((counter + 1))"
+            counter=$((counter + 1))
             fetch "${tmp_hosts}${counter}" "$host" &
         done
         wait
 
-        # Update hosts for custom block
-        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update" &
-        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update" &
-        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update" &
-        [ -d "$persist_dir/cache/social" ] && block_content "social" "update" &
-        wait
-
-        # Process each downloaded hosts file with host_process
         for i in $(seq 1 $counter); do
             host_process "${tmp_hosts}${i}"
         done
 
-        echo "[*] Installing fetched hosts"
-        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+        echo "[>] Downloading blocklists..."
+        log_message "Downloading blocklists for enabled content filters (update mode)"
+
+        # Run blocklist updates *in sequence* for better log clarity
+        [ -d "$persist_dir/cache/porn" ] && echo "[i] Downloading hosts for porn block" && block_content "porn" "update"
+        [ -d "$persist_dir/cache/gambling" ] && echo "[i] Downloading hosts for gambling block" && block_content "gambling" "update"
+        [ -d "$persist_dir/cache/fakenews" ] && echo "[i] Downloading hosts for fake news block" && block_content "fakenews" "update"
+        [ -d "$persist_dir/cache/social" ] && echo "[i] Downloading hosts for social block" && block_content "social" "update"
+
+        echo "[*] Installing hosts"
+        printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
         install_hosts "base"
 
-        # Check config and apply update
-        [ "$block_porn" = 1 ] && block_content "porn" && log_message "Updating porn sites blocklist..."
-        [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Updating gambling sites blocklist..."
-        [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Updating Fake news sites blocklist..."
-        [ "$block_social" = 1 ] && block_content "social" && log_message "Updating Social sites blocklist..."
+        # Apply configured blocks
+        [ "$block_porn" = 1 ] && block_content "porn" && log_message "Applied porn blocklist"
+        [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Applied gambling blocklist"
+        [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Applied fake news blocklist"
+        [ "$block_social" = 1 ] && block_content "social" && log_message "Applied social blocklist"
+
         refresh_blocked_counts
         update_status
-        log_message "Successfully updated hosts."
+        log_message "Successfully updated all hosts."
         [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
         log_duration "update-hosts" "$start_time"
         ;;
