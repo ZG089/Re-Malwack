@@ -157,9 +157,24 @@ function resume_protections() {
 
 # Logging func - Literally helpful for any dev :D
 function log_message() {
-    message="$1"
-    [ -f "$LOGFILE" ] || touch "$LOGFILE"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> $LOGFILE
+
+    timestamp() {
+        date +"%m-%d-%Y %I:%M:%S %p"
+    }
+
+    # Handle optional log level (default: INFO)
+    case "$1" in
+        INFO|WARN|ERROR|SUCCESS)
+            level="$1"
+            shift
+            ;;
+        *)
+            level="INFO"
+            ;;
+    esac
+    msg="$*"
+    line="[$(timestamp)] - [$level] - $msg"
+    echo "$line" >> "$LOGFILE"
 }
 
 # Helper to log duration
