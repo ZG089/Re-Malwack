@@ -82,7 +82,7 @@ function host_process() {
 
     # Decompress multi-domain host entries
     if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
-        log_message "Detected compressed entries in $file, splitting..."
+        log_message WARN "Detected compressed entries in $file, splitting..."
         awk '
             $1 == "0.0.0.0" && NF > 2 {
                 for (i = 2; i <= NF; i++) {
@@ -107,7 +107,7 @@ function refresh_blocked_counts() {
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
 
-####### Functions for protection switch
+# Functions for protection switch
 
 # function to check adblock pause
 function is_protection_paused() {
@@ -133,7 +133,7 @@ function pause_protections() {
     sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
     refresh_blocked_counts
     update_status
-    log_message "Protection has been paused."
+    log_message SUCCESS "Protection has been paused."
     echo "[✓] Protection has been paused."
 }
 
@@ -147,10 +147,10 @@ function resume_protections() {
         sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         refresh_blocked_counts
         update_status
-        log_message "Protection has been resumed."
+        log_message SUCCESS "Protection has been resumed."
         echo "[✓] Protection has been resumed."
     else
-        log_message "No backup hosts file found to resume."
+        log_message ERROR "No backup hosts file found to resume."
         echo "[!] No backup hosts file found to resume."
     fi
 }
@@ -217,7 +217,7 @@ function install_hosts() {
     if [ "$block_social" -eq 0 ]; then
         whitelist_file="$whitelist_file $persist_dir/cache/whitelist/social_whitelist.txt"
     else
-        log_message "Social Block triggered, Social whitelist won't be applied"
+        log_message WARN "Social Block triggered, Social whitelist won't be applied"
     fi
 
     # Append user-defined whitelist if it exists
@@ -226,9 +226,9 @@ function install_hosts() {
     # Debugging - Check each whitelist file individually
     for file in $whitelist_file; do
         if [ ! -f "$file" ]; then
-            log_message "WARNING: Whitelist file $file does not exist!"
+            log_message WARN "Whitelist file $file does not exist!"
         elif [ ! -s "$file" ]; then
-            log_message "WARNING: Whitelist file $file is empty!"
+            log_message WARN "Whitelist file $file is empty!"
         else
             log_message "Whitelist file $file found with content."
         fi
@@ -239,7 +239,7 @@ function install_hosts() {
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
-        log_message "Whitelist is empty. Skipping whitelist filtering."
+        log_message WARN "Whitelist is empty. Skipping whitelist filtering."
         echo "" > "${tmp_hosts}w"
     fi
 
@@ -255,7 +255,7 @@ function install_hosts() {
     chmod 644 "$hosts_file"
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
-    log_message "Successfully installed hosts."
+    log_message SUCCESS "Successfully installed $type hosts."
     log_duration "install_hosts ($type)" "$start_time"
 }
 
@@ -275,7 +275,7 @@ function remove_hosts() {
     # Restore to default entries if hosts file is empty
     if [ ! -s "$hosts_file" ]; then
         echo "- Warning: Hosts file is empty. Restoring default entries."
-        log_message "Detected empty hosts file"
+        log_message WARN "Detected empty hosts file"
         log_message "Restoring default entries..."
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
@@ -283,7 +283,7 @@ function remove_hosts() {
     # Clean up
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
-    log_message "Successfully removed hosts."
+    log_message SUCCESS "Successfully removed hosts."
     log_duration "remove_hosts" "$start_time"
 }
 
@@ -299,7 +299,7 @@ function block_content() {
             echo "[*] Re-downloading the blocklist to proceed with disabling."
             echo "[!] Please do not modify or delete /data/adb/Re-Malwack directory files."
             echo "[i] If you think a cleaner app accidentally removed one of the files, Please add the directory to the exceptions list."
-            log_message "Missing cached blocklist for $block_type — auto-redownloading."
+            log_message WARN "Missing cached blocklist for $block_type — auto-redownloading."
             nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
@@ -341,7 +341,7 @@ function block_content() {
             block_var="block_${block_type}"
             eval enabled=\$$block_var
             if [ "$enabled" != "1" ]; then
-                log_message "Skipping install of $block_type blocklist: toggle is OFF"
+                log_message WARN "Skipping install of $block_type blocklist: toggle is OFF"
                 echo "[i] Skipping install of $block_type blocklist: toggle is OFF."
             fi
             return 0
@@ -386,19 +386,19 @@ function fetch() {
     if command -v curl >/dev/null 2>&1; then
         dl_tool=curl
         curl -Ls "$url" > "$output_file" || {
-            log_message "Failed to download from $url with curl"
-            echo "WARNING: Failed to download from $url"
+            log_message ERROR "Failed to download from $url with curl"
+            echo "[!] Failed to download from $url"
         }
         echo "" >> "$output_file"
     else # Else we gotta just fallback to windows ge- my bad I mean winget- BRUH it's wget :sob:
         dl_tool=wget
         busybox wget --no-check-certificate -qO - "$url" > "$output_file" || {
-            log_message "Failed to download from $url with wget"
-            echo "WARNING: Failed to download from $url"
+            log_message ERROR "Failed to download from $url with wget"
+            echo "[!] Failed to download from $url"
         }
         echo "" >> "$output_file"
     fi
-    log_message "Downloaded from $url using $dl_tool, stored in $output_file"
+    log_message SUCCESS "Downloaded from $url using $dl_tool, stored in $output_file"
     log_duration "fetch file from url: $url" "$start_time"
 }
 
@@ -459,12 +459,12 @@ function enable_cron() {
         echo "$CRON_JOB" >> "$JOB_FILE"
         if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
             echo "[✗] Failed to enable auto update: cron-side error."
-            log_message "Failed to enable auto update: cron-side error."
+            log_message ERROR "Failed to enable auto update: cron-side error."
         else
             log_message "Cron job added."
             crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
-            log_message "Auto-update has been enabled."
+            log_message SUCCESS "Auto-update has been enabled."
             echo "[✓] Auto-update enabled."
         fi
     fi
@@ -494,7 +494,7 @@ function disable_cron() {
 
         # Disable auto-update
         sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
-        log_message "Auto-update has been disabled."
+        log_message SUCCESS "Auto-update has been disabled."
         echo "[✓] Auto-update disabled."
     fi
 }
@@ -578,7 +578,7 @@ case "$(tolower "$1")" in
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
         refresh_blocked_counts
         update_status
-        log_message "Successfully reverted changes."
+        log_message SUCCESS "Successfully reverted changes."
 	    echo "[✓] Successfully reverted changes."
         log_duration "reset" "$start_time"
         ;;
@@ -601,7 +601,7 @@ case "$(tolower "$1")" in
             else
                 log_message "Disabling ${block_type} has been initiated." && echo "[*] Removing block entries for ${block_type} sites."
                 block_content "$block_type" 0
-                log_message "Unblocked ${block_type} sites successfully." && echo "[✓] Unblocked ${block_type} sites successfully."
+                log_message SUCCESS "Unblocked ${block_type} sites successfully." && echo "[✓] Unblocked ${block_type} sites successfully."
             fi
         else
             if [ "$block_toggle" = 1 ]; then
@@ -610,7 +610,7 @@ case "$(tolower "$1")" in
                 log_message "Enabling/Adding block entries for $block_type has been initiated."
                 echo "[*] Adding block entries for ${block_type} sites."
                 block_content "$block_type" 1
-                log_message "Blocked ${block_type} sites successfully." && echo "[*] Blocked ${block_type} sites successfully."
+                log_message SUCCESS "Blocked ${block_type} sites successfully." && echo "[*] Blocked ${block_type} sites successfully."
             fi
         fi
         refresh_blocked_counts
@@ -668,7 +668,7 @@ case "$(tolower "$1")" in
                     # Remove entries from hosts
                     echo "[i] The following domain(s) matched and were whitelisted:"
                     printf "%s\n" "$matched_domains"
-                    log_message "Whitelisted domains: $(printf "%s " $matched_domains)"
+                    log_message SUCCESS "Whitelisted domains: $(printf "%s " $matched_domains)"
                     sed -E "/$pattern/d" "$hosts_file" > "$tmp_hosts"
                     cat "$tmp_hosts" > "$hosts_file"
 
@@ -686,7 +686,7 @@ case "$(tolower "$1")" in
 
                 if grep -Eq "$removal_pattern" "$persist_dir/whitelist.txt"; then
                     sed -i -E "/$removal_pattern/d" "$persist_dir/whitelist.txt"
-                    log_message "Removed $domain and matching entries from whitelist. They will be re-blocked on the next update." && echo "[✓] $domain removed from whitelist."
+                    log_message SUCCESS "Removed $domain and matching entries from whitelist. They will be re-blocked on the next update." && echo "[✓] $domain removed from whitelist."
                 else
                     echo "[!] $domain isn't in whitelist."
                     exit 1
@@ -726,7 +726,7 @@ case "$(tolower "$1")" in
                     # Ensure newline at end before appending
                     [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
-                    log_message "Blacklisted $domain."
+                    log_message SUCCESS "Done added $domain to hosts file and blacklist."
                     update_status
                 fi
             else
@@ -773,21 +773,20 @@ case "$(tolower "$1")" in
                 echo "[!] $domain is already in sources."
             else
                 echo "$domain" >> "$persist_dir/sources.txt"
-                log_message "Added $domain to sources."
+                log_message SUCCESS "Added $domain to sources."
                 echo "[✓] Added $domain to sources."
             fi
         else
             if grep -qx "$domain" "$persist_dir/sources.txt"; then
                 sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
-                log_message "Removed $domain from sources."
+                log_message SUCCESS "Removed $domain from sources."
                 echo "[✓] Removed $domain from sources."
             else
-                log_message "Failed to remove $domain from sources, maybe wasn't even found?."
+                log_message ERROR "Failed to remove $domain from sources, maybe wasn't even found?."
                 echo "[!] $domain was not even found in sources."
             fi
         fi
         ;;
-
 
     --auto-update|-a)
         case "$2" in
@@ -853,7 +852,7 @@ case "$(tolower "$1")" in
 
         refresh_blocked_counts
         update_status
-        log_message "Successfully updated all hosts."
+        log_message SUCCESS "Successfully updated all hosts."
         [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
         log_duration "update-hosts" "$start_time"
         ;;
