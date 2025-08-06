@@ -415,6 +415,18 @@ function update_status() {
     # Module hosts count
     blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
     blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
+    
+    # Count blacklisted entries (excluding comments and empty lines)
+    blacklist_count=0
+    [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+
+    # Count whitelisted entries (excluding comments and empty lines)
+    whitelist_count=0
+    [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+    done
+
+    log_message "Blacklist entries count: $blacklist_count"
+    log_message "Whitelist entries count: $whitelist_count"
     log_message "System hosts entries count: $blocked_sys"
     log_message "Module hosts entries count: $blocked_mod"
 
@@ -429,7 +441,11 @@ function update_status() {
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
-            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains | Last updated: $last_mod"
+            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+            status_msg="$status_msg | Blocklist: $((blocked_mod - blacklist_count))"
+            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            status_msg="$status_msg | Last updated: $last_mod"
         fi
     elif is_default_hosts; then
         status_msg="Status: Protection is disabled due to reset ❌"
