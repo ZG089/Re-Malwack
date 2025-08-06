@@ -429,7 +429,6 @@ function update_status() {
     # Count whitelisted entries (excluding comments and empty lines)
     whitelist_count=0
     [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
-    done
 
     log_message "Blacklist entries count: $blacklist_count"
     log_message "Whitelist entries count: $whitelist_count"
