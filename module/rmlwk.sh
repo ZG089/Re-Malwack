@@ -662,9 +662,10 @@ case "$(tolower "$1")" in
         escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
 
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
-            echo "Usage: rmlwk --whitelist <add/remove> <domain>"
+            echo "Usage: rmlwk --whitelist, -w <add/remove> <domain>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
             [ ! -z "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
+            exit 1
         else
             touch "$persist_dir/whitelist.txt"
             if [ "$option" = "add" ]; then
@@ -679,6 +680,7 @@ case "$(tolower "$1")" in
                 # Add domain to whitelist.txt and remove from hosts
                 if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
                     echo "[i] $domain is already whitelisted"
+                    exit 1
                 elif ! grep -Eq "$pattern" "$hosts_file"; then
                     echo "[!] $domain not found in hosts file. Nothing to whitelist."
                     exit 1
@@ -732,9 +734,10 @@ case "$(tolower "$1")" in
         fi
 
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
-            echo "Usage: rmlwk --blacklist <add/remove> <domain>"
+            echo "Usage: rmlwk --blacklist, -b <add/remove> <domain>"
             display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
+            exit 1
         else
             touch "$persist_dir/blacklist.txt"
             if [ "$option" = "add" ]; then
@@ -744,12 +747,12 @@ case "$(tolower "$1")" in
                 # Add to hosts file if not already present
                 if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
                     echo "[!] $domain is already blacklisted."
+                    exit 1
                 else
                     # Ensure newline at end before appending
                     [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
                     log_message SUCCESS "Done added $domain to hosts file and blacklist."
-                    update_status
                 fi
             else
                 # Remove from blacklist.txt if present
@@ -759,6 +762,7 @@ case "$(tolower "$1")" in
                     echo "[✓] $domain removed from blacklist."
                 else
                     echo "[!] $domain isn't found in blacklist."
+                    exit 1
                 fi
             fi
         fi
