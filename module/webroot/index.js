@@ -63,7 +63,7 @@ function aboutMenu() {
 
 // Get module version from module.prop
 async function getVersion() {
-    const version = await exec("grep '^version=' /data/adb/modules/Re-Malwack/module.prop | cut -d'=' -f2");
+    const version = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
     if (version.errno === 0) {
         document.getElementById('version-text').textContent = version.stdout.trim();
         getStatus();
@@ -128,7 +128,7 @@ async function getlastUpdated(isEnable = true) {
         return;
     }
 
-    const last = await exec("date -r '/data/adb/modules/Re-Malwack/system/etc/hosts' '+%H %d/%m'");
+    const last = await exec(`date -r '${modulePath}/system/etc/hosts' '+%H %d/%m'`);
     const now = await exec("date +'%H %d/%m'");
     if (last.errno === 0 || now.errno === 0) {
         // Last update today
@@ -225,7 +225,7 @@ function performAction(commandOption) {
     closeBtn.addEventListener('click', () => closeTerminal());
 
     isShellRunning = true;
-    const output = spawn('sh', ['/data/adb/modules/Re-Malwack/rmlwk.sh', `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' }});
+    const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' }});
     output.stdout.on('data', (data) => {
         const newline = document.createElement('p');
         newline.className = 'output-line';
@@ -276,7 +276,7 @@ async function resetHostsFile() {
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const isEnabled = document.getElementById('daily-update-toggle').checked;
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
+    const result = await exec(`sh ${modulePath}/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
     if (result.errno !== 0) {
         showPrompt("Failed to toggle daily update", false);
         console.error("Error toggling daily update:", result.stderr);
@@ -327,29 +327,31 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
 }
 
 // Function to handle add whitelist/blacklist
-async function handleAdd(fileType) {
+function handleAdd(fileType) {
     const inputElement = document.getElementById(`${fileType}-input`);
     const inputValue = inputElement.value.trim();
+
+    if (inputValue === "") return;
     console.log(`Input value for ${fileType}: "${inputValue}"`);
-    if (inputValue === "") {
-        console.error("Input is empty. Skipping add operation.");
-        return;
-    }
+
     if (fileType === "whitelist") {
         performAction(`--whitelist add ${inputValue}`);
         inputElement.value = "";
         return;
     }
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} add ${inputValue}`, { env: { WEBUI: 'true' }});
-    if (result.errno === 0) {
-        showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
-        inputElement.value = "";
-        await loadFile(fileType);
-        await getStatus();
-    } else {
-        console.error(`Error adding ${fileType} "${inputValue}":`, result.stderr);
-        showPrompt(`Failed to add ${fileType} ${inputValue}`, false);
-    }
+
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' }});
+    result.on('exit', async (code) => {
+        if (code === 0) {
+            showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
+            inputElement.value = "";
+            await loadFile(fileType);
+            await getStatus();
+        } else {
+            console.error(`Error adding ${fileType} "${inputValue}":`, result.stderr);
+            showPrompt(`Failed to add ${fileType} ${inputValue}`, false);
+        }
+    });
 }
 
 // Prevent input box blocked by keyboard
@@ -494,7 +496,7 @@ async function loadFile(fileType) {
 
 // Function to remove a line from whitelist/blacklist/custom-source
 async function removeLine(fileType, line) {
-    const result = await exec(`sh /data/adb/modules/Re-Malwack/rmlwk.sh --${fileType} remove ${line}`, { env: { WEBUI: 'true' }});
+    const result = await exec(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`, { env: { WEBUI: 'true' }});
     if (result.errno === 0) {
         showPrompt(`Removed ${line} from ${fileType}`, true);
         await loadFile(fileType);
