@@ -759,7 +759,7 @@ case "$(tolower "$1")" in
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
                     log_message "Removed $domain from blacklist."
-                    echo "[✓] $domain removed from blacklist."
+                    echo "[✓] $domain removed from blacklist, domain will be unblocked after hosts update."
                 else
                     echo "[!] $domain isn't found in blacklist."
                     exit 1
