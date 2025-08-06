@@ -150,8 +150,14 @@ function resume_protections() {
         log_message SUCCESS "Protection has been resumed."
         echo "[✓] Protection has been resumed."
     else
-        log_message ERROR "No backup hosts file found to resume."
+        log_message WARN "No backup hosts file found to resume"
+        log_message "Force resuming protection and running hosts update as a fallback action"
         echo "[!] No backup hosts file found to resume."
+        sleep 0.5
+        echo "[i] Force resuming protection and running hosts update as a fallback action"
+        sleep 3
+        sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
+        exec "$0" --update-hosts
     fi
 }
 
