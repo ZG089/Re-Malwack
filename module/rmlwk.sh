@@ -241,7 +241,7 @@ function install_hosts() {
     done
 
     # Merge whitelist files into one
-    cat $whitelist_file | awk 'NF && $1 !~ /^#/ { print "0.0.0.0", $0 }' "$persist_dir/blacklist.txt" > "${tmp_hosts}w"
+    cat $whitelist_file | awk 'NF && $1 !~ /^#/ { print "0.0.0.0", $0 }' "$whitelist_file" > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -250,12 +250,12 @@ function install_hosts() {
     fi
 
     # Update hosts
+    log_message "Merging hosts"
+    cat "${tmp_hosts}"* > "$tmp_hosts/all.raw"
     log_message "Unifying hosts"
-    LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
-    
-    # Filter out whitelist domains fast
-    log_message "Filtering hosts"
-    LC_ALL=C awk ' NR==FNR { whitelist[$2]; next } !($2 in whitelist)' $whitelist_file ${tmp_hosts}merged.sorted > "$hosts_file"
+    awk '!a[$2]++' "$tmp_hosts/all.raw" > "$tmp_hosts/uniq"
+    log_message "Filtering hosts and finalizing"
+    awk 'NR==FNR { w[$2]; next } !($2 in w)' "$whitelist_filemodule" "$tmp_hosts/uniq" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
