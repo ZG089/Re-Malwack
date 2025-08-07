@@ -326,7 +326,7 @@ function block_content() {
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             nuke_if_we_dont_have_internet
             mkdir -p "$persist_dir/cache/$block_type"
-            echo "[i] Downloading hosts for $block_type block."
+            echo "[*] Downloading & Applying hosts for $block_type block."
             log_message "Downloading hosts for $block_type block."
             fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
             if [ "$block_type" = "porn" ]; then
@@ -337,9 +337,14 @@ function block_content() {
             fi
             
             # Normalize downloaded hosts
-            for file in "$persist_dir/cache/$block_type/hosts"*; do
-                host_process "$file"
+            job_limit=3
+            job_count=0
+            for i in $(seq 1 $counter); do
+                host_process "${tmp_hosts}${i}" &
+                job_count=$((job_count + 1))
+                [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
             done
+            wait
         fi
 
         # Skip install if called from hosts update
@@ -851,13 +856,15 @@ case "$(tolower "$1")" in
             fetch "${tmp_hosts}${counter}" "$host" &
         done
         wait
-
+        # process hosts in parallel
+        job_limit=3
+        job_count=0
         for i in $(seq 1 $counter); do
-            host_process "${tmp_hosts}${i}"
+            host_process "${tmp_hosts}${i}" &
+            job_count=$((job_count + 1))
+            [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
         done
-
-        echo "[>] Downloading blocklists..."
-        log_message "Downloading blocklists for enabled content filters (update mode)"
+        wait
 
         # Run blocklist updates *in sequence* for better log clarity
         [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update"
@@ -865,7 +872,7 @@ case "$(tolower "$1")" in
         [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update"
         [ -d "$persist_dir/cache/social" ] && block_content "social" "update"
 
-        echo "[*] Installing hosts"
+        echo "[*] Installing base hosts"
         printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
         install_hosts "base"
 
