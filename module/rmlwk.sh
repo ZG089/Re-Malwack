@@ -255,7 +255,7 @@ function install_hosts() {
     
     # Filter out whitelist domains fast
     log_message "Filtering hosts"
-    LC_ALL=C awk ' NR==FNR { whitelist[$2]; next } !($2 in whitelist)' whitelist_file merged_hosts > "$hosts_file"
+    LC_ALL=C awk ' NR==FNR { whitelist[$2]; next } !($2 in whitelist)' $whitelist_file ${tmp_hosts}merged.sorted > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -336,11 +336,11 @@ function block_content() {
                 wait
             fi
             
-            # Normalize downloaded hosts
-            job_limit=3
+        # Normalize downloaded hosts
+            job_limit=4
             job_count=0
-            for i in $(seq 1 $counter); do
-                host_process "${tmp_hosts}${i}" &
+            for file in "$persist_dir/cache/$block_type/hosts"*; do
+                host_process "$file"
                 job_count=$((job_count + 1))
                 [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
             done
@@ -857,7 +857,7 @@ case "$(tolower "$1")" in
         done
         wait
         # process hosts in parallel
-        job_limit=3
+        job_limit=4
         job_count=0
         for i in $(seq 1 $counter); do
             host_process "${tmp_hosts}${i}" &
