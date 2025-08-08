@@ -252,8 +252,8 @@ function install_hosts() {
     # Update hosts
     log_message "Merging hosts"
     LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
-    log_message "Unifying hosts"
-    LC_ALL=C comm -23 "${tmp_hosts}merged.sorted" "${tmp_hosts}w" > "$hosts_file"
+    log_message "filtering hosts"
+    grep -Fvxf "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
