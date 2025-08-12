@@ -843,18 +843,17 @@ case "$(tolower "$1")" in
             log_message "Installing protection for the first time"
         fi
         nuke_if_we_dont_have_internet
-        # Re-Malwack general hosts
-        # Load sources from the file, ignoring comments
+
+        # 1. Download & process base hosts
         hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
-        echo "[>] Loaded hosts sources from sources.txt, fetching hosts"
-        # Download hosts in parallel
+        echo "[>] Loaded hosts sources from sources.txt, fetching base hosts..."
         counter=0
         for host in $hosts_list; do
             counter=$((counter + 1))
             fetch "${tmp_hosts}${counter}" "$host" &
         done
         wait
-        # process hosts in parallel
+        # Process in parallel
         job_limit=4
         job_count=0
         for i in $(seq 1 $counter); do
@@ -864,22 +863,58 @@ case "$(tolower "$1")" in
         done
         wait
 
-        # Run blocklist updates *in sequence* for better log clarity
-        [ -d "$persist_dir/cache/porn" ] && block_content "porn" "update"
-        [ -d "$persist_dir/cache/gambling" ] && block_content "gambling" "update"
-        [ -d "$persist_dir/cache/fakenews" ] && block_content "fakenews" "update"
-        [ -d "$persist_dir/cache/social" ] && block_content "social" "update"
-
+        # 2. Install base hosts
         echo "[*] Installing base hosts"
         printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
         install_hosts "base"
 
-        # Apply configured blocks
-        [ "$block_porn" = 1 ] && block_content "porn" && log_message "Applied porn blocklist"
-        [ "$block_gambling" = 1 ] && block_content "gambling" && log_message "Applied gambling blocklist"
-        [ "$block_fakenews" = 1 ] && block_content "fakenews" && log_message "Applied fake news blocklist"
-        [ "$block_social" = 1 ] && block_content "social" && log_message "Applied social blocklist"
+        # 3. Download & process blocklists (cached + enabled)
+        blocklists_to_install=""
+        for bl in porn gambling fakenews social; do
+            block_var="block_${bl}"
+            eval enabled=\$$block_var
 
+            # Skip completely if not enabled and no cache exists
+            if [ "$enabled" != "1" ] && [ ! -d "$persist_dir/cache/$bl" ]; then
+                log_message "Skipping $bl blocklist: not enabled and no cache."
+                continue
+            fi
+
+            mkdir -p "$persist_dir/cache/$bl"
+            cache_hosts="$persist_dir/cache/$bl/hosts"
+
+            # Download if missing or during update
+            if [ ! -f "${cache_hosts}1" ] || [ "$enabled" = "1" ]; then
+                echo "[*] Downloading & processing blocklists..."
+                log_message "Fetching hosts for $bl..."
+                nuke_if_we_dont_have_internet
+                fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
+                if [ "$bl" = "porn" ]; then
+                    fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
+                    fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
+                    fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                    wait
+                fi
+            fi
+
+            # Process downloaded hosts
+            for file in "$persist_dir/cache/$bl/hosts"*; do
+                [ -f "$file" ] && host_process "$file"
+            done
+
+            # Add to install list if enabled
+            [ "$enabled" = "1" ] && blocklists_to_install="$blocklists_to_install $persist_dir/cache/$bl/hosts*"
+        done
+
+        # 4. Install all enabled blocklists in one pass
+        if [ -n "$blocklists_to_install" ]; then
+            echo "[*] Installing enabled blocklists..."
+            cp -f "$hosts_file" "${tmp_hosts}0"
+            cat $blocklists_to_install >> "${tmp_hosts}0"
+            install_hosts "blocklists"
+        fi
+
+        # 5. Finalize
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully updated all hosts."
