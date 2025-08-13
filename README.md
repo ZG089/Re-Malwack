@@ -93,15 +93,23 @@
 
 > [!TIP]
 > **Does it blocks in-app ads and in-game ads as well ?**
-> - Of course it does! All of this using the magic of magisk and the hosts file !
+> - Yes, it surely does.
 
 > [!TIP]
-> **My device lags a lot/ there's an error when using the module, How to fix ?**
+> **There's an error happened with the module, What to do?**
 > - Firstly, export logs, then attach it to your report. Submit [here](https://github.com/ZG089/Re-Malwack/issues) or report your problem in our [telegram support group](https://t.me/Re_Malwack), Just don't forget to attach logs!
 
 > [!TIP]
-> **Can I help in something?**
-> - Surely, You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
+> **My device lags a lot, Any fix?**
+> Remove some hosts sources, or replace some of them with more lightweight ones.
+
+> [!TIP]
+> **AdBlock doesn't seem to be working although the module says it works**
+> Make sure you didn't install another adblock solution / using custom DNS as it messes up with everything, Also Please avoid doing things that affects protections like **Enabling Lite Mode in APatch** or **Using umount mode on apps you don't want ads to appear in, eg: Browsers like Chrome**
+
+> [!TIP]
+> **Possible to contribute?**
+> - Of Course, You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
 
 > [!NOTE]
 > - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089)
@@ -115,7 +123,6 @@
 
 - [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
-- [@forsaken-heart24](https://github.com/forsaken-heart24)
 
 ## This project wouldn't exist without:
 
