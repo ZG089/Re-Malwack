@@ -538,7 +538,7 @@ exec 2>>"$LOGFILE"
 trap '
 err_code=$?
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-echo "[$timestamp] - Runtime ERROR ❌ at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
+echo "[$timestamp] - [ERROR] -  At line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
 # 3 - Trap final script exit
@@ -548,7 +548,7 @@ timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 
 case $exit_code in
     0)
-        echo "[$timestamp] - Script ran successfully ✅ - No errors" >> "$LOGFILE"
+        echo "[$timestamp] - [SUCCESS] - Script ran successfully ✅ - No errors" >> "$LOGFILE"
         ;;
     1)   msg="General error ❌" ;;
     126) msg="Command invoked cannot execute ❌" ;;
@@ -558,7 +558,7 @@ case $exit_code in
     *)   msg="Unknown error ❌ (code $exit_code)" ;;
 esac
 
-[ $exit_code -ne 0 ] && echo "[$timestamp] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
+[ $exit_code -ne 0 ] && echo "[$timestamp] - [ERROR] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
 ' EXIT
 
 # Check for --quiet argument
