@@ -328,10 +328,12 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
 
 // Function to handle add whitelist/blacklist
 function handleAdd(fileType) {
+    const box = document.getElementById(fileType);
     const inputElement = document.getElementById(`${fileType}-input`);
     const inputValue = inputElement.value.trim();
+    const loading = box.querySelector('.loading');
 
-    if (inputValue === "") return;
+    if (inputValue === "" || (loading && loading.classList.contains('show'))) return;
     console.log(`Input value for ${fileType}: "${inputValue}"`);
 
     if (fileType === "whitelist") {
@@ -340,8 +342,12 @@ function handleAdd(fileType) {
         return;
     }
 
+    loading.classList.add('show');
+
     const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' }});
     result.on('exit', async (code) => {
+        loading.classList.remove('show');
+
         if (code === 0) {
             showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
             inputElement.value = "";

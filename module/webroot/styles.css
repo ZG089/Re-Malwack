@@ -569,6 +569,7 @@ input:checked+.slider:before {
 
 .category-container button {
     display: flex;
+    position: relative;
     border-radius: 8px;
     height: 35px;
     width: 35px;
@@ -579,6 +580,42 @@ input:checked+.slider:before {
     justify-content: center;
     align-items: center;
     transition: background-color 0.2s ease;
+}
+
+.loading {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 1;
+}
+
+.loading.show {
+    display: flex;
+}
+
+.loading-circle {
+    height: calc(100% - 15px);
+    width: calc(100% - 15px);
+    border-radius: 50%;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--btn-primary-text);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .delete-btn {
