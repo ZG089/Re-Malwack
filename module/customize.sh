@@ -27,19 +27,10 @@ sleep 0.2
 # Detect Root Manager 
 root_manager=""
 root_version=""
-if command -v magisk >/dev/null 2>&1; then
-    root_manager="Magisk/Variants"
-    root_version="$(magisk -v 2>/dev/null)"
-elif command -v ksud >/dev/null 2>&1; then
-    root_manager="KernelSU/Variants"
-    root_version="$(ksud -V 2>/dev/null | awk '{print $2}')"
-elif command -v apd >/dev/null 2>&1 || [ -f "/data/adb/ap/bin/apd" ]; then
-    root_manager="APatch"
-    root_version="$(/data/adb/ap/bin/apd --version 2>/dev/null | head -n 1)"
-else
-    root_manager="Unknown"
-    root_version=""
-fi
+command -v magisk >/dev/null 2>&1 && root_manager="Magisk/Variants" && root_version="$MAGISK_VER"
+[ "$KSU" = "true" ] && root_manager="KernelSU" && root_version="$KSU_VER_CODE"
+[ "$APATCH" = "true" ] && root_manager="APatch" && root_version="$(cat "/data/adb/ap/version")"
+
 # Output
 if [ -n "$root_version" ]; then
     ui_print "- 🔓 Root Manager: $root_manager ($root_version)"
