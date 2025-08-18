@@ -250,10 +250,16 @@ function install_hosts() {
     fi
 
     # Update hosts
-    log_message "Merging hosts"
-    LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
+    if [ -f "$combined_file" ]; then
+        log_message "Detected unified hosts, sorting..."
+        LC_ALL=C sort -u "$combined_file" > "${tmp_hosts}merged.sorted"
+    else    
+        log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
+        LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
+    fi
+
     log_message "Filtering hosts"
-    grep -Fvxf "${tmp_hosts}w" "${tmp_hosts}merged.sorted"  > "$hosts_file"
+    grep -Fvxf "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file"
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -844,50 +850,44 @@ case "$(tolower "$1")" in
         fi
         nuke_if_we_dont_have_internet
 
-        # 1. Download & process base hosts
+        combined_file="${tmp_hosts}_all"
+        > "$combined_file"
+
+        # 1. Download + normalize base hosts
+        echo "[*] Fetching base hosts..."
         hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
-        echo "[>] Loaded hosts sources from sources.txt, fetching base hosts..."
         counter=0
         for host in $hosts_list; do
             counter=$((counter + 1))
             fetch "${tmp_hosts}${counter}" "$host" &
         done
         wait
+
         # Process in parallel
         job_limit=4
         job_count=0
         for i in $(seq 1 $counter); do
-            host_process "${tmp_hosts}${i}" &
+            (
+                host_process "${tmp_hosts}${i}"
+                cat "${tmp_hosts}${i}" >> "$combined_file"
+            ) &
             job_count=$((job_count + 1))
             [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
         done
         wait
-
-        # 2. Install base hosts
-        echo "[*] Installing base hosts"
-        printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
-        install_hosts "base"
 
         # 3. Download & process blocklists (cached + enabled)
         blocklists_to_install=""
         for bl in porn gambling fakenews social; do
             block_var="block_${bl}"
             eval enabled=\$$block_var
-
-            # Skip completely if not enabled and no cache exists
-            if [ "$enabled" != "1" ] && [ ! -d "$persist_dir/cache/$bl" ]; then
-                log_message "Skipping $bl blocklist: not enabled and no cache."
-                continue
-            fi
-
-            mkdir -p "$persist_dir/cache/$bl"
             cache_hosts="$persist_dir/cache/$bl/hosts"
 
-            # Download if missing or during update
+            # Download if missing or updating
             if [ ! -f "${cache_hosts}1" ] || [ "$enabled" = "1" ]; then
-                echo "[*] Downloading & processing blocklists..."
-                log_message "Fetching hosts for $bl..."
-                nuke_if_we_dont_have_internet
+                mkdir -p "$persist_dir/cache/$bl"
+                echo "[*] Fetching blocklist: $bl"
+                log_message "Fetching blocklist: $bl"
                 fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
                 if [ "$bl" = "porn" ]; then
                     fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
@@ -902,19 +902,18 @@ case "$(tolower "$1")" in
                 [ -f "$file" ] && host_process "$file"
             done
 
-            # Add to install list if enabled
-            [ "$enabled" = "1" ] && blocklists_to_install="$blocklists_to_install $persist_dir/cache/$bl/hosts*"
+            # Append only if enabled
+            if [ "$enabled" = "1" ]; then
+                cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
+                echo "[✓] Fetched $bl blocklist"
+                log_message "Added $bl blocklist to combined file"
+            else
+                echo "[i] Skipped $bl blocklist (disabled)"
+            fi
         done
+        install_hosts "all"
 
-        # 4. Install all enabled blocklists in one pass
-        if [ -n "$blocklists_to_install" ]; then
-            echo "[*] Installing enabled blocklists..."
-            cp -f "$hosts_file" "${tmp_hosts}0"
-            cat $blocklists_to_install >> "${tmp_hosts}0"
-            install_hosts "blocklists"
-        fi
-
-        # 5. Finalize
+        # 4. Done
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully updated all hosts."
