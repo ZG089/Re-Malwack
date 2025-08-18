@@ -911,6 +911,9 @@ case "$(tolower "$1")" in
                 echo "[i] Skipped $bl blocklist (disabled)"
             fi
         done
+
+        echo "[*] Installing hosts"
+        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "all"
 
         # 4. Done
