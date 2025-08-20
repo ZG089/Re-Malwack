@@ -80,13 +80,47 @@ for type in block_porn block_gambling block_fakenews block_social daily_update a
 done
 
 # Handle source file
+brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+model=$(getprop ro.product.model | tr '[:upper:]' '[:lower:]')
+# Function to add URL only if it doesn't exist
+add_url_if_not_exists() {
+    local url="$1"
+    if ! grep -q "^$url$" "$persistent_dir/sources.txt"; then
+        echo "$url" >> "$persistent_dir/sources.txt"
+    fi
+}
 if [ ! -s "$persistent_dir/sources.txt" ]; then
     mv -f $MODPATH/common/sources.txt $persistent_dir/sources.txt
+    add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
+    if echo "$brand" | grep -qE '^(realme|oppo)$'; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt"
+    elif echo "$brand" | grep -q samsung; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt"
+    elif echo "$brand" | grep -qE '^(xiaomi|poco|redmi)$'; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt"
+    elif echo "$brand" | grep -q vivo; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt"
+    elif echo "$brand" | grep -q huawei; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt"
+    fi
+
 else
     rm -f $MODPATH/common/sources.txt
-    # Replace some hosts sources with recommended ones
-    sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/multi.txt|' $persistent_dir/sources.txt
+    # update sources
+    sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|' $persistent_dir/sources.txt
     sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://badmojr.github.io/1Hosts/Lite/hosts.txt|' $persistent_dir/sources.txt
+    add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
+    if echo "$brand" | grep -qE '^(realme|oppo)$'; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt"
+    elif echo "$brand" | grep -q samsung; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt"
+    elif echo "$brand" | grep -qE '^(xiaomi|poco|redmi)$'; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt"
+    elif echo "$brand" | grep -q vivo; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt"
+    elif echo "$brand" | grep -q huawei; then
+        add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt"
+    fi
 fi
 
 # set permissions
