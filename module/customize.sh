@@ -24,7 +24,7 @@ sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
 
-# Detect Root Manager 
+# Detect Root Manager
 root_manager=""
 root_version=""
 command -v magisk >/dev/null 2>&1 && root_manager="Magisk/Variants" && root_version="$MAGISK_VER"
@@ -46,25 +46,11 @@ ui_print "                                    /"
 ui_print " ----------------------------------"
 ui_print " "
 
-# abort if we are in recovery mode.
-[ $BOOTMODE == true ] || abort "[✗] Not supported to install in recovery"
+# abort in recovery
+$BOOTMODE || abort "! Not supported to install in recovery"
 
 # check if adaway is detected or not.
-pm list packages | grep -q org.adaway && abort "[✗] Adaway is detected, Please uninstall it to prevent conflicts."
-
-# iterrate throughout the /data/adb/modules and
-# - Skip if we stumbled upon on our own module
-# - And skip if the module is disabled.
-for module in /data/adb/modules/*; do
-    module_id="$(grep_prop id "${module}/module.prop")"
-    [ "$module_id" == "Re-Malwack" ] && continue
-    if [ -f "${module}/system/etc/hosts" ]; then
-        [ -f "/data/adb/modules/$module_id/disable" ] && continue
-        module_name="$(grep_prop name "${module}/module.prop")"
-        touch "/data/adb/modules/$module_id/disable"
-        ui_print "[i] Disabled conflicting module: $module_name"
-    fi
-done
+pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please uninstall to prevent conflicts, backup your setup optionally before uninstalling in case you want to import your setup."
 
 # let's check do we have internet or not.
 ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "[✗] Failed to connect to the internet"
@@ -78,6 +64,18 @@ touch "$config_file"
 for type in block_porn block_gambling block_fakenews block_social daily_update adblock_switch; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
 done
+
+# Import from other ad-block modules (All respect to other ad-block modules developers)
+. $MODPATH/import.sh
+
+# set permissions
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh
+
+# Initialize hosts files
+mkdir -p $MODPATH/system/etc
+rm -rf $persistent_dir/logs/* 2>/dev/null
+rm -rf $persistent_dir/cache/* 2>/dev/null
+
 
 # Handle source file
 brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
@@ -123,17 +121,13 @@ else
     fi
 fi
 
-# set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh
-
-# Initialize hosts files
-mkdir -p $MODPATH/system/etc
-rm -rf $persistent_dir/logs/* 2>/dev/null
-rm -rf $persistent_dir/cache/* 2>/dev/null
+# Initialize
 if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
-    ui_print "[✗] Failed to initialize host files"
+    ui_print "[✗] Failed to initialize script"
     tarFileName="/sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
     tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+    # cleanup in case of failure (in worst cases on first install)
+    [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
     abort "[i] Logs are saved in ${tarFileName}"
 fi
 
@@ -141,3 +135,6 @@ fi
 for i in /data/adb/ap/bin /data/adb/ksu/bin; do
     [ -d "$i" ] && ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
 done
+
+# Cleanup
+rm -f $MODPATH/import.sh
