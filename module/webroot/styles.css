@@ -70,27 +70,19 @@ body.input-focused {
 }
 
 .header {
-    font-size: 35px;
-    font-weight: bold;
-    color: var(--btn-primary-text);
     background-color: var(--btn-primary);
     width: 90vw;
     max-width: 800px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 5px;
     border: none;
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
     padding: 25px 15px;
-    overflow: hidden;
     user-select: none;
-
-    svg {
-        fill: var(--btn-primary-text);
-    }
 }
 
 .header-disabled {
@@ -99,9 +91,21 @@ body.input-focused {
     padding: 10px 15px;
     background-color: var(--border-color);
     color: var(--text-secondary);
+    user-select: none;
 
     svg {
         fill: var(--text-secondary)
+    }
+}
+
+.logo {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    width: calc(100% - 60px);
+
+    svg {
+        fill: var(--btn-primary-text);
     }
 }
 
@@ -118,6 +122,7 @@ body.input-focused {
     font-weight: bold;
     text-align: center;
     overflow: hidden;
+    user-select: none;
 }
 
 .dashboard-item {
@@ -150,8 +155,7 @@ body.input-focused {
     display: flex;
     align-items: center;
     gap: 5px;
-    height: 30px;
-    margin-left: auto;
+    height: 100%;
 
     svg {
         fill: var(--btn-primary-text);
