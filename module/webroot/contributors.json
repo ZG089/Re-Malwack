@@ -20,6 +20,11 @@
         "description": "Contributor"
     },
     {
+        "username": "myst-25",
+        "type": "Contributor",
+        "description": "Active tester"
+    },
+    {
         "username": "person0z",
         "type": "Foundational Supporters",
         "description": "Malwack Magisk module creator"

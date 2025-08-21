@@ -116,8 +116,7 @@
 
 - [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
-- [@forsaken-heart24](https://github.com/forsaken-heart24)
-
+- [@myst-25](https://github.com/myst-25) (Active tester)
 ## This project wouldn't exist without:
 
 - [@person0z](https://github.com/Person0z) - Malwack founder
