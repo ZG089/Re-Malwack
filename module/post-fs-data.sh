@@ -7,3 +7,10 @@ for module in /data/adb/modules/*; do
         touch "/data/adb/modules/$module_id/disable"
     fi
 done
+
+# Mount hosts manually if KernelSU .nomount / APatch .litemode_enable and mountify exist
+if [ -d /data/adb/modules/mountify ]
+    && { [ "$KSU_MAGIC_MOUNT" = "true" ] && [ -f /data/adb/ksu/.nomount ]; }
+    || { [ "$APATCH_BIND_MOUNT" = "true" ] && [ -f /data/adb/.litemode_enable ]; }; then
+    mount --bind "$MODPATH/system/etc/hosts" /system/etc/hosts
+fi
