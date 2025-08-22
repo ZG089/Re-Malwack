@@ -47,7 +47,7 @@ ui_print " ----------------------------------"
 ui_print " "
 
 # abort in recovery
-$BOOTMODE || abort "! Not supported to install in recovery"
+$BOOTMODE || abort "[!] Not supported to install in recovery"
 
 # check if adaway is detected or not.
 pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please uninstall to prevent conflicts, backup your setup optionally before uninstalling in case you want to import your setup."
@@ -107,6 +107,7 @@ else
     # update sources
     sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|' $persistent_dir/sources.txt
     sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://badmojr.github.io/1Hosts/Lite/hosts.txt|' $persistent_dir/sources.txt
+    add_url_if_not_exists "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
     add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
     if echo "$brand" | grep -qE '^(realme|oppo)$'; then
         add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt"
