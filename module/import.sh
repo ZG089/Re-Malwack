@@ -17,6 +17,7 @@ detect_key_press() {
 
     current=1
     ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
+    ui_print "Current choice: $current"
 
     while :; do
         # Wait for a single input event with timeout
@@ -30,19 +31,19 @@ detect_key_press() {
         fi
 
         case "$ev" in
-            # Volume Up PRESSED -> move selection (wrap), then wait for its release to avoid repeats
+            # Volume Up PRESSED -> move selection (wrap), then wait for release
             *KEY_VOLUMEUP*1*|*KEY_VOLUMEUP*DOWN*)
                 current=$(( current + 1 ))
                 [ "$current" -gt "$total_options" ] && current=1
-                ui_print "  > Option $current"
-                # Flush until release so one physical press = one action
+                ui_print "- Current choice: $current"
+                # Flush until release
                 while :; do
                     ev2="$(getevent -qlc 1 2>/dev/null)" || break
                     case "$ev2" in *KEY_VOLUMEUP*0*|*KEY_VOLUMEUP*UP*) break ;; esac
                 done
                 ;;
 
-            # Volume Down PRESSED -> select current, then wait for its release to avoid repeat selects
+            # Volume Down PRESSED -> select current, then wait for release
             *KEY_VOLUMEDOWN*1*|*KEY_VOLUMEDOWN*DOWN*)
                 ui_print "- Selected option: $current"
                 # Flush until release
@@ -53,7 +54,7 @@ detect_key_press() {
                 return "$current"
                 ;;
 
-            # Ignore other noise (releases, SYNs, etc.)
+            # Ignore other noise
             *) : ;;
         esac
     done
