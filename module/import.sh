@@ -12,30 +12,51 @@ detect_key_press() {
     timeout_seconds=7
     total_options=$1
     recommended_option=$2
+    [ -z "$total_options" ] && total_options=2
+    [ -z "$recommended_option" ] && recommended_option=2
 
     current=1
     ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
 
-    start=$(date +%s)
-    end=$((start + timeout_seconds))
+    while :; do
+        # Wait for a single input event with timeout
+        ev="$(timeout "$timeout_seconds" getevent -qlc 1 2>/dev/null)"
+        rc=$?
 
-    while [ "$(date +%s)" -lt "$end" ]; do
-        event=$(getevent -qlc 1 2>/dev/null)
-        case "$event" in
-            *KEY_VOLUMEUP*)
-                current=$((current + 1))
+        # Timeout -> auto-select recommended option
+        if [ "$rc" -ne 0 ] || [ -z "$ev" ]; then
+            ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
+            return "$recommended_option"
+        fi
+
+        case "$ev" in
+            # Volume Up PRESSED -> move selection (wrap), then wait for its release to avoid repeats
+            *KEY_VOLUMEUP*1*|*KEY_VOLUMEUP*DOWN*)
+                current=$(( current + 1 ))
                 [ "$current" -gt "$total_options" ] && current=1
                 ui_print "  > Option $current"
+                # Flush until release so one physical press = one action
+                while :; do
+                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
+                    case "$ev2" in *KEY_VOLUMEUP*0*|*KEY_VOLUMEUP*UP*) break ;; esac
+                done
                 ;;
-            *KEY_VOLUMEDOWN*)
+
+            # Volume Down PRESSED -> select current, then wait for its release to avoid repeat selects
+            *KEY_VOLUMEDOWN*1*|*KEY_VOLUMEDOWN*DOWN*)
                 ui_print "- Selected option: $current"
+                # Flush until release
+                while :; do
+                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
+                    case "$ev2" in *KEY_VOLUMEDOWN*0*|*KEY_VOLUMEDOWN*UP*) break ;; esac
+                done
                 return "$current"
                 ;;
+
+            # Ignore other noise (releases, SYNs, etc.)
+            *) : ;;
         esac
     done
-
-    ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
-    return "$recommended_option"
 }
 
 # Dedup helper function
@@ -64,7 +85,7 @@ bindhosts_import_sources() {
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
-            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" >> "$dest_sources"
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
             bindhosts_import_list whitelist replace
             bindhosts_import_list blacklist replace
             ;;
@@ -96,7 +117,7 @@ bindhosts_import_list() {
     if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
         ui_print "[i] Detected $list_type file with entries..."
         case "$mode" in
-            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
+            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" > "$dest" ;;
             merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
         esac
     fi
