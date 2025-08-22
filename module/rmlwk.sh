@@ -80,19 +80,21 @@ function host_process() {
     log_message "Filtering $file..."
     sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file"
 
-    # Decompress multi-domain host entries
-    if awk '$1 == "0.0.0.0" && NF > 2 { exit 0 } END { exit 1 }' "$file"; then
+    # Check if file contains any line with "0.0.0.0" followed by multiple domains
+    if grep -q "^0\.0\.0\.0[[:space:]]\+[^[:space:]]\+[[:space:]]\+[^[:space:]]" "$file"; then
         log_message WARN "Detected compressed entries in $file, splitting..."
         awk '
-            $1 == "0.0.0.0" && NF > 2 {
+            /^0\.0\.0\.0[[:space:]]+/ && NF > 2 {
                 for (i = 2; i <= NF; i++) {
-                    print $1, $i
+                    if ($i !~ /^#/) {  # Skip comment fields
+                        print "0.0.0.0", $i
+                    }
                 }
                 next
             }
             { print }
-        ' "$file" > "$tmp_file"
-        mv "$tmp_file" "$file"
+        ' "$file" > "$tmp_file" || log_message ERROR "Failed to write to temporary file $tmp_file"
+        mv "$tmp_file" "$file" || log_message ERROR "Failed to move $tmp_file to $file"
     fi
 }
 
