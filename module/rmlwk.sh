@@ -75,24 +75,6 @@ function host_process() {
     local tmp_file="${file}.tmp"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
-
-    # Check if file contains any line with "0.0.0.0" followed by multiple domains (BEFORE filtering)
-    if grep -q "^0\.0\.0\.0[[:space:]]\+[^[:space:]]\+[[:space:]]\+[^[:space:]]" "$file"; then
-        log_message WARN "Detected compressed entries in $file, splitting..."
-        awk '
-            /^0\.0\.0\.0[[:space:]]+/ && NF > 2 {
-                for (i = 2; i <= NF; i++) {
-                    if ($i !~ /^#/) {  # Skip comment fields
-                        print "0.0.0.0", $i
-                    }
-                }
-                next
-            }
-            { print }
-        ' "$file" > "$tmp_file" || log_message ERROR "Failed to write to temporary file $tmp_file"
-        mv "$tmp_file" "$file" || log_message ERROR "Failed to move $tmp_file to $file"
-    fi
-
     # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
     log_message "Filtering $file..."
     sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file"
