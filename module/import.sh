@@ -7,65 +7,35 @@ persistent_dir="/data/adb/Re-Malwack"
 adaway_json="/sdcard/Download/adaway-backup.json"
 import_done=0
 
-# --- Volume key helpers ---
-volkey_input() {
-    while true; do
+# Vol key press detect
+detect_key_press() {
+    timeout_seconds=7
+    total_options=$1
+    recommended_option=$2
+
+    current=1
+    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
+
+    start=$(date +%s)
+    end=$((start + timeout_seconds))
+
+    while [ "$(date +%s)" -lt "$end" ]; do
         event=$(getevent -qlc 1 2>/dev/null)
         case "$event" in
-            *KEY_VOLUMEUP*1)   echo "UP"; return 0 ;;
-            *KEY_VOLUMEDOWN*1) echo "DOWN"; return 0 ;;
-            *) : ;;
+            *KEY_VOLUMEUP*)
+                current=$((current + 1))
+                [ "$current" -gt "$total_options" ] && current=1
+                ui_print "  > Option $current"
+                ;;
+            *KEY_VOLUMEDOWN*)
+                ui_print "- Selected option: $current"
+                return "$current"
+                ;;
         esac
     done
-}
 
-# Universal menu
-# Usage: menu_prompt <timeout> <default_index> "Option1" "Option2" ...
-menu_prompt() {
-    local timeout=$1
-    local default=$2
-    shift 2
-    local options=("$@")
-
-    local idx=$((default - 1))
-    local start_time=$(date +%s)
-
-    while true; do
-        # clear screen
-        printf "\033[2J\033[H"
-        ui_print "[i] Vol+ = Next | Vol- = Select | Timeout = Default ($default)"
-        echo
-
-        for i in "${!options[@]}"; do
-            if [ "$i" -eq "$idx" ]; then
-                echo " ➤ $((i+1)) - ${options[i]}"
-            else
-                echo "   $((i+1)) - ${options[i]}"
-            fi
-        done
-
-        choice=$(timeout "$timeout" sh -c volkey_input || echo "TIMEOUT")
-
-        if [ "$choice" = "UP" ]; then
-            idx=$(( (idx + 1) % ${#options[@]} ))
-            continue
-        elif [ "$choice" = "DOWN" ]; then
-            ui_print "[+] Selected: $((idx+1)) - ${options[idx]}"
-            return $((idx+1))
-        elif [ "$choice" = "TIMEOUT" ]; then
-            ui_print "[!] Timeout. Auto-selected: $default - ${options[$((default-1))]}"
-            return $default
-        fi
-
-        # recalc timeout
-        local now=$(date +%s)
-        timeout=$(( $1 - (now - start_time) ))
-        [ "$timeout" -le 0 ] && {
-            echo
-            ui_print "[!] Timeout. Auto-selected: $default - ${options[$((default-1))]}"
-            return $default
-        }
-    done
+    ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
+    return "$recommended_option"
 }
 
 # Dedup helper function
@@ -81,11 +51,15 @@ bindhosts_import_sources() {
     bindhosts_sources="$bindhosts/sources.txt"
     dest_sources="$persistent_dir/sources.txt"
 
-    choice=$(menu_prompt 7 2 \
-        "Use only bindhosts setup (replace)" \
-        "Merge with Re-Malwack's default setup. [RECOMMENDED]" \
-        "Cancel")
-    
+    ui_print "[i] How do you want to import your setup?"
+    ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
+    ui_print "1 - Use only bindhosts setup (replace)"
+    ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
+    ui_print "3 - Cancel"
+
+    detect_key_press 3 2
+    choice=$?
+
     case "$choice" in
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
@@ -100,10 +74,11 @@ bindhosts_import_sources() {
             bindhosts_import_list whitelist merge
             bindhosts_import_list blacklist merge
             ;;
-        3) ui_print "[i] Skipped bindhosts import." ;;
+        3|255) ui_print "[i] Skipped bindhosts import." ;;
         *) ui_print "[!] Invalid selection. Skipping bindhosts import." ;;
     esac
 
+    # Dedup after import
     dedup_file "$dest_sources"
     dedup_file "$persistent_dir/whitelist.txt"
     dedup_file "$persistent_dir/blacklist.txt"
@@ -121,7 +96,7 @@ bindhosts_import_list() {
     if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
         ui_print "[i] Detected $list_type file with entries..."
         case "$mode" in
-            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" > "$dest" ;;
+            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
             merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
         esac
     fi
@@ -130,16 +105,18 @@ bindhosts_import_list() {
 # cubic import
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
+    ui_print "[i] How would you like to import cubic-adblock sources?"
+    ui_print "1 - Replace Re-Malwack sources with Cubic-Adblock sources"
+    ui_print "2 - Merge Cubic-Adblock sources with Re-Malwack default sources [RECOMMENDED]"
+    ui_print "3 - No, Do Not Import"
 
-    choice=$(menu_prompt 7 2 \
-        "Replace Re-Malwack sources with Cubic-Adblock sources" \
-        "Merge Cubic-Adblock sources with Re-Malwack default sources [RECOMMENDED]" \
-        "No, Do Not Import")
+    detect_key_press 3 2
+    choice=$?
 
     case "$choice" in
         1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; echo -n > "$src_file" ;;
         2) ui_print "[*] Merging Cubic-Adblock sources with Re-Malwack..." ;;
-        3) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
+        3|255) ui_print "[*] Skipping Cubic-Adblock import."; return ;;
         *) ui_print "[!] Invalid selection. Skipping Cubic-Adblock import."; return ;;
     esac
 
@@ -176,16 +153,23 @@ import_adaway_data() {
     whitelist_file="$persistent_dir/whitelist.txt"
     blacklist_file="$persistent_dir/blacklist.txt"
 
-    choice=$(menu_prompt 7 2 \
-        "Yes, But use only AdAway setup" \
-        "Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]" \
-        "No, Do Not Import")
+    ui_print "[i] AdAway Backup has been detected, Do you want to import your setup from it?"
+    ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
+    ui_print "1 - Yes, But use only AdAway setup"
+    ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
+    ui_print "3 - No, Do Not Import."
+
+    detect_key_press 3 2
+    choice=$?
 
     case "$choice" in
-        1) ui_print "[*] Replacing Re-Malwack setup with AdAway backup..."; echo -n > "$src_file" "$whitelist_file" "$blacklist_file" ;;
-        2) ui_print "[*] Merging AdAway backup with Re-Malwack..." ;;
-        3) ui_print "[i] Sipped AdAway import."; return ;;
-        *) ui_print "[!] Invalid selection. Skipping AdAway import."; return ;;
+        1)
+            ui_print "- Replacing Re-Malwack setup with AdAway backup..."
+            echo -n > "$src_file" "$whitelist_file" "$blacklist_file"
+            ;;
+        2) ui_print " [*] Merging AdAway backup with Re-Malwack..." ;;
+        3|255) ui_print "- Skipping AdAway import."; return ;;
+        *) ui_print "- Invalid selection. Skipping AdAway import."; return ;;
     esac
 
     # import sources
@@ -227,7 +211,10 @@ if [ "$import_done" -eq 0 ]; then
         if [ -f "${module}/system/etc/hosts" ]; then
             [ "$module_id" = "hosts" ] && touch /data/adb/modules/hosts/disable
             module_name="$(grep_prop name "${module}/module.prop")"
-            choice=$(menu_prompt 7 1 "YES" "NO")
+            ui_print "- $module_id detected. Import setup?"
+            ui_print "1- YES | 2- NO"
+            detect_key_press 2 1
+            choice=$?
             case "$choice" in
                 1)
                     case "$module_id" in
@@ -239,6 +226,8 @@ if [ "$import_done" -eq 0 ]; then
                     import_done=1
                     ;;
                 2) ui_print "- Skipped import from $module_id." ;;
+                255) ui_print "- Timeout, skipping import from $module_id." ;;
+                *) ui_print "- Invalid selection. Skipping import from $module_id." ;;
             esac
             ui_print "[*] Disabling: $module_name"
             touch "/data/adb/modules/$module_id/disable"
