@@ -9,7 +9,7 @@ import_done=0
 
 # Vol key press detect
 detect_key_press() {
-    timeout_seconds=7
+    timeout_seconds=10
     total_options=$1
     recommended_option=$2
     [ -z "$total_options" ] && total_options=2
