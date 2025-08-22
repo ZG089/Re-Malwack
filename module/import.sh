@@ -223,16 +223,17 @@ if [ -f "$adaway_json" ]; then
 fi
 
 # Detect other modules and run imports (only if not already imported)
-if [ "$import_done" -eq 0 ]; then
-    for module in /data/adb/modules/*; do
-        module_id="$(grep_prop id "${module}/module.prop")"
-        # Skip our own module
-        [ "$module_id" = "Re-Malwack" ] && continue
-        # Skip disabled modules
-        [ -f "/data/adb/modules/$module_id/disable" ] && continue
-        if [ -f "${module}/system/etc/hosts" ]; then
-            [ "$module_id" = "hosts" ] && touch /data/adb/modules/hosts/disable
-            module_name="$(grep_prop name "${module}/module.prop")"
+for module in /data/adb/modules/*; do
+    module_id="$(grep_prop id "${module}/module.prop")"
+    # Skip our own module
+    [ "$module_id" = "Re-Malwack" ] && continue
+    # Skip disabled modules
+    [ -f "/data/adb/modules/$module_id/disable" ] && continue
+    # force disable systemless hosts module
+    [ "$module_id" = "hosts" ] && touch /data/adb/modules/hosts/disable
+    if [ -f "${module}/system/etc/hosts" ]; then
+        module_name="$(grep_prop name "${module}/module.prop")"
+        if [ "$import_done" -eq 0 ]; then
             ui_print "- $module_id detected. Import setup?"
             ui_print "1- YES | 2- NO"
             detect_key_press 2 1
@@ -251,14 +252,15 @@ if [ "$import_done" -eq 0 ]; then
                 255) ui_print "- Timeout, skipping import from $module_id." ;;
                 *) ui_print "- Invalid selection. Skipping import from $module_id." ;;
             esac
-            ui_print "[*] Disabling: $module_name"
-            touch "/data/adb/modules/$module_id/disable"
-            [ "$import_done" -eq 1 ] && break
         fi
-    done
 
-    # Dedup everything at the end just in case
-    dedup_file "$persistent_dir/sources.txt"
-    dedup_file "$persistent_dir/whitelist.txt"
-    dedup_file "$persistent_dir/blacklist.txt"
-fi
+        # Always disable module, even if already imported
+        ui_print "[*] Disabling: $module_name"
+        touch "/data/adb/modules/$module_id/disable"
+    fi
+done
+
+# Dedup everything at the end just in case
+dedup_file "$persistent_dir/sources.txt"
+dedup_file "$persistent_dir/whitelist.txt"
+dedup_file "$persistent_dir/blacklist.txt"
