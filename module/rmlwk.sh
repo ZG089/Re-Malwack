@@ -538,13 +538,17 @@ if [ "$WEBUI" = "true" ]; then
 fi
 #### Error logging lore
 
-# 1 - Include error logging
-exec 2>>"$LOGFILE"
-# 2 - Trap runtime errors
+# 1 - Format stderr lines before writing to logfile
+exec 2> >(while IFS= read -r line; do
+    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "[$timestamp] - [ERROR] - $line" >> "$LOGFILE"
+done)
+
+# 2 - Trap runtime errors (logs failing command + exit code)
 trap '
 err_code=$?
 timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-echo "[$timestamp] - [ERROR] -  At line $LINENO (exit code: $err_code)" >> "$LOGFILE"
+echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
 # 3 - Trap final script exit
