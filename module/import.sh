@@ -45,15 +45,10 @@ bindhosts_import_sources() {
     dest_sources="$persistent_dir/sources.txt"
 
     ui_print "[i] How do you want to import your setup?"
-    sleep 0.5
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
-    sleep 0.5
     ui_print "1 - Use only bindhosts setup (replace)"
-    sleep 0.2
     ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
-    sleep 0.2
     ui_print "3 - Cancel"
-    sleep 0.2
 
     detect_key_press 3 2
     choice=$?
@@ -100,13 +95,9 @@ bindhosts_import_list() {
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
     ui_print "[i] How would you like to import cubic-adblock sources?"
-    sleep 0.5
     ui_print "1 - Replace Re-Malwack sources with Cubic-Adblock sources"
-    sleep 0.2
     ui_print "2 - Merge Cubic-Adblock sources with Re-Malwack default sources [RECOMMENDED]"
-    sleep 0.2
     ui_print "3 - No, Do Not Import"
-    sleep 0.2
 
     detect_key_press 3 2
     choice=$?
@@ -119,9 +110,9 @@ import_cubic_sources() {
     esac
 
     # replace pro with ultimate
-    if grep -q 'hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
+    if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
         ui_print "[*] Replacing Hagezi Pro Plus with Ultimate..."
-        sed -i 's|hagezi/dns-blocklists/main/hosts/pro.txt|hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
+        sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
 
     # cubic sources
@@ -150,15 +141,10 @@ import_adaway_data() {
     blacklist_file="$persistent_dir/blacklist.txt"
 
     ui_print "[i] AdAway Backup has been detected, Do you want to import your setup from it?"
-    sleep 0.5
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
-    sleep 0.5
     ui_print "1 - Yes, But use only AdAway setup"
-    sleep 0.2
     ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
-    sleep 0.2
     ui_print "3 - No, Do Not Import."
-    sleep 0.2
 
     detect_key_press 3 2
     choice=$?
@@ -209,7 +195,6 @@ if [ "$import_done" -eq 0 ]; then
             [ "$module_id" = "hosts" ] && touch /data/adb/modules/hosts/disable
             module_name="$(grep_prop name "${module}/module.prop")"
             ui_print "- $module_id detected. Import setup?"
-            sleep 0.2
             ui_print "1- YES | 2- NO"
             detect_key_press 2 1
             choice=$?
