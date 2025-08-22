@@ -38,6 +38,13 @@ detect_key_press() {
     return "$recommended_option"
 }
 
+# Dedup helper function
+dedup_file() {
+    file="$1"
+    [ -f "$file" ] || return
+    awk '!seen[$0]++' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+}
+
 # bindhosts import
 bindhosts_import_sources() {
     bindhosts="/data/adb/bindhosts"
@@ -57,21 +64,25 @@ bindhosts_import_sources() {
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
-            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" | sort -u > "$dest_sources"
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" >> "$dest_sources"
             bindhosts_import_list whitelist replace
             bindhosts_import_list blacklist replace
-            ui_print "[✓] Bindhosts setup imported successfully."
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
-            grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" | sort -u >> "$dest_sources"
+            grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
             bindhosts_import_list whitelist merge
             bindhosts_import_list blacklist merge
-            ui_print "[✓] Bindhosts setup imported successfully."
             ;;
         3|255) ui_print "[i] Skipped bindhosts import." ;;
         *) ui_print "[!] Invalid selection. Skipping bindhosts import." ;;
     esac
+
+    # Dedup after import
+    dedup_file "$dest_sources"
+    dedup_file "$persistent_dir/whitelist.txt"
+    dedup_file "$persistent_dir/blacklist.txt"
+    ui_print "[✓] Bindhosts setup imported successfully."
 }
 
 bindhosts_import_list() {
@@ -85,8 +96,8 @@ bindhosts_import_list() {
     if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
         ui_print "[i] Detected $list_type file with entries..."
         case "$mode" in
-            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" | sort -u > "$dest" ;;
-            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" | sort -u >> "$dest" ;;
+            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
+            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
         esac
     fi
 }
@@ -131,6 +142,8 @@ EOF
             ui_print "- Imported: $url"
         fi
     done
+    # Dedup after import
+    dedup_file "$src_file"
     ui_print "[✓] Cubic-Adblock sources imported successfully."
 }
 
@@ -165,15 +178,19 @@ import_adaway_data() {
     done
 
     # import whitelist
-    awk '/"allowed": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" | sed 's/[^"]*"\([^"]*\)".*/\1/' | while read -r domain; do
+    awk '/"allowed": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" | sed 's/[^\"]*"\([^"]*\)".*/\1/' | while read -r domain; do
         grep -Fqx "$domain" "$whitelist_file" || echo "$domain" >> "$whitelist_file"
     done
 
     # import blacklist
-    awk '/"blocked": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" | sed 's/[^"]*"\([^"]*\)".*/\1/' | while read -r domain; do
+    awk '/"blocked": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" | sed 's/[^\"]*"\([^"]*\)".*/\1/' | while read -r domain; do
         grep -Fqx "$domain" "$blacklist_file" || echo "$domain" >> "$blacklist_file"
     done
 
+    # Dedup after import
+    dedup_file "$src_file"
+    dedup_file "$whitelist_file"
+    dedup_file "$blacklist_file"
     ui_print "- AdAway import completed."
 }
 
@@ -217,4 +234,9 @@ if [ "$import_done" -eq 0 ]; then
             [ "$import_done" -eq 1 ] && break
         fi
     done
+
+    # Dedup everything at the end just in case
+    dedup_file "$persistent_dir/sources.txt"
+    dedup_file "$persistent_dir/whitelist.txt"
+    dedup_file "$persistent_dir/blacklist.txt"
 fi
