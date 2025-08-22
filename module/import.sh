@@ -16,12 +16,13 @@ detect_key_press() {
     current=1
     ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
 
-    end=$((SECONDS + timeout_seconds))
+    start=$(date +%s)
+    end=$((start + timeout_seconds))
 
-    while [ $SECONDS -lt $end ]; do
+    while [ "$(date +%s)" -lt "$end" ]; do
         event=$(getevent -qlc 1 2>/dev/null)
         case "$event" in
-            *KEY_VOLUMEUP*) 
+            *KEY_VOLUMEUP*)
                 current=$((current + 1))
                 [ "$current" -gt "$total_options" ] && current=1
                 ui_print "  > Option $current"
@@ -61,14 +62,14 @@ bindhosts_import_sources() {
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
-            sed '/^\s*#/d; /^\s*$/d' "$bindhosts_sources" | sort -u > "$dest_sources"
+            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" | sort -u > "$dest_sources"
             bindhosts_import_list whitelist replace
             bindhosts_import_list blacklist replace
             ui_print "[✓] Bindhosts setup imported successfully."
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
-            grep -Ev '^#|^$' "$bindhosts_sources" | sort -u >> "$dest_sources"
+            grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" | sort -u >> "$dest_sources"
             bindhosts_import_list whitelist merge
             bindhosts_import_list blacklist merge
             ui_print "[✓] Bindhosts setup imported successfully."
@@ -86,11 +87,11 @@ bindhosts_import_list() {
     dest="$persistent_dir/$list_type.txt"
 
     [ ! -f "$src" ] && return
-    if grep -vq '^\s*#' "$src" && grep -vq '^\s*$' "$src"; then
+    if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
         ui_print "[i] Detected $list_type file with entries..."
         case "$mode" in
-            replace) sed '/^\s*#/d; /^\s*$/d' "$src" | sort -u > "$dest" ;;
-            merge)   sed '/^\s*#/d; /^\s*$/d' "$src" | sort -u >> "$dest" ;;
+            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" | sort -u > "$dest" ;;
+            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" | sort -u >> "$dest" ;;
         esac
     fi
 }
