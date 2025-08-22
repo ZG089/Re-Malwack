@@ -12,30 +12,29 @@ detect_key_press() {
     timeout_seconds=7
     total_options=$1
     recommended_option=$2
-    [ -z "$total_options" ] && total_options=2
-    [ -z "$recommended_option" ] && recommended_option=2
 
     current=1
-    ui_print "[i] Use Volume Up (+) to switch, Volume Down (-) to select. Waiting $timeout_seconds seconds..."
-    ui_print "[i] Will be auto-selecting option ($recommended_option) on timeout.."
+    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
 
-    while true; do
-        read -r -t "$timeout_seconds" line < <(getevent -ql)
-        code=$?
+    end=$((SECONDS + timeout_seconds))
 
-        if [ "$code" -eq 142 ]; then
-            ui_print "[!] No key pressed within $timeout_seconds seconds. Auto-selecting recommended option: $recommended_option"
-            return "$recommended_option"
-        fi
-
-        if echo "$line" | grep -q "KEY_VOLUMEUP"; then
-            current=$((current + 1))
-            [ "$current" -gt "$total_options" ] && current=1
-        elif echo "$line" | grep -q "KEY_VOLUMEDOWN"; then
-            ui_print "- Selected option: $current"
-            return "$current"
-        fi
+    while [ $SECONDS -lt $end ]; do
+        event=$(getevent -qlc 1 2>/dev/null)
+        case "$event" in
+            *KEY_VOLUMEUP*) 
+                current=$((current + 1))
+                [ "$current" -gt "$total_options" ] && current=1
+                ui_print "  > Option $current"
+                ;;
+            *KEY_VOLUMEDOWN*)
+                ui_print "- Selected option: $current"
+                return "$current"
+                ;;
+        esac
     done
+
+    ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
+    return "$recommended_option"
 }
 
 # bindhosts import
