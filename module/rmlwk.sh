@@ -252,7 +252,7 @@ function install_hosts() {
     # Update hosts
     if [ -f "$combined_file" ]; then
         log_message "Detected unified hosts, sorting..."
-        LC_ALL=C sort -u "$combined_file" > "${tmp_hosts}merged.sorted"
+        awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
     else    
         log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
         LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
