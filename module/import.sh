@@ -181,7 +181,8 @@ import_adaway_data() {
     ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
     ui_print "3 - No, Do Not Import."
 
-    choice=$(detect_key_press 3 2)
+    detect_key_press 3 2
+    choice=$?
 
     case "$choice" in
         1)
