@@ -187,7 +187,7 @@ import_adaway_data() {
     case "$choice" in
         1)
             ui_print "- Replacing Re-Malwack setup with AdAway backup..."
-            echo -n > "$src_file" "$whitelist_file" "$blacklist_file"
+            : > "$src_file" > "$whitelist_file" > "$blacklist_file"
             ;;
         2) ui_print " [*] Merging AdAway backup with Re-Malwack..." ;;
         3|255) ui_print "- Skipping AdAway import."; return ;;
