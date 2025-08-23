@@ -140,7 +140,7 @@ import_cubic_sources() {
     case "$choice" in
         1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; echo -n > "$src_file" ;;
         2) ui_print "[*] Merging Cubic-Adblock sources with Re-Malwack..." ;;
-        3|255) ui_print "[*] Skipping Cubic-Adblock import."; return ;;
+        3|255) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
         *) ui_print "[!] Invalid selection. Skipping Cubic-Adblock import."; return ;;
     esac
 
@@ -160,10 +160,10 @@ https://o0.pages.dev/Pro/hosts.txt
 EOF
         [ -z "$url" ] && continue
         if grep -Fqx "$url" "$src_file"; then
-            ui_print "- Skipped (already present): $url"
+            ui_print "[!] Skipped (already present): $url"
         else
             echo "$url" >> "$src_file"
-            ui_print "- Imported: $url"
+            ui_print "[✓] Imported: $url"
         fi
     done
     # Dedup after import
@@ -188,7 +188,7 @@ import_adaway_data() {
 
     case "$choice" in
         1)
-            ui_print "- Replacing Re-Malwack setup with AdAway backup..."
+            ui_print "[*] Replacing Re-Malwack setup with AdAway setup..."
             : > "$src_file"
             : > "$whitelist_file"
             : > "$blacklist_file"
