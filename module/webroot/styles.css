@@ -87,6 +87,7 @@ body.input-focused {
 
 .header-disabled {
     display: none;
+    justify-content: flex-start !important;
     font-size: 16px;
     padding: 10px 15px;
     background-color: var(--border-color);

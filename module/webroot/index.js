@@ -232,7 +232,14 @@ function performAction(commandOption) {
         newline.textContent = data;
         terminalContent.appendChild(newline);
     });
-    output.on('exit', (code) => {
+    output.stderr.on('data', (data) => {
+        const newline = document.createElement('p');
+        newline.className = 'output-line';
+        newline.textContent = data;
+        newline.style.color = 'red';
+        terminalContent.appendChild(newline);
+    });
+    output.on('exit', () => {
         isShellRunning = false;
         closeBtn.classList.add('show');
         getStatus();
