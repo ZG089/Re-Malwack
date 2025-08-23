@@ -197,36 +197,25 @@ import_adaway_data() {
             ui_print "[*] Merging AdAway backup with Re-Malwack..." 
             ;;
         3|255) 
-            ui_print "- Skipping AdAway import."
+            ui_print "[i] Skipped AdAway import."
             return 
             ;;
         *) 
-            ui_print "- Invalid selection. Skipping AdAway import."
+            ui_print "[!] Invalid selection. Skipped AdAway import."
             return 
             ;;
     esac
 
-    # import sources (only from "sources" array with enabled = true)
-    awk '
-      /"sources": \[/ { in_sources=1; next }
-      in_sources && /\]/ { in_sources=0 }
-      in_sources {
-          if ($0 ~ /"enabled": true/) enabled=1
-          if (enabled && $0 ~ /"url":/) {
-              match($0, /"url": *"([^"]*)"/, arr)
-              if (arr[1] != "") print arr[1]
-              enabled=0
-          }
-      }
-    ' "$adaway_json" | while read -r url; do
-        [ -n "$url" ] && grep -Fqx "$url" "$src_file" || echo "$url" >> "$src_file"
-    done
+    # import sources (enabled only)
+    jq -r '.sources[]? | select(.enabled == true) | .url // empty' "$adaway_json" \
+        | while read -r url; do
+            [ -n "$url" ] && grep -Fqx "$url" "$src_file" || echo "$url" >> "$src_file"
+        done
 
     # import whitelist
-    if grep -q '"allowed": \[' "$adaway_json"; then
+    if jq -e '.allowed | length > 0' "$adaway_json" >/dev/null; then
         ui_print "[*] Importing AdAway whitelist entries..."
-        awk '/"allowed": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" \
-            | sed 's/[^"]*"\([^"]*\)".*/\1/' \
+        jq -r '.allowed[]?' "$adaway_json" \
             | while read -r domain; do
                 [ -n "$domain" ] && grep -Fqx "$domain" "$whitelist_file" || echo "$domain" >> "$whitelist_file"
             done
@@ -235,10 +224,9 @@ import_adaway_data() {
     fi
 
     # import blacklist
-    if grep -q '"blocked": \[' "$adaway_json"; then
+    if jq -e '.blocked | length > 0' "$adaway_json" >/dev/null; then
         ui_print "[*] Importing AdAway blacklist entries..."
-        awk '/"blocked": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" \
-            | sed 's/[^"]*"\([^"]*\)".*/\1/' \
+        jq -r '.blocked[]?' "$adaway_json" \
             | while read -r domain; do
                 [ -n "$domain" ] && grep -Fqx "$domain" "$blacklist_file" || echo "$domain" >> "$blacklist_file"
             done
