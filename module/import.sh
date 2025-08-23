@@ -3,6 +3,8 @@
 # All respect for the developers of the mentioned modules/apps in this script.
 # ZG089, Re-Malwack founder.
 
+ABI="$(getprop ro.product.cpu.abi)"
+PATH="$MODPATH/bin/$ABI:$PATH"
 persistent_dir="/data/adb/Re-Malwack"
 adaway_json="/sdcard/Download/adaway-backup.json"
 import_done=0
