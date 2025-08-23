@@ -193,52 +193,49 @@ import_adaway_data() {
             : > "$whitelist_file"
             : > "$blacklist_file"
             ;;
-        2) 
-            ui_print "[*] Merging AdAway backup with Re-Malwack..." 
-            ;;
-        3|255) 
-            ui_print "[i] Skipped AdAway import."
-            return 
-            ;;
-        *) 
-            ui_print "[i] Invalid selection. Skipped AdAway import."
-            return 
-            ;;
+        2) ui_print "[*] Merging AdAway setup with Re-Malwack setup..." ;;
+        3|255) ui_print "[i] Skipped AdAway import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped AdAway import."; return ;;
     esac
 
-    sources_count=0
-    whitelist_count=0
-    blacklist_count=0
-
     # Import enabled sources
-    jq -r '.sources[] | select(.enabled == true) | .url' "$adaway_json" \
-    | while IFS= read -r url; do
+    tmp_sources="$(mktemp)"
+    jq -r '.sources[] | select(.enabled == true) | .url' "$adaway_json" > "$tmp_sources"
+    sources_count=0
+    while IFS= read -r url; do
         [ -n "$url" ] || continue
         if ! grep -Fqx "$url" "$src_file"; then
             echo "$url" >> "$src_file"
             sources_count=$((sources_count + 1))
         fi
-    done
+    done < "$tmp_sources"
+    rm -f "$tmp_sources"
 
     # Import enabled whitelist
-    jq -r '.allowed[] | select(.enabled == true) | .host' "$adaway_json" \
-    | while IFS= read -r domain; do
+    tmp_white="$(mktemp)"
+    jq -r '.allowed[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_white"
+    whitelist_count=0
+    while IFS= read -r domain; do
         [ -n "$domain" ] || continue
         if ! grep -Fqx "$domain" "$whitelist_file"; then
             echo "$domain" >> "$whitelist_file"
             whitelist_count=$((whitelist_count + 1))
         fi
-    done
+    done < "$tmp_white"
+    rm -f "$tmp_white"
 
     # Import enabled blacklist
-    jq -r '.blocked[] | select(.enabled == true) | .host' "$adaway_json" \
-    | while IFS= read -r domain; do
+    tmp_black="$(mktemp)"
+    jq -r '.blocked[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_black"
+    blacklist_count=0
+    while IFS= read -r domain; do
         [ -n "$domain" ] || continue
         if ! grep -Fqx "$domain" "$blacklist_file"; then
             echo "$domain" >> "$blacklist_file"
             blacklist_count=$((blacklist_count + 1))
         fi
-    done
+    done < "$tmp_black"
+    rm -f "$tmp_black"
 
     # Dedup everything
     dedup_file "$src_file"
