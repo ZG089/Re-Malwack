@@ -199,7 +199,7 @@ import_adaway_data() {
     esac
 
     # Import enabled sources
-    tmp_sources="$(mktemp)"
+    tmp_sources="$persistent_dir/tmp.sources.$$"
     jq -r '.sources[] | select(.enabled == true) | .url' "$adaway_json" > "$tmp_sources"
     sources_count=0
     while IFS= read -r url; do
@@ -212,7 +212,7 @@ import_adaway_data() {
     rm -f "$tmp_sources"
 
     # Import enabled whitelist
-    tmp_white="$(mktemp)"
+    tmp_white="$persistent_dir/tmp.white.$$"
     jq -r '.allowed[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_white"
     whitelist_count=0
     while IFS= read -r domain; do
@@ -225,7 +225,7 @@ import_adaway_data() {
     rm -f "$tmp_white"
 
     # Import enabled blacklist
-    tmp_black="$(mktemp)"
+    tmp_black="$persistent_dir/tmp.black.$$"
     jq -r '.blocked[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_black"
     blacklist_count=0
     while IFS= read -r domain; do
