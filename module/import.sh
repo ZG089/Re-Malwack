@@ -201,44 +201,52 @@ import_adaway_data() {
             return 
             ;;
         *) 
-            ui_print "[!] Invalid selection. Skipped AdAway import."
+            ui_print "[i] Invalid selection. Skipped AdAway import."
             return 
             ;;
     esac
 
-    # import sources (enabled only)
-    jq -r '.sources[]? | select(.enabled == true) | .url // empty' "$adaway_json" \
-        | while read -r url; do
-            [ -n "$url" ] && grep -Fqx "$url" "$src_file" || echo "$url" >> "$src_file"
-        done
+    sources_count=0
+    whitelist_count=0
+    blacklist_count=0
 
-    # import whitelist
-    if jq -e '.allowed | length > 0' "$adaway_json" >/dev/null; then
-        ui_print "[*] Importing AdAway whitelist entries..."
-        jq -r '.allowed[]?' "$adaway_json" \
-            | while read -r domain; do
-                [ -n "$domain" ] && grep -Fqx "$domain" "$whitelist_file" || echo "$domain" >> "$whitelist_file"
-            done
-    else
-        ui_print "[i] No whitelist entries found in AdAway backup."
-    fi
+    # Import enabled sources
+    jq -r '.sources[] | select(.enabled == true) | .url' "$adaway_json" \
+    | while IFS= read -r url; do
+        [ -n "$url" ] || continue
+        if ! grep -Fqx "$url" "$src_file"; then
+            echo "$url" >> "$src_file"
+            sources_count=$((sources_count + 1))
+        fi
+    done
 
-    # import blacklist
-    if jq -e '.blocked | length > 0' "$adaway_json" >/dev/null; then
-        ui_print "[*] Importing AdAway blacklist entries..."
-        jq -r '.blocked[]?' "$adaway_json" \
-            | while read -r domain; do
-                [ -n "$domain" ] && grep -Fqx "$domain" "$blacklist_file" || echo "$domain" >> "$blacklist_file"
-            done
-    else
-        ui_print "[i] No blacklist entries found in AdAway backup."
-    fi
+    # Import enabled whitelist
+    jq -r '.allowed[] | select(.enabled == true) | .host' "$adaway_json" \
+    | while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        if ! grep -Fqx "$domain" "$whitelist_file"; then
+            echo "$domain" >> "$whitelist_file"
+            whitelist_count=$((whitelist_count + 1))
+        fi
+    done
 
-    # Dedup after import
+    # Import enabled blacklist
+    jq -r '.blocked[] | select(.enabled == true) | .host' "$adaway_json" \
+    | while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        if ! grep -Fqx "$domain" "$blacklist_file"; then
+            echo "$domain" >> "$blacklist_file"
+            blacklist_count=$((blacklist_count + 1))
+        fi
+    done
+
+    # Dedup everything
     dedup_file "$src_file"
     dedup_file "$whitelist_file"
     dedup_file "$blacklist_file"
-    ui_print "- AdAway import completed."
+
+    ui_print "[✓] AdAway import completed."
+    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
 # Exec perms for jq
