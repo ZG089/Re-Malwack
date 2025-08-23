@@ -241,6 +241,8 @@ import_adaway_data() {
     ui_print "- AdAway import completed."
 }
 
+# Exec perms for jq
+chmod +x $MODPATH/bin/$ABI/jq
 # AdAway import if backup exists
 if [ -f "$adaway_json" ]; then
     import_adaway_data
