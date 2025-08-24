@@ -825,8 +825,10 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
+        sed '/#/d' $PERSISTENT_DIR/sources.txt | grep http > /dev/null || {
+        			abort "No hosts sources were found, Aborting."
+        			}
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        grep http "$persist_dir/sources.txt" 2>/dev/null || abort "No hosts sources were found, aborting"
 
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[*] Upgrading Anti-Ads fortress 🏰"
