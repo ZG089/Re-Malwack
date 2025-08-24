@@ -523,7 +523,7 @@ fi
 #### Error logging lore
 
 # 1 - Format stderr lines before writing to logfile
-err_log_pipe="/tmp/rmlwk_err_pipe_$$"
+err_log_pipe="/data/local/tmp/rmlwk_err_pipe_$$"
 mkfifo "$err_log_pipe"
 (while IFS= read -r line; do
     timestamp=$(date "+%Y-%m-%d %H:%M:%S")
