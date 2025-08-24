@@ -523,13 +523,8 @@ if [ "$WEBUI" = "true" ]; then
 fi
 #### Error logging lore
 
-# 1 - Format stderr lines before writing to logfile
-mkfifo "$LOGPIPE"
-(while IFS= read -r line; do
-    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-    echo "[$timestamp] - [ERROR] - $line" >> "$LOGFILE"
-done < "$LOGPIPE") &
-exec 2> "$LOGPIPE"
+# 1 - Log errors
+exec 2>>"$LOGFILE"
 
 # 2 - Trap runtime errors (logs failing command + exit code)
 trap '
