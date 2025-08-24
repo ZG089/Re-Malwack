@@ -17,10 +17,11 @@ system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+LOGPIPE="$persist_dir/logs/log_pipe/$(date +%Y-%m-%d_%H-%M-%S)"
 
 # ====== Pre-func ======
 . "$persist_dir/config.sh"
-mkdir -p "$persist_dir/logs"
+mkdir -p "$persist_dir/logs/log_pipe"
 
 # ====== Functions ======
 function rmlwk_banner() {
@@ -523,13 +524,12 @@ fi
 #### Error logging lore
 
 # 1 - Format stderr lines before writing to logfile
-err_log_pipe="/data/local/tmp/rmlwk_err_pipe_$$"
-mkfifo "$err_log_pipe"
+mkfifo "$LOGPIPE"
 (while IFS= read -r line; do
     timestamp=$(date "+%Y-%m-%d %H:%M:%S")
     echo "[$timestamp] - [ERROR] - $line" >> "$LOGFILE"
-done < "$err_log_pipe") &
-exec 2> "$err_log_pipe"
+done < "$LOGPIPE") &
+exec 2> "$LOGPIPE"
 
 # 2 - Trap runtime errors (logs failing command + exit code)
 trap '
