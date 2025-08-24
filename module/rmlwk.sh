@@ -826,7 +826,7 @@ case "$(tolower "$1")" in
     --update-hosts|-u)
         start_time=$(date +%s)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        grep -qE '^https\?://' "$persist_dir/sources.txt" || abort "No hosts sources were found, aborting"
+        grep http "$persist_dir/sources.txt" 2>/dev/null || abort "No hosts sources were found, aborting"
 
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[*] Upgrading Anti-Ads fortress 🏰"
