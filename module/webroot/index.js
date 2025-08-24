@@ -231,6 +231,7 @@ function performAction(commandOption) {
         newline.className = 'output-line';
         newline.textContent = data;
         terminalContent.appendChild(newline);
+        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
     });
     output.stderr.on('data', (data) => {
         const newline = document.createElement('p');
@@ -238,6 +239,7 @@ function performAction(commandOption) {
         newline.textContent = data;
         newline.style.color = 'red';
         terminalContent.appendChild(newline);
+        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
     });
     output.on('exit', () => {
         isShellRunning = false;
