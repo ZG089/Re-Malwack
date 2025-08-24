@@ -361,14 +361,14 @@ function tolower() {
 # uhhhhh
 function abort() {
     log_message "Aborting: $1"
-    echo "-$1"
+    echo "[!] $1"
     sleep 0.5
     exit 1
 }
 
 # Bruh It's clear already what this function does ._.
 function nuke_if_we_dont_have_internet() {
-    ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "[!] No internet connection detected, Please connect to a network then try again."
+    ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
 }
 
 # Fetches hosts from sources.txt
@@ -572,7 +572,7 @@ case "$(tolower "$1")" in
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
-        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         start_time=$(date +%s)
         log_message "Resetting hosts command triggered, resetting..."
         echo "[*] Reverting the changes..."
@@ -601,7 +601,7 @@ case "$(tolower "$1")" in
 
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
         start_time=$(date +%s)
-        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -635,8 +635,8 @@ case "$(tolower "$1")" in
         ;;
 
     --whitelist|-w)
-        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
-        is_default_hosts && abort "[i] You cannot whitelist links while hosts is reset."
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
+        is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         option="$2"
         raw_input="$3"
 
@@ -716,7 +716,7 @@ case "$(tolower "$1")" in
         ;;
 
     --blacklist|-b)
-        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         option="$2"
         raw_input="$3"
 
@@ -825,8 +825,8 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
-        grep -qE '^https\?://' "$persist_dir/sources.txt" || abort "[!] No hosts sources were found, aborting"
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
+        grep -qE '^https\?://' "$persist_dir/sources.txt" || abort "No hosts sources were found, aborting"
 
         if [ -d /data/adb/modules/Re-Malwack ]; then
             echo "[*] Upgrading Anti-Ads fortress 🏰"
