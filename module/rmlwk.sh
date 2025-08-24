@@ -233,11 +233,12 @@ function install_hosts() {
         echo "" > "${tmp_hosts}w"
     fi
 
-    # Update hosts
+    # In case of hosts update (since only combined file exists only on --update-hosts)
     if [ -f "$combined_file" ]; then
         log_message "Detected unified hosts, sorting..."
+        cat "${tmp_hosts}0" >> "$combined_file" 
         awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
-    else    
+    else # In case of install_hosts() being called in block_content()
         log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
         LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
     fi
@@ -346,7 +347,6 @@ function block_content() {
             return 0
         fi
         sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
-        cp -f "${cache_hosts}"* "/data/local/tmp"
         [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
     log_duration "block_content ($block_type, $status)" "$start_time"
