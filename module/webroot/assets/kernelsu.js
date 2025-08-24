@@ -104,7 +104,7 @@ export function spawn(command, args = [], options = {}) {
             ksu.spawn(command, JSON.stringify(args), JSON.stringify(options), callbackName);
         } else {
             setTimeout(() => {
-                child.emit("error", "ksu is not defined");
+                child.stderr.emit("data", "ksu is not defined.");
                 child.emit("exit", 1);
             }, 0);
         }
