@@ -993,7 +993,31 @@ case "$(tolower "$1")" in
                 echo "[i] Skipped $bl blocklist (disabled)"
             fi
         done
+        # 3b. Handle trackers blocklist if enabled
+        if [ "$block_trackers" = "1" ]; then
+            echo "[*] Fetching trackers blocklist..."
+            log_message "Fetching trackers blocklist"
+            mkdir -p "$persist_dir/cache/trackers"
 
+            cache_hosts="$persist_dir/cache/trackers/hosts"
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+            case "$brand" in
+                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
+                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
+                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
+                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
+                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
+            esac
+
+            host_process "${cache_hosts}1"
+            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+
+            cat "$persist_dir/cache/trackers/hosts"* >> "$combined_file"
+            echo "[✓] Fetched trackers blocklist"
+            log_message "Added trackers blocklist to combined file"
+        fi
         echo "[*] Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "all"
