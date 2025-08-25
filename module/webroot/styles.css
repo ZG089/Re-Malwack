@@ -547,9 +547,18 @@ input:checked+.slider:before {
 }
 
 .control-icon {
-    padding-top: 5px;
-    padding-right: 7px;
-    fill: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+    padding-right: 10px;
+
+    svg {
+        fill: var(--text-primary);
+        height: 21px;
+        width: 21px;
+    }
 }
 
 .category-container {

@@ -19,14 +19,6 @@ const links = [
     { element: 'sponsor', url: 'https://buymeacoffee.com/zg089' }
 ];
 
-// Block types
-const blockTypes = [
-    { id: 'porn', toggle: 'block-porn-toggle', name: 'porn sites', flag: '--block-porn' },
-    { id: 'gambling', toggle: 'block-gambling-toggle', name: 'gambling sites', flag: '--block-gambling' },
-    { id: 'fakenews', toggle: 'block-fakenews-toggle', name: 'fake news sites', flag: '--block-fakenews' },
-    { id: 'social', toggle: 'block-social-toggle', name: 'social media sites', flag: '--block-social' }
-];
-
 let modeActive = false;
 
 // Function to handle about menu
@@ -72,15 +64,13 @@ async function getVersion() {
 
 // Function to check if running in MMRL
 async function checkMMRL() {
-    if (Object.keys($Re_Malwack).length > 0) {
+    if (typeof $Re_Malwack !== 'undefined' && Object.keys($Re_Malwack).length > 0) {
         // Set status bars theme based on device theme
         try {
             $Re_Malwack.setLightStatusBars(!window.matchMedia('(prefers-color-scheme: dark)').matches)
         } catch (error) {
             console.error("Error setting status bars theme:", error)
         }
-    } else {
-        console.log("Not running in MMRL environment.");
     }
 }
 
@@ -166,18 +156,19 @@ async function checkBlockStatus() {
             return response.text();
         });
         const lines = result.split("\n");
-        
+
         // Check each block type
-        for (const type of blockTypes) {
-            const toggle = document.getElementById(type.toggle);
-            const blockLine = lines.find(line => line.trim().startsWith(`block_${type.id}=`));
+        const customBlock = document.querySelector('.custom-block');
+        customBlock.querySelectorAll('.toggle-container').forEach(container => {
+            const toggle = container.querySelector('input[type="checkbox"]');
+            const blockLine = lines.find(line => line.trim().startsWith(`block_${container.dataset.type}=`));
             if (blockLine) {
                 const value = blockLine.split('=')[1].trim();
                 toggle.checked = value === '1';
             } else {
                 toggle.checked = false;
             }
-        }
+        });
 
         // Check daily update status
         const dailyUpdateToggle = document.getElementById('daily-update-toggle');
@@ -311,12 +302,17 @@ async function exportLogs() {
 }
 
 // Function to handle blocking/unblocking different site categories
-function handleBlock(type) {
-    const toggle = document.getElementById(type.toggle);
-    const isRemoving = toggle.checked;
-    const action = isRemoving ? `${type.flag} 0` : type.flag;
+function setupCustomBlock() {
+    const customBlock = document.querySelector('.custom-block');
+    customBlock.querySelectorAll('.toggle-container').forEach(container => {
+        const toggle = container.querySelector('input[type="checkbox"]');
+        const type = container.dataset.type;
 
-    performAction(action);
+        container.addEventListener('click', () => {
+            const action = toggle.checked ? `--block-${type} 0` : `--block-${type}`;
+            performAction(action);
+        });
+    });
 }
 
 // Function to show prompt
@@ -480,7 +476,7 @@ function linkRedirect(url) {
 async function loadFile(fileType) {
     try {
         const response = await fetch('link/persistent_dir/' + filePaths[fileType]);
-        if (!response.ok) console.log(`File ${filePaths[fileType]} not found`);
+        if (!response.ok) throw new Error('File not found');
         const content = await response.text();
         const lines = content
             .split("\n")
@@ -504,8 +500,7 @@ async function loadFile(fileType) {
         });
         applyRippleEffect();
     } catch (error) {
-        console.error(`Failed to load ${fileType} file:`, error);
-        throw error;
+        console.log(`File ${filePaths[fileType]} not found`);
     }
 }
 
@@ -526,12 +521,12 @@ async function removeLine(fileType, line) {
 async function linkFile() {
     const result = await exec(`
         mkdir -p ${modulePath}/webroot/link
-        [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir`
-    );
+        [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir
+    `);
     if (result.errno !== 0) {
         console.error(`Failed to remove link persistent directory to webroot:`, result.stderr);
     }
-    return errno === 0;
+    return result.errno === 0;
 }
 
 /**
@@ -702,9 +697,9 @@ function setupEventListener() {
     document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
-    blockTypes.forEach(type => {
-        document.getElementById(`block-${type.id}`).addEventListener("click", () => handleBlock(type));
-    });
+
+    // Custom block toggle listeners
+    setupCustomBlock();
 
     // About page links
     links.forEach(link => {
