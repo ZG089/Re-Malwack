@@ -185,7 +185,18 @@ function log_duration() {
 
 # Functions to process hosts
 
-# 1 - Install hosts
+# 1. Helper to stage cached blocklist files into tmp
+stage_blocklist_files() {
+    local block_type="$1"
+    local i=1
+    for file in "$persist_dir/cache/$block_type/hosts"*; do
+        [ -f "$file" ] || continue
+        cp -f "$file" "${tmp_hosts}${i}"
+        i=$((i+1))
+    done
+}
+
+# 2. Install hosts
 function install_hosts() {
     start_time=$(date +%s)
     type="$1"
@@ -255,7 +266,7 @@ function install_hosts() {
     log_duration "install_hosts ($type)" "$start_time"
 }
 
-# 2 - Remove hosts
+# 3. Remove hosts
 function remove_hosts() {
     start_time=$(date +%s)
     log_message "Starting to remove hosts."
@@ -289,70 +300,52 @@ function block_content() {
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
+    mkdir -p "$persist_dir/cache/$block_type"
+
     if [ "$status" = 0 ]; then
-        if [ ! -f "${cache_hosts}1" ]; then # Fallback in case cached hosts was deleted
-            echo "[!] Cached blocklist for '$block_type' not found!"
-            echo "[*] Re-downloading the blocklist to proceed with disabling."
-            echo "[!] Please do not modify or delete /data/adb/Re-Malwack directory files."
-            echo "[i] If you think a cleaner app accidentally removed one of the files, Please add the directory to the exceptions list."
-            log_message WARN "Missing cached blocklist for $block_type — auto-redownloading."
+        if [ ! -f "${cache_hosts}1" ]; then
+            log_message WARN "No cached $block_type blocklist found, redownloading to disable properly."
+            echo "[!] No cached $block_type blocklist found, redownloading to disable properly"
             nuke_if_we_dont_have_internet
-            mkdir -p "$persist_dir/cache/$block_type"
-            fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
-            if [ "$block_type" = "porn" ]; then
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts"
+            [ "$block_type" = "porn" ] && {
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
                 fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
                 fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
                 wait
-            fi
+            }
+            # Stage cache to tmp then install
+            stage_blocklist_files "$block_type"
+            install_hosts "$block_type"
         fi
-        # Applying updated hosts
-        install_hosts "$block_type"
         remove_hosts
-        # Update config
-        sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" /data/adb/Re-Malwack/config.sh
+        sed -i "s/^block_${block_type}=.*/block_${block_type}=0/" "$persist_dir/config.sh"
+        log_message SUCCESS "Disabled $block_type blocklist."
     else
-        # Download hosts only if no cached host found or during update
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             nuke_if_we_dont_have_internet
-            mkdir -p "$persist_dir/cache/$block_type"
-            echo "[*] Downloading & Applying hosts for $block_type block."
-            log_message "Downloading hosts for $block_type block."
-            fetch "${cache_hosts}1" https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts
-            if [ "$block_type" = "porn" ]; then
+            echo "[*] Downloading hosts for $block_type block."
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts"
+            [ "$block_type" = "porn" ] && {
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
                 fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
                 fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
                 wait
-            fi
-            
-        # Normalize downloaded hosts
-            job_limit=4
-            job_count=0
+            }
             for file in "$persist_dir/cache/$block_type/hosts"*; do
-                host_process "$file"
-                job_count=$((job_count + 1))
-                [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
+                [ -f "$file" ] && host_process "$file"
             done
-            wait
         fi
 
-        # Skip install if called from hosts update
-        if [ "$status" = "update" ]; then
-            block_var="block_${block_type}"
-            eval enabled=\$$block_var
-            if [ "$enabled" != "1" ]; then
-                log_message WARN "Skipping install of $block_type blocklist: toggle is OFF"
-                echo "[i] Skipping install of $block_type blocklist: toggle is OFF."
-            fi
-            return 0
+        if [ "$status" != "update" ]; then
+            stage_blocklist_files "$block_type"
+            install_hosts "$block_type"
+            sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" "$persist_dir/config.sh"
+            log_message SUCCESS "Enabled $block_type blocklist."
         fi
-        sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" /data/adb/Re-Malwack/config.sh
-        [ "$status" = 0 ] && remove_hosts || install_hosts "$block_type"
     fi
     log_duration "block_content ($block_type, $status)" "$start_time"
 }
-
 # Function to block trackers
 function block_trackers() {
     start_time=$(date +%s)
@@ -365,19 +358,12 @@ function block_trackers() {
     if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
         if [ "$block_trackers" = 0 ]; then
             echo "[!] Trackers block is already disabled"
-            exit 0
+            return 0
         fi
 
-        echo "[*] Removing trackers blocklist..."
-        log_message "Disabling trackers blocklist."
-
-        if ls "${cache_hosts}"* >/dev/null 2>&1; then
-            remove_hosts
-        else
-            # re-download & re-install in case of no cached hosts
+        if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
             nuke_if_we_dont_have_internet
-            echo "[!] No cached trackers file found, Redownloading."
-            log_message WARN "No cached trackers file for trackers, redownloading before removal."
+            log_message WARN "No cached trackers file — redownloading before removal."
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
@@ -385,33 +371,25 @@ function block_trackers() {
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
                 huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
+                *) url="" ;;
             esac
             host_process "${cache_hosts}1"
             [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+            stage_blocklist_files "trackers"
             install_hosts "trackers"
-            remove_hosts
         fi
 
+        remove_hosts
         sed -i "s/^block_trackers=.*/block_trackers=0/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist disabled."
-        echo "[✓] Disabled trackers block."
-
     else
         if [ "$block_trackers" = 1 ]; then
             echo "[!] Trackers block is already enabled"
-            exit 0
+            return 0
         fi
 
-        if ls "${cache_hosts}"* >/dev/null 2>&1; then
-            echo "[*] Enabling trackers block for your $brand device"
-            log_message "Installing cached trackers blocklist."
-            install_hosts "trackers"
-        else
+        if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
             nuke_if_we_dont_have_internet
-            echo "[*] Downloading & Applying native trackers block for your $brand device"
-            log_message "Downloading hosts for native trackers block."
-
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
@@ -419,18 +397,16 @@ function block_trackers() {
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
                 huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
+                *) url="" ;;
             esac
-
             host_process "${cache_hosts}1"
             [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
-
-            install_hosts "trackers"
         fi
 
+        stage_blocklist_files "trackers"
+        install_hosts "trackers"
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
-        log_message SUCCESS "Trackers block has been enabled."
-        echo "[✓] Trackers block has been enabled."
+        log_message SUCCESS "Trackers blocklist enabled."
     fi
 
     log_duration "block_trackers ($status)" "$start_time"
