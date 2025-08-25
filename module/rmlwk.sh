@@ -384,6 +384,7 @@ function block_trackers() {
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
                 *) url="" ;;
             esac
             host_process "${cache_hosts}1"
@@ -403,7 +404,7 @@ function block_trackers() {
         fi
 
         if ls "${cache_hosts}"* >/dev/null 2>&1; then
-            echo "[*] enabling trackers blocklist..."
+            echo "[*] Enabling trackers blocklist..."
             log_message "Installing cached trackers blocklist."
             install_hosts "trackers"
         else
@@ -418,6 +419,7 @@ function block_trackers() {
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
                 *) url="" ;;
             esac
 
