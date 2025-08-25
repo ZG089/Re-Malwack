@@ -431,6 +431,7 @@ function block_trackers() {
 
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist enabled."
+        echo "[✓] Trackers blocklist has been enabled."
     fi
 
     log_duration "block_trackers ($status)" "$start_time"
