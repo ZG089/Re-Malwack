@@ -250,7 +250,7 @@ function install_hosts() {
         log_message "Detected unified hosts, sorting..."
         cat "${tmp_hosts}0" >> "$combined_file" 
         awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
-    else # In case of install_hosts() being called in block_content()
+    else # In case of install_hosts() being called in block_content() or block_trackers()
         log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
         LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
     fi
