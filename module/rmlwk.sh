@@ -357,58 +357,80 @@ function block_content() {
 function block_trackers() {
     start_time=$(date +%s)
     status=$1
-    cache_hosts="$persist_dir/cache/trackers/hosts"
-    mkdir -p "$persist_dir/cache/trackers"
+    cache_dir="$persist_dir/cache/trackers"
+    cache_hosts="$cache_dir/hosts"
+    mkdir -p "$cache_dir"
 
     if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
         if [ "$block_trackers" = 0 ]; then
             echo "[i] Trackers block is already disabled"
             return 0
         fi
+
         echo "[*] Removing trackers blocklist..."
         log_message "Disabling trackers blocklist."
-        [ ! -f "${cache_hosts}1" ] && log_message WARN "No cached trackers file found, skipping removal."
-        install_hosts "trackers"
-        remove_hosts
+
+        if ls "${cache_hosts}"* >/dev/null 2>&1; then
+            remove_hosts
+        else
+            # re-download & re-install in case of no cached hosts
+            nuke_if_we_dont_have_internet
+            echo "[!] No cached trackers file found, Redownloading."
+            log_message WARN "No cached trackers file for trackers, redownloading before removal."
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+            case "$brand" in
+                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
+                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
+                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
+                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                *) url="" ;;
+            esac
+            host_process "${cache_hosts}1"
+            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+            install_hosts "trackers"
+            remove_hosts
+        fi
+
         sed -i "s/^block_trackers=.*/block_trackers=0/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist disabled."
+        echo "[✓] Disabled trackers block."
+
     else
         if [ "$block_trackers" = 1 ]; then
             echo "[!] Trackers block is already enabled"
             return 0
         fi
 
-        nuke_if_we_dont_have_internet
-        echo "[*] Downloading & Applying hosts for native trackers block."
-        log_message "Downloading hosts for native trackers block."
-        fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt" 
-        brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
-        case "$brand" in
-            xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
-            samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
-            oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
-            vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
-           *)
-                url=""
-                echo "[!] Brand ($brand) isn't included in brand-specific trackers blocklist, using general blocklist"
-                log_message WARN "Unknown brand '$brand', skipping brand-specific trackers list."
-                ;;
-        esac
-        # Normalize baseline list
-        host_process "${cache_hosts}1"
+        if ls "${cache_hosts}"* >/dev/null 2>&1; then
+            echo "[*] enabling trackers blocklist..."
+            log_message "Installing cached trackers blocklist."
+            install_hosts "trackers"
+        else
+            nuke_if_we_dont_have_internet
+            echo "[*] Downloading & Applying hosts for native trackers block."
+            log_message "Downloading hosts for native trackers block."
 
-        # Fetch brand-specific if defined
-        if [ -n "$url" ]; then
-            fetch "${cache_hosts}2" "$url"
-            host_process "${cache_hosts}2"
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+            case "$brand" in
+                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
+                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
+                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
+                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                *) url="" ;;
+            esac
+
+            host_process "${cache_hosts}1"
+            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+
+            install_hosts "trackers"
         fi
-        
-        # Enable in config + install
-        cp -f "${cache_hosts}"* "/data/local/tmp"
-        install_hosts "trackers"
-        sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"        
+
+        sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist enabled."
     fi
+
     log_duration "block_trackers ($status)" "$start_time"
 }
 
