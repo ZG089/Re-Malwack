@@ -1015,6 +1015,7 @@ case "$(tolower "$1")" in
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
         echo "--reset, -r: Restore original hosts file."
         echo "--adblock-switch, -as: Toggle protections on/off"
+        echo "--block-trackers, -bt <disable>, block trackers, use disable to unblock."
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
