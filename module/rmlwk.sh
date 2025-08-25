@@ -353,6 +353,65 @@ function block_content() {
     log_duration "block_content ($block_type, $status)" "$start_time"
 }
 
+# Function to block trackers
+function block_trackers() {
+    start_time=$(date +%s)
+    status=$1
+    cache_hosts="$persist_dir/cache/trackers/hosts"
+    mkdir -p "$persist_dir/cache/trackers"
+
+    if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
+        if [ "$block_trackers" = 0 ]; then
+            echo "[i] Trackers block is already disabled"
+            return 0
+        fi
+        echo "[*] Removing trackers blocklist..."
+        log_message "Disabling trackers blocklist."
+        [ ! -f "${cache_hosts}1" ] && log_message WARN "No cached trackers file found, skipping removal."
+        install_hosts "trackers"
+        remove_hosts
+        sed -i "s/^block_trackers=.*/block_trackers=0/" "$persist_dir/config.sh"
+        log_message SUCCESS "Trackers blocklist disabled."
+    else
+        if [ "$block_trackers" = 1 ]; then
+            echo "[!] Trackers block is already enabled"
+            return 0
+        fi
+
+        nuke_if_we_dont_have_internet
+        echo "[*] Downloading & Applying hosts for native trackers block."
+        log_message "Downloading hosts for native trackers block."
+        fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt" 
+        brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+        case "$brand" in
+            xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
+            samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
+            oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
+            vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+           *)
+                url=""
+                echo "[!] Brand ($brand) isn't included in brand-specific trackers blocklist, using general blocklist"
+                log_message WARN "Unknown brand '$brand', skipping brand-specific trackers list."
+                ;;
+        esac
+        # Normalize baseline list
+        host_process "${cache_hosts}1"
+
+        # Fetch brand-specific if defined
+        if [ -n "$url" ]; then
+            fetch "${cache_hosts}2" "$url"
+            host_process "${cache_hosts}2"
+        fi
+        
+        # Enable in config + install
+        cp -f "${cache_hosts}"* "/data/local/tmp"
+        install_hosts "trackers"
+        sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"        
+        log_message SUCCESS "Trackers blocklist enabled."
+    fi
+    log_duration "block_trackers ($status)" "$start_time"
+}
+
 # shortcase
 function tolower() {
     echo "$1" | tr '[:upper:]' '[:lower:]'
@@ -598,41 +657,51 @@ case "$(tolower "$1")" in
 	    echo "[✓] Successfully reverted changes."
         log_duration "reset" "$start_time"
         ;;
-
-    --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs)
-        start_time=$(date +%s)
-        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        case "$1" in
-            --block-porn|-bp) block_type="porn" ;;
-            --block-gambling|-bg) block_type="gambling" ;;
-            --block-fakenews|-bf) block_type="fakenews" ;;
-            --block-social|-bs) block_type="social" ;;
-        esac
-        status="$2"
-        eval "block_toggle=\"\$block_${block_type}\""
-
-        if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
-            if [ "$block_toggle" = 0 ]; then
-                echo "- $block_type block is already disabled"
+    --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt)
+            start_time=$(date +%s)
+            is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+    
+            case "$1" in
+                --block-porn|-bp) block_type="porn" ;;
+                --block-gambling|-bg) block_type="gambling" ;;
+                --block-fakenews|-bf) block_type="fakenews" ;;
+                --block-social|-bs) block_type="social" ;;
+                --block-trackers|-bt) block_type="trackers" ;;
+            esac
+            status="$2"
+            if [ "$block_type" = "trackers" ]; then
+                # Handle trackers with its own function
+                block_trackers "$status"
             else
-                log_message "Disabling ${block_type} has been initiated." && echo "[*] Removing block entries for ${block_type} sites."
-                block_content "$block_type" 0
-                log_message SUCCESS "Unblocked ${block_type} sites successfully." && echo "[✓] Unblocked ${block_type} sites successfully."
+                eval "block_toggle=\"\$block_${block_type}\""
+    
+                if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
+                    if [ "$block_toggle" = 0 ]; then
+                        echo "- $block_type block is already disabled"
+                    else
+                        log_message "Disabling ${block_type} has been initiated."
+                        echo "[*] Removing block entries for ${block_type} sites."
+                        block_content "$block_type" 0
+                        log_message SUCCESS "Unblocked ${block_type} sites successfully."
+                        echo "[✓] Unblocked ${block_type} sites successfully."
+                    fi
+                else
+                    if [ "$block_toggle" = 1 ]; then
+                        echo "[!] ${block_type} block is already enabled"
+                    else
+                        log_message "Enabling/Adding block entries for $block_type has been initiated."
+                        echo "[*] Adding block entries for ${block_type} sites."
+                        block_content "$block_type" 1
+                        log_message SUCCESS "Blocked ${block_type} sites successfully."
+                        echo "[*] Blocked ${block_type} sites successfully."
+                    fi
+                fi
             fi
-        else
-            if [ "$block_toggle" = 1 ]; then
-                echo "[!] ${block_type} block is already enabled"
-            else
-                log_message "Enabling/Adding block entries for $block_type has been initiated."
-                echo "[*] Adding block entries for ${block_type} sites."
-                block_content "$block_type" 1
-                log_message SUCCESS "Blocked ${block_type} sites successfully." && echo "[*] Blocked ${block_type} sites successfully."
-            fi
-        fi
-        refresh_blocked_counts
-        update_status
-        log_duration "block-$block_type" "$start_time"
-        ;;
+    
+            refresh_blocked_counts
+            update_status
+            log_duration "block-$block_type" "$start_time"
+            ;;
 
     --whitelist|-w)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
