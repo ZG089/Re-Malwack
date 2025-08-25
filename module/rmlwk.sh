@@ -281,7 +281,7 @@ function remove_hosts() {
 
     # Restore to default entries if hosts file is empty
     if [ ! -s "$hosts_file" ]; then
-        echo "- Warning: Hosts file is empty. Restoring default entries."
+        echo "[!] Hosts file is empty. Restoring default entries."
         log_message WARN "Detected empty hosts file"
         log_message "Restoring default entries..."
         echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -677,7 +677,7 @@ case "$(tolower "$1")" in
     
                 if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
                     if [ "$block_toggle" = 0 ]; then
-                        echo "- $block_type block is already disabled"
+                        echo "[i] $block_type block is already disabled"
                     else
                         log_message "Disabling ${block_type} has been initiated."
                         echo "[*] Removing block entries for ${block_type} sites."
@@ -1008,7 +1008,7 @@ case "$(tolower "$1")" in
 
     --help|-h|*)
         echo ""
-        echo "Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
+        echo "[i] Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
