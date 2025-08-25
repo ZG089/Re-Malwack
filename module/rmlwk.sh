@@ -360,11 +360,12 @@ function block_trackers() {
     cache_dir="$persist_dir/cache/trackers"
     cache_hosts="$cache_dir/hosts"
     mkdir -p "$cache_dir"
+    brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
 
     if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
         if [ "$block_trackers" = 0 ]; then
-            echo "[i] Trackers block is already disabled"
-            return 0
+            echo "[!] Trackers block is already disabled"
+            exit 0
         fi
 
         echo "[*] Removing trackers blocklist..."
@@ -378,14 +379,13 @@ function block_trackers() {
             echo "[!] No cached trackers file found, Redownloading."
             log_message WARN "No cached trackers file for trackers, redownloading before removal."
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
-            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
                 huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) url="" ;;
+                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
             esac
             host_process "${cache_hosts}1"
             [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
@@ -400,27 +400,26 @@ function block_trackers() {
     else
         if [ "$block_trackers" = 1 ]; then
             echo "[!] Trackers block is already enabled"
-            return 0
+            exit 0
         fi
 
         if ls "${cache_hosts}"* >/dev/null 2>&1; then
-            echo "[*] Enabling trackers blocklist..."
+            echo "[*] Enabling trackers block for your $brand device"
             log_message "Installing cached trackers blocklist."
             install_hosts "trackers"
         else
             nuke_if_we_dont_have_internet
-            echo "[*] Downloading & Applying hosts for native trackers block."
+            echo "[*] Downloading & Applying native trackers block for your $brand device"
             log_message "Downloading hosts for native trackers block."
 
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
-            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
                 oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
                 vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
                 huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) url="" ;;
+                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
             esac
 
             host_process "${cache_hosts}1"
@@ -430,8 +429,8 @@ function block_trackers() {
         fi
 
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
-        log_message SUCCESS "Trackers blocklist enabled."
-        echo "[✓] Trackers blocklist has been enabled."
+        log_message SUCCESS "Trackers block has been enabled."
+        echo "[✓] Trackers block has been enabled."
     fi
 
     log_duration "block_trackers ($status)" "$start_time"
