@@ -84,51 +84,34 @@ bindhosts_import_sources() {
     detect_key_press 3 2
     choice=$?
 
+    sources_count=0
+    whitelist_count=0
+    blacklist_count=0
+
     case "$choice" in
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            bindhosts_import_list whitelist replace
-            bindhosts_import_list blacklist replace
-            ui_print "[✓] Imported bindhosts setup successfully"
+            sources_count=$(grep -vc '^[[:space:]]*$' "$dest_sources")
+            bindhosts_import_list whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_list blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            bindhosts_import_list whitelist merge
-            bindhosts_import_list blacklist merge
-            ui_print "[✓] Imported bindhosts setup successfully"
+            sources_count=$(grep -vc '^[[:space:]]*$' "$bindhosts_sources")
+            bindhosts_import_list whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_list blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
-        3|255) ui_print "[i] Skipped bindhosts import." ;;
-        *) ui_print "[!] Invalid selection. Skipping bindhosts import." ;;
+        3|255) ui_print "[i] Skipped bindhosts import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipping bindhosts import."; return ;;
     esac
 
-    # Dedup after import
-    dedup_file "$dest_sources"
-    dedup_file "$persistent_dir/whitelist.txt"
-    dedup_file "$persistent_dir/blacklist.txt"
     ui_print "[✓] Bindhosts setup imported successfully."
+    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
-bindhosts_import_list() {
-    list_type="$1"
-    mode="$2"
-    bindhosts="/data/adb/bindhosts"
-    src="$bindhosts/$list_type.txt"
-    dest="$persistent_dir/$list_type.txt"
-
-    [ ! -f "$src" ] && return
-    if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
-        ui_print "[i] Detected $list_type file with entries..."
-        case "$mode" in
-            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" > "$dest" ;;
-            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
-        esac
-    fi
-}
-
-# cubic import
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
     ui_print "[i] How would you like to import cubic-adblock hosts sources?"
@@ -139,6 +122,7 @@ import_cubic_sources() {
     detect_key_press 3 2
     choice=$?
 
+    sources_added=0
     case "$choice" in
         1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; : > "$src_file" ;;
         2) ui_print "[*] Merging Cubic-Adblock hosts sources with Re-Malwack..." ;;
@@ -166,11 +150,12 @@ EOF
         else
             echo "$url" >> "$src_file"
             ui_print "[✓] Imported: $url"
+            sources_added=$((sources_added + 1))
         fi
     done
-    # Dedup after import
-    dedup_file "$src_file"
+
     ui_print "[✓] Cubic-Adblock sources imported successfully."
+    ui_print "[i] Imported: $sources_added new sources."
 }
 
 # AdAway import
@@ -238,11 +223,6 @@ import_adaway_data() {
         fi
     done < "$tmp_black"
     rm -f "$tmp_black"
-
-    # Dedup everything
-    dedup_file "$src_file"
-    dedup_file "$whitelist_file"
-    dedup_file "$blacklist_file"
 
     ui_print "[✓] AdAway import completed."
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
