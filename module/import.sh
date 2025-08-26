@@ -66,7 +66,7 @@ detect_key_press() {
 dedup_file() {
     file="$1"
     [ -f "$file" ] || return
-    awk '!seen[$0]++' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    sort -u "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 }
 
 # bindhosts import
@@ -79,7 +79,7 @@ bindhosts_import_sources() {
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
     ui_print "1 - Use only bindhosts setup (replace)"
     ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
-    ui_print "3 - Cancel"
+    ui_print "3 - Skip importing. (Do not Import)"
 
     detect_key_press 3 2
     choice=$?
@@ -91,12 +91,14 @@ bindhosts_import_sources() {
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
             bindhosts_import_list whitelist replace
             bindhosts_import_list blacklist replace
+            ui_print "[✓] Imported bindhosts setup successfully"
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
             bindhosts_import_list whitelist merge
             bindhosts_import_list blacklist merge
+            ui_print "[✓] Imported bindhosts setup successfully"
             ;;
         3|255) ui_print "[i] Skipped bindhosts import." ;;
         *) ui_print "[!] Invalid selection. Skipping bindhosts import." ;;
@@ -129,24 +131,24 @@ bindhosts_import_list() {
 # cubic import
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
-    ui_print "[i] How would you like to import cubic-adblock sources?"
-    ui_print "1 - Replace Re-Malwack sources with Cubic-Adblock sources"
-    ui_print "2 - Merge Cubic-Adblock sources with Re-Malwack default sources [RECOMMENDED]"
-    ui_print "3 - No, Do Not Import"
+    ui_print "[i] How would you like to import cubic-adblock hosts sources?"
+    ui_print "1 - Replace Re-Malwack hosts sources with Cubic-Adblock sources"
+    ui_print "2 - Merge Cubic-Adblock hosts sources with Re-Malwack default sources [RECOMMENDED]"
+    ui_print "3 - Skip importing. (Do not Import)"
 
     detect_key_press 3 2
     choice=$?
 
     case "$choice" in
-        1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; echo -n > "$src_file" ;;
-        2) ui_print "[*] Merging Cubic-Adblock sources with Re-Malwack..." ;;
+        1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; : > "$src_file" ;;
+        2) ui_print "[*] Merging Cubic-Adblock hosts sources with Re-Malwack..." ;;
         3|255) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
-        *) ui_print "[!] Invalid selection. Skipping Cubic-Adblock import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
     esac
 
     # replace pro with ultimate
     if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
-        ui_print "[*] Replacing Hagezi Pro Plus with Ultimate..."
+        ui_print "[*] Replacing Hagezi Pro Plus hosts with Ultimate version."
         sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
 
