@@ -18,7 +18,7 @@ detect_key_press() {
     [ -z "$recommended_option" ] && recommended_option=2
 
     current=1
-    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
+    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: option $recommended_option)."
     ui_print "Current choice: $current"
 
     while :; do
@@ -93,14 +93,14 @@ bindhosts_import_sources() {
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*$' "$dest_sources")
+            sources_count=$(grep -c "$dest_sources")
             bindhosts_import_list whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_list blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*$' "$bindhosts_sources")
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
             bindhosts_import_list whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_list blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
@@ -110,6 +110,23 @@ bindhosts_import_sources() {
 
     ui_print "[✓] Bindhosts setup imported successfully."
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
+}
+
+bindhosts_import_list() {
+    list_type="$1"
+    mode="$2"
+    bindhosts="/data/adb/bindhosts"
+    src="$bindhosts/$list_type.txt"
+    dest="$persistent_dir/$list_type.txt"
+
+    [ ! -f "$src" ] && return
+    if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
+        ui_print "[i] Detected $list_type file with entries..."
+        case "$mode" in
+            replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" > "$dest" ;;
+            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
+        esac
+    fi
 }
 
 import_cubic_sources() {
