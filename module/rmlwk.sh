@@ -941,33 +941,31 @@ case "$(tolower "$1")" in
             eval enabled=\$$block_var
             cache_hosts="$persist_dir/cache/$bl/hosts"
 
-            # Download if missing or updating
-            if [ ! -f "${cache_hosts}1" ] || [ "$enabled" = "1" ]; then
-                mkdir -p "$persist_dir/cache/$bl"
-                echo "[*] Fetching blocklist: $bl"
-                log_message "Fetching blocklist: $bl"
-                fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
-                if [ "$bl" = "porn" ]; then
-                    fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
-                    fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
-                    fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
-                    wait
-                fi
-            fi
-
-            # Process downloaded hosts
-            for file in "$persist_dir/cache/$bl/hosts"*; do
-                [ -f "$file" ] && host_process "$file"
-            done
-
-            # Append only if enabled
-            if [ "$enabled" = "1" ]; then
-                cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
-                echo "[✓] Fetched $bl blocklist"
-                log_message "Added $bl blocklist to combined file"
-            else
-                echo "[i] Skipped $bl blocklist (disabled)"
-            fi
+            # Download & process only if blocklist is enabled
+          if [ "$enabled" = "1" ]; then
+              mkdir -p "$persist_dir/cache/$bl"
+              echo "[*] Fetching blocklist: $bl"
+              log_message "Fetching blocklist: $bl"
+              fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
+              if [ "$bl" = "porn" ]; then
+                  fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
+                  fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
+                  fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                  wait
+              fi
+          
+              # Process downloaded hosts
+              for file in "$persist_dir/cache/$bl/hosts"*; do
+                  [ -f "$file" ] && host_process "$file"
+              done
+          
+              # Append only if enabled
+              cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
+              echo "[✓] Fetched $bl blocklist"
+              log_message "Added $bl blocklist to combined file"
+          else
+              echo "[i] Skipped $bl blocklist (disabled)"
+          fi
         done
         # 3b. Handle trackers blocklist if enabled
         if [ "$block_trackers" = "1" ]; then
