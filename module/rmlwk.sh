@@ -17,11 +17,10 @@ system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
-LOGPIPE="$persist_dir/logs/log_pipe/$(date +%Y-%m-%d_%H-%M-%S)"
 
 # ====== Pre-func ======
 . "$persist_dir/config.sh"
-mkdir -p "$persist_dir/logs/log_pipe"
+mkdir -p "$persist_dir/logs"
 
 # ====== Functions ======
 function rmlwk_banner() {
@@ -73,7 +72,6 @@ function is_default_hosts() {
 # Function to process hosts, maybe?
 function host_process() {
     local file="$1"
-    local tmp_file="${file}.tmp"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
     # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
