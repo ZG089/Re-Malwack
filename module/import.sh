@@ -163,7 +163,7 @@ import_cubic_sources() {
     # cubic-adblock sources
     while IFS= read -r url; do
         [ -z "$url" ] && continue
-        if grep -q "$url" "$src_file"; then
+        if grep -Fq "$url" "$src_file"; then
             ui_print "[!] Skipped (already present): $url"
             skipped=$((skipped + 1))
         else
