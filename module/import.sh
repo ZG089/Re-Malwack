@@ -66,7 +66,7 @@ detect_key_press() {
 dedup_file() {
     file="$1"
     [ -f "$file" ] || return
-    sort -u "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    awk '!seen[$0]++' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 }
 
 # bindhosts import
@@ -138,7 +138,6 @@ import_cubic_sources() {
 
     detect_key_press 3 2
     choice=$?
-
     sources_added=0
     case "$choice" in
         1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; : > "$src_file" ;;
@@ -147,32 +146,35 @@ import_cubic_sources() {
         *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
     esac
 
+    sources_added=0
+    skipped=0
     # replace pro with ultimate
     if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
         ui_print "[*] Replacing Hagezi Pro Plus hosts with Ultimate version."
         sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
-
+    
     # cubic sources
-    cat <<EOF | while IFS= read -r url; do
-https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts?ref_type=heads
-https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_type=heads
-https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
-https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
-https://o0.pages.dev/Pro/hosts.txt
-EOF
+    while IFS= read -r url; do
         [ -z "$url" ] && continue
         if grep -Fqx "$url" "$src_file"; then
             ui_print "[!] Skipped (already present): $url"
+            skipped=$((skipped + 1))
         else
             echo "$url" >> "$src_file"
             ui_print "[✓] Imported: $url"
             sources_added=$((sources_added + 1))
         fi
-    done
-
+    done <<EOF
+    https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts?ref_type=heads
+    https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_type=heads
+    https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
+    https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
+    https://o0.pages.dev/Pro/hosts.txt
+    EOF
+    
     ui_print "[✓] Cubic-Adblock sources imported successfully."
-    ui_print "[i] Imported: $sources_added new sources."
+    ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
 }
 
 # AdAway import
