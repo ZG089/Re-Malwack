@@ -148,16 +148,22 @@ import_cubic_sources() {
         *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
     esac
 
-    # replace pro with ultimate
+    # replace Hagezi pro with ultimate
     if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
         ui_print "[*] Replacing Hagezi Pro Plus hosts with Ultimate version."
         sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
-    
-    # cubic sources
+
+    # replace 1Hosts Lite with Pro
+    if grep -q 'https://badmojr.github.io/1Hosts/Lite/hosts.txt' "$src_file"; then
+        ui_print "[*] Replacing 1Hosts Lite with Pro version."
+        sed -i 's|https://badmojr.github.io/1Hosts/Lite/hosts.txt|https://badmojr.github.io/1Hosts/Pro/hosts.txt|' "$src_file"
+    fi
+
+    # cubic-adblock sources
     while IFS= read -r url; do
         [ -z "$url" ] && continue
-        if grep -Fqx "$url" "$src_file"; then
+        if grep -q "$url" "$src_file"; then
             ui_print "[!] Skipped (already present): $url"
             skipped=$((skipped + 1))
         else
@@ -166,13 +172,15 @@ import_cubic_sources() {
             sources_added=$((sources_added + 1))
         fi
     done <<EOF
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts?ref_type=heads
 https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_type=heads
 https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
 https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
-https://o0.pages.dev/Pro/hosts.txt
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
+https://badmojr.github.io/1Hosts/Pro/hosts.txt
 EOF
-    
+
     ui_print "[✓] Cubic-Adblock sources imported successfully."
     ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
 }
