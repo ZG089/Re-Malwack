@@ -98,22 +98,23 @@ function is_protection_paused() {
 }
 
 # 1 - Pause adblock
-function pause_protections() {
-    # Check if protection is already paused
+pause_protections() {
+    # First check if hosts file is reset
+    if is_default_hosts; then
+        echo "[i] You cannot pause protections while hosts is reset."
+        exit 1
+    fi
+
+    # Then check if protection is already paused
     if is_protection_paused; then
         resume_protections
         exit 0
-    fi
-    # Check if hosts file is reset
-    if is_default_hosts; then
-        echo "[i] You cannot pause protections while hosts is reset"
-        exit
     fi
     log_message "Pausing Protections"
     echo "[*] Pausing Protections"
     cp "$hosts_file" "$persist_dir/hosts.bak"
     printf "127.0.0.1 localhost\n::1 localhost\n" > "$hosts_file"
-    sed -i 's/^adblock_switch=.*/adblock_switch=1/' "/data/adb/Re-Malwack/config.sh"
+    sed -i 's/^adblock_switch=.*/adblock_switch=1/' "$persist_dir/config.sh"
     refresh_blocked_counts
     update_status
     log_message SUCCESS "Protection has been paused."
