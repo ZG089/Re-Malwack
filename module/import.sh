@@ -105,7 +105,7 @@ bindhosts_import_sources() {
             bindhosts_import_list blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         3|255) ui_print "[i] Skipped bindhosts import."; return ;;
-        *) ui_print "[!] Invalid selection. Skipping bindhosts import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped bindhosts import."; return ;;
     esac
 
     ui_print "[✓] Bindhosts setup imported successfully."
@@ -132,8 +132,8 @@ bindhosts_import_list() {
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
     ui_print "[i] How would you like to import cubic-adblock hosts sources?"
-    ui_print "1 - Replace Re-Malwack hosts sources with Cubic-Adblock sources"
-    ui_print "2 - Merge Cubic-Adblock hosts sources with Re-Malwack default sources [RECOMMENDED]"
+    ui_print "1 - Replace default"
+    ui_print "2 - Merge with default sources [RECOMMENDED]"
     ui_print "3 - Skip importing. (Do not Import)"
 
     detect_key_press 3 2
@@ -142,8 +142,8 @@ import_cubic_sources() {
     skipped=0
 
     case "$choice" in
-        1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; : > "$src_file" ;;
-        2) ui_print "[*] Merging Cubic-Adblock hosts sources with Re-Malwack..." ;;
+        1) ui_print "[*] Replacing default..."; : > "$src_file" ;;
+        2) ui_print "[*] Merging..." ;;
         3|255) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
     esac
@@ -180,7 +180,6 @@ https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
 https://badmojr.github.io/1Hosts/Pro/hosts.txt
 EOF
-
     ui_print "[✓] Cubic-Adblock sources imported successfully."
     ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
 }
@@ -191,9 +190,10 @@ import_adaway_data() {
     whitelist_file="$persistent_dir/whitelist.txt"
     blacklist_file="$persistent_dir/blacklist.txt"
 
-    ui_print "[i] AdAway Backup has been detected, Do you want to import your setup from it?"
+    ui_print "[i] AdAway Backup file has been detected."
+    ui_print "[i] Do you want to import your setup from it?"
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
-    ui_print "1 - Yes, But use only AdAway setup"
+    ui_print "1 - Yes, But use only AdAway setup (replace)"
     ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
     ui_print "3 - No, Do Not Import."
 
@@ -202,12 +202,12 @@ import_adaway_data() {
 
     case "$choice" in
         1)
-            ui_print "[*] Replacing Re-Malwack setup with AdAway setup..."
+            ui_print "[*] Applying AdAway setup..."
             : > "$src_file"
             : > "$whitelist_file"
             : > "$blacklist_file"
             ;;
-        2) ui_print "[*] Merging AdAway setup with Re-Malwack setup..." ;;
+        2) ui_print "[*] Merging AdAway setup..." ;;
         3|255) ui_print "[i] Skipped AdAway import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped AdAway import."; return ;;
     esac
@@ -275,8 +275,8 @@ for module in /data/adb/modules/*; do
     if [ -f "${module}/system/etc/hosts" ]; then
         module_name="$(grep_prop name "${module}/module.prop")"
         if [ "$import_done" -eq 0 ]; then
-            ui_print "- $module_id detected. Import setup?"
-            ui_print "1- YES | 2- NO"
+            ui_print "[i] $module_id detected. Import setup?"
+            ui_print "1 - YES | 2 - NO"
             detect_key_press 2 1
             choice=$?
             case "$choice" in
@@ -289,9 +289,9 @@ for module in /data/adb/modules/*; do
                     esac
                     import_done=1
                     ;;
-                2) ui_print "- Skipped import from $module_id." ;;
-                255) ui_print "- Timeout, skipping import from $module_id." ;;
-                *) ui_print "- Invalid selection. Skipping import from $module_id." ;;
+                2) ui_print "[i] Skipped import from $module_id." ;;
+                255) ui_print "[!] Timeout, skipping import from $module_id." ;;
+                *) ui_print "[!] Invalid selection. Skipping import from $module_id." ;;
             esac
         fi
 
