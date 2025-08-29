@@ -962,8 +962,6 @@ case "$(tolower "$1")" in
               cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
               echo "[✓] Fetched $bl blocklist"
               log_message "Added $bl blocklist to combined file"
-          else
-              echo "[i] Skipped $bl blocklist (disabled)"
           fi
         done
         # 3b. Handle trackers blocklist if enabled
