@@ -3,6 +3,8 @@
 # All respect for the developers of the mentioned modules/apps in this script.
 # ZG089, Re-Malwack founder.
 
+ABI="$(getprop ro.product.cpu.abi)"
+PATH="$MODPATH/bin/$ABI:$PATH"
 persistent_dir="/data/adb/Re-Malwack"
 adaway_json="/sdcard/Download/adaway-backup.json"
 import_done=0
@@ -16,7 +18,7 @@ detect_key_press() {
     [ -z "$recommended_option" ] && recommended_option=2
 
     current=1
-    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: $recommended_option)."
+    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: option $recommended_option)."
     ui_print "Current choice: $current"
 
     while :; do
@@ -77,34 +79,37 @@ bindhosts_import_sources() {
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
     ui_print "1 - Use only bindhosts setup (replace)"
     ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
-    ui_print "3 - Cancel"
+    ui_print "3 - Skip importing. (Do not Import)"
 
     detect_key_press 3 2
     choice=$?
+
+    sources_count=0
+    whitelist_count=0
+    blacklist_count=0
 
     case "$choice" in
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            bindhosts_import_list whitelist replace
-            bindhosts_import_list blacklist replace
+            sources_count=$(grep -c "$dest_sources")
+            bindhosts_import_list whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_list blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            bindhosts_import_list whitelist merge
-            bindhosts_import_list blacklist merge
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
+            bindhosts_import_list whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_list blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
-        3|255) ui_print "[i] Skipped bindhosts import." ;;
-        *) ui_print "[!] Invalid selection. Skipping bindhosts import." ;;
+        3|255) ui_print "[i] Skipped bindhosts import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped bindhosts import."; return ;;
     esac
 
-    # Dedup after import
-    dedup_file "$dest_sources"
-    dedup_file "$persistent_dir/whitelist.txt"
-    dedup_file "$persistent_dir/blacklist.txt"
     ui_print "[✓] Bindhosts setup imported successfully."
+    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
 bindhosts_import_list() {
@@ -124,49 +129,59 @@ bindhosts_import_list() {
     fi
 }
 
-# cubic import
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
-    ui_print "[i] How would you like to import cubic-adblock sources?"
-    ui_print "1 - Replace Re-Malwack sources with Cubic-Adblock sources"
-    ui_print "2 - Merge Cubic-Adblock sources with Re-Malwack default sources [RECOMMENDED]"
-    ui_print "3 - No, Do Not Import"
+    ui_print "[i] How would you like to import cubic-adblock hosts sources?"
+    ui_print "1 - Replace default"
+    ui_print "2 - Merge with default sources [RECOMMENDED]"
+    ui_print "3 - Skip importing. (Do not Import)"
 
     detect_key_press 3 2
     choice=$?
+    sources_added=0
+    skipped=0
 
     case "$choice" in
-        1) ui_print "[*] Replacing Re-Malwack sources with Cubic-Adblock..."; echo -n > "$src_file" ;;
-        2) ui_print "[*] Merging Cubic-Adblock sources with Re-Malwack..." ;;
-        3|255) ui_print "[*] Skipping Cubic-Adblock import."; return ;;
-        *) ui_print "[!] Invalid selection. Skipping Cubic-Adblock import."; return ;;
+        1) ui_print "[*] Replacing default..."; : > "$src_file" ;;
+        2) ui_print "[*] Merging..." ;;
+        3|255) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
     esac
 
-    # replace pro with ultimate
+    # replace Hagezi pro with ultimate
     if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
-        ui_print "[*] Replacing Hagezi Pro Plus with Ultimate..."
+        ui_print "[*] Replacing Hagezi Pro Plus hosts with Ultimate version."
         sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
 
-    # cubic sources
-    cat <<EOF | while IFS= read -r url; do
+    # replace 1Hosts Lite with Pro
+    if grep -q 'https://badmojr.github.io/1Hosts/Lite/hosts.txt' "$src_file"; then
+        ui_print "[*] Replacing 1Hosts Lite with Pro version."
+        sed -i 's|https://badmojr.github.io/1Hosts/Lite/hosts.txt|https://badmojr.github.io/1Hosts/Pro/hosts.txt|' "$src_file"
+    fi
+
+    # cubic-adblock sources
+    while IFS= read -r url; do
+        [ -z "$url" ] && continue
+        if grep -Fq "$url" "$src_file"; then
+            ui_print "[!] Skipped (already present): $url"
+            skipped=$((skipped + 1))
+        else
+            echo "$url" >> "$src_file"
+            ui_print "[✓] Imported: $url"
+            sources_added=$((sources_added + 1))
+        fi
+    done <<EOF
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
 https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts?ref_type=heads
 https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_type=heads
 https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
 https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
-https://o0.pages.dev/Pro/hosts.txt
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
+https://badmojr.github.io/1Hosts/Pro/hosts.txt
 EOF
-        [ -z "$url" ] && continue
-        if grep -Fqx "$url" "$src_file"; then
-            ui_print "- Skipped (already present): $url"
-        else
-            echo "$url" >> "$src_file"
-            ui_print "- Imported: $url"
-        fi
-    done
-    # Dedup after import
-    dedup_file "$src_file"
     ui_print "[✓] Cubic-Adblock sources imported successfully."
+    ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
 }
 
 # AdAway import
@@ -175,9 +190,10 @@ import_adaway_data() {
     whitelist_file="$persistent_dir/whitelist.txt"
     blacklist_file="$persistent_dir/blacklist.txt"
 
-    ui_print "[i] AdAway Backup has been detected, Do you want to import your setup from it?"
+    ui_print "[i] AdAway Backup file has been detected."
+    ui_print "[i] Do you want to import your setup from it?"
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
-    ui_print "1 - Yes, But use only AdAway setup"
+    ui_print "1 - Yes, But use only AdAway setup (replace)"
     ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
     ui_print "3 - No, Do Not Import."
 
@@ -186,71 +202,61 @@ import_adaway_data() {
 
     case "$choice" in
         1)
-            ui_print "- Replacing Re-Malwack setup with AdAway backup..."
+            ui_print "[*] Applying AdAway setup..."
             : > "$src_file"
             : > "$whitelist_file"
             : > "$blacklist_file"
             ;;
-        2) 
-            ui_print "[*] Merging AdAway backup with Re-Malwack..." 
-            ;;
-        3|255) 
-            ui_print "- Skipping AdAway import."
-            return 
-            ;;
-        *) 
-            ui_print "- Invalid selection. Skipping AdAway import."
-            return 
-            ;;
+        2) ui_print "[*] Merging AdAway setup..." ;;
+        3|255) ui_print "[i] Skipped AdAway import."; return ;;
+        *) ui_print "[!] Invalid selection. Skipped AdAway import."; return ;;
     esac
 
-    # import sources (only from "sources" array with enabled = true)
-    awk '
-      /"sources": \[/ { in_sources=1; next }
-      in_sources && /\]/ { in_sources=0 }
-      in_sources {
-          if ($0 ~ /"enabled": true/) enabled=1
-          if (enabled && $0 ~ /"url":/) {
-              match($0, /"url": *"([^"]*)"/, arr)
-              if (arr[1] != "") print arr[1]
-              enabled=0
-          }
-      }
-    ' "$adaway_json" | while read -r url; do
-        [ -n "$url" ] && grep -Fqx "$url" "$src_file" || echo "$url" >> "$src_file"
-    done
+    # Import enabled sources
+    tmp_sources="$persistent_dir/tmp.sources.$$"
+    jq -r '.sources[] | select(.enabled == true) | .url' "$adaway_json" > "$tmp_sources"
+    sources_count=0
+    while IFS= read -r url; do
+        [ -n "$url" ] || continue
+        if ! grep -Fqx "$url" "$src_file"; then
+            echo "$url" >> "$src_file"
+            sources_count=$((sources_count + 1))
+        fi
+    done < "$tmp_sources"
+    rm -f "$tmp_sources"
 
-    # import whitelist
-    if grep -q '"allowed": \[' "$adaway_json"; then
-        ui_print "[*] Importing AdAway whitelist entries..."
-        awk '/"allowed": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" \
-            | sed 's/[^"]*"\([^"]*\)".*/\1/' \
-            | while read -r domain; do
-                [ -n "$domain" ] && grep -Fqx "$domain" "$whitelist_file" || echo "$domain" >> "$whitelist_file"
-            done
-    else
-        ui_print "[i] No whitelist entries found in AdAway backup."
-    fi
+    # Import enabled whitelist
+    tmp_white="$persistent_dir/tmp.white.$$"
+    jq -r '.allowed[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_white"
+    whitelist_count=0
+    while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        if ! grep -Fqx "$domain" "$whitelist_file"; then
+            echo "$domain" >> "$whitelist_file"
+            whitelist_count=$((whitelist_count + 1))
+        fi
+    done < "$tmp_white"
+    rm -f "$tmp_white"
 
-    # import blacklist
-    if grep -q '"blocked": \[' "$adaway_json"; then
-        ui_print "[*] Importing AdAway blacklist entries..."
-        awk '/"blocked": \[/{flag=1; next} /\]/{flag=0} flag && /"/' "$adaway_json" \
-            | sed 's/[^"]*"\([^"]*\)".*/\1/' \
-            | while read -r domain; do
-                [ -n "$domain" ] && grep -Fqx "$domain" "$blacklist_file" || echo "$domain" >> "$blacklist_file"
-            done
-    else
-        ui_print "[i] No blacklist entries found in AdAway backup."
-    fi
+    # Import enabled blacklist
+    tmp_black="$persistent_dir/tmp.black.$$"
+    jq -r '.blocked[] | select(.enabled == true) | .host' "$adaway_json" > "$tmp_black"
+    blacklist_count=0
+    while IFS= read -r domain; do
+        [ -n "$domain" ] || continue
+        if ! grep -Fqx "$domain" "$blacklist_file"; then
+            echo "$domain" >> "$blacklist_file"
+            blacklist_count=$((blacklist_count + 1))
+        fi
+    done < "$tmp_black"
+    rm -f "$tmp_black"
 
-    # Dedup after import
-    dedup_file "$src_file"
-    dedup_file "$whitelist_file"
-    dedup_file "$blacklist_file"
-    ui_print "- AdAway import completed."
+    ui_print "[✓] AdAway import completed."
+    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
+# Exec perms for jq
+chmod +x $MODPATH/bin/$ABI/jq
 # AdAway import if backup exists
 if [ -f "$adaway_json" ]; then
     import_adaway_data
@@ -269,8 +275,8 @@ for module in /data/adb/modules/*; do
     if [ -f "${module}/system/etc/hosts" ]; then
         module_name="$(grep_prop name "${module}/module.prop")"
         if [ "$import_done" -eq 0 ]; then
-            ui_print "- $module_id detected. Import setup?"
-            ui_print "1- YES | 2- NO"
+            ui_print "[i] $module_id detected. Import setup?"
+            ui_print "1 - YES | 2 - NO"
             detect_key_press 2 1
             choice=$?
             case "$choice" in
@@ -283,9 +289,9 @@ for module in /data/adb/modules/*; do
                     esac
                     import_done=1
                     ;;
-                2) ui_print "- Skipped import from $module_id." ;;
-                255) ui_print "- Timeout, skipping import from $module_id." ;;
-                *) ui_print "- Invalid selection. Skipping import from $module_id." ;;
+                2) ui_print "[i] Skipped import from $module_id." ;;
+                255) ui_print "[!] Timeout, skipping import from $module_id." ;;
+                *) ui_print "[!] Invalid selection. Skipping import from $module_id." ;;
             esac
         fi
 
