@@ -362,7 +362,8 @@ function block_trackers() {
 
         if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
             nuke_if_we_dont_have_internet
-            log_message WARN "No cached trackers file — redownloading before removal."
+            log_message WARN "No cached trackers blocklist file found for $brand device, redownloading before removal."
+            echo "[!] No cached trackers blocklist file(s) found for $brand device, redownloading before removal."
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
@@ -389,6 +390,8 @@ function block_trackers() {
 
         if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
             nuke_if_we_dont_have_internet
+            log_message "Enabling trackers block for $brand device"
+            echo "[*] Enabling trackers block for $brand device"
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
