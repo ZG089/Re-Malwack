@@ -99,16 +99,17 @@ function is_protection_paused() {
 
 # 1 - Pause adblock
 pause_protections() {
-    # First check if hosts file is reset
-    if is_default_hosts; then
-        echo "[i] You cannot pause protections while hosts is reset."
-        exit 1
-    fi
 
-    # Then check if protection is already paused
+    # Check if protection is paused, enable if it is paused.
     if is_protection_paused; then
         resume_protections
         exit 0
+    fi
+    
+    # Prevent pausing if hosts is reset
+    if is_default_hosts && ! is_protection_paused; then
+        echo "[i] You cannot pause protections while hosts is reset."
+        exit 1
     fi
     log_message "Pausing Protections"
     echo "[*] Pausing Protections"
