@@ -712,80 +712,135 @@ case "$(tolower "$1")" in
     --whitelist|-w)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
-        option="$2"
+        action="$2"
         raw_input="$3"
 
-        # Normalize full URL or wildcard input
-        if printf "%s" "$raw_input" | grep -qE '^https?://'; then
-            domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
-        else
-            domain="$raw_input"
-        fi
-
-        wildcard_match=0
-        if echo "$raw_input" | grep -q '^\*\.'; then
-            wildcard_match=1
-        fi
-
-        domain=$(printf "%s" "$domain" | sed 's/^\*\.\?//')
-        escaped_domain=$(printf '%s' "$domain" | sed 's/[.[\*^$/]/\\&/g')
-
-        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
-            echo "Usage: rmlwk --whitelist, -w <add/remove> <domain>"
+        if [ -z "$action" ] || [ -z "$raw_input" ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
+            echo "Usage: rmlwk --whitelist|-w <add|remove> <domain|pattern>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
-            [ ! -z "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
+            [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
+        fi
+
+        # Extract host if a URL was passed
+        if printf '%s' "$raw_input" | grep -qE '^https?://'; then
+            host=$(printf '%s' "$raw_input" | awk -F[/:] '{print $4}')
         else
+            host="$raw_input"
+        fi
+
+        # Determine wildcard mode
+        # - suffix wildcard if starts with "*.something" or ".something"
+        # - glob mode if contains '*' anywhere (over entire domain)
+        suffix_wildcard=0
+        glob_mode=0
+        if printf '%s' "$host" | grep -qE '^\*\.|^\.'; then
+            suffix_wildcard=1
+        elif printf '%s' "$host" | grep -q '\*'; then
+            glob_mode=1
+        fi
+
+        # Normalize the base domain/pattern
+        base="$host"
+        if [ "$suffix_wildcard" -eq 1 ]; then
+            # strip leading "*." or "." (one label or the dot)
+            base="${base#*.}"
+        fi
+
+        # Build a domain-only ERE for matching the 2nd field in hosts
+        # 1) escape regex metachars except '*' (handled separately for glob mode)
+        esc_base=$(printf '%s' "$base" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+
+        if [ "$suffix_wildcard" -eq 1 ]; then
+            # match example.com or any subdomain of it
+            dom_re="(^|.*\.)${esc_base}$"
+        elif [ "$glob_mode" -eq 1 ]; then
+            # treat '*' as glob over the whole domain
+            esc_glob=$(printf '%s' "$esc_base" | sed 's/\*/.*/g')
+            dom_re="^${esc_glob}$"
+        else
+            # exact domain
+            dom_re="^${esc_base}$"
+        fi
+        # Prepare whitelist file
+        touch "$persist_dir/whitelist.txt"
+        if [ "$option" = "add" ]; then
+            # Detect input type
+            case "$raw_input" in
+                \*\.*) # Subdomain: *.domain.com
+                    domain="${raw_input#*.}"
+                    pattern="^0\.0\.0\.0 [^.]+\\.$domain\$"
+                    match_type="subdomain"
+                    ;;
+                \**) # Suffix: *something
+                    suffix="${raw_input#\*}"
+                    pattern="^0\.0\.0\.0 .*${suffix}\$"
+                    match_type="suffix"
+                    ;;
+                *\*) # Prefix: something*
+                    prefix="${raw_input%\*}"
+                    pattern="^0\.0\.0\.0 ${prefix}.*\$"
+                    match_type="prefix"
+                    ;;
+                *) # Exact
+                    domain="$raw_input"
+                    pattern="^0\.0\.0\.0 ${domain}\$"
+                    match_type="exact"
+                    ;;
+            esac
+
+            # Ensure whitelist file exists
             touch "$persist_dir/whitelist.txt"
-            if [ "$option" = "add" ]; then
 
-                # Determine match pattern based on wildcard presence
-                if [ "$wildcard_match" -eq 1 ]; then
-                    pattern="^0\.0\.0\.0 (.*\.)?$escaped_domain\$"
-                else
-                    pattern="^0\.0\.0\.0 $escaped_domain\$"
+            # Check if already whitelisted
+            if grep -qxF "$raw_input" "$persist_dir/whitelist.txt"; then
+                echo "[i] $raw_input is already whitelisted"
+                exit 1
+            fi
+
+            # Collect matches
+            matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
+            if [ -z "$matched_domains" ]; then
+                echo "[!] No matches found for $raw_input"
+                exit 1
+            fi
+
+            # Add matched domains to whitelist file
+            for md in $matched_domains; do
+                if ! grep -qxF "$md" "$persist_dir/whitelist.txt"; then
+                    echo "$md" >> "$persist_dir/whitelist.txt"
                 fi
+            done
 
-                # Add domain to whitelist.txt and remove from hosts
-                if grep -qxF "$domain" "$persist_dir/whitelist.txt"; then
-                    echo "[i] $domain is already whitelisted"
-                    exit 1
-                elif ! grep -Eq "$pattern" "$hosts_file"; then
-                    echo "[!] $domain not found in hosts file. Nothing to whitelist."
-                    exit 1
-                else
-                    # Parse entries to whitelist
-                    grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u | while read -r matched; do
-                        echo "$matched" >> "$persist_dir/whitelist.txt"
-                    done
-                    # Remove entries from hosts
-                    echo "[i] The following domain(s) matched and were whitelisted:"
-                    printf "%s\n" "$matched_domains"
-                    log_message SUCCESS "Whitelisted domains: $(printf "%s " $matched_domains)"
-                    sed -E "/$pattern/d" "$hosts_file" > "$tmp_hosts"
-                    cat "$tmp_hosts" > "$hosts_file"
+            # Rewrite hosts file excluding matched domains
+            tmp_hosts="$persist_dir/tmp.hosts.$$"
+            grep -Ev "$pattern" "$hosts_file" > "$tmp_hosts"
+            cat "$tmp_hosts" > "$hosts_file"
+            rm -f "$tmp_hosts"
 
-                    # Cleanup whitelist file - deduplicate
-                    sort -u "$persist_dir/whitelist.txt" -o "$persist_dir/whitelist.txt"
-                    rm -f "$tmp_hosts"
-                fi
+            # Dedup
+            sort -u "$persist_dir/whitelist.txt" -o "$persist_dir/whitelist.txt"
+
+            echo "[✓] Whitelisted ($match_type): $raw_input"
+            echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
+            printf " - %s\n" $matched_domains
+            log_message SUCCESS "Whitelisted $raw_input ($match_type). Domains: $matched_domains"
+        fi
+
+        else # remove
+            # Remove from whitelist file any entries that match dom_re
+            if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
+                tmpf="$persist_dir/.whitelist.$$"
+                grep -Ev "$dom_re" "$persist_dir/whitelist.txt" > "$tmpf" || true
+                mv "$tmpf" "$persist_dir/whitelist.txt"
+                log_message SUCCESS "Removed '$host' (pattern) from whitelist. Re-blocking will happen on next hosts update."
+                echo "[✓] $host removed from whitelist, Blocking of that domain will happen again on next hosts update."
             else
-                # Remove domain(s) from whitelist.txt based on wildcard or exact
-                if [ "$wildcard_match" -eq 1 ]; then
-                    removal_pattern="(.*\.)?$escaped_domain"
-                else
-                    removal_pattern="^$escaped_domain\$"
-                fi
-
-                if grep -Eq "$removal_pattern" "$persist_dir/whitelist.txt"; then
-                    sed -i -E "/$removal_pattern/d" "$persist_dir/whitelist.txt"
-                    log_message SUCCESS "Removed $domain and matching entries from whitelist. They will be re-blocked on the next update." && echo "[✓] $domain removed from whitelist."
-                else
-                    echo "[!] $domain isn't in whitelist."
-                    exit 1
-                fi
+                echo "[!] $host isn't found in whitelist."
+                exit 1
             fi
         fi
+
         refresh_blocked_counts
         update_status
         ;;
@@ -1021,7 +1076,7 @@ case "$(tolower "$1")" in
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
         echo "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
-        echo "--whitelist, -w <add|remove> <domain>: Whitelist a domain."
+        echo "rmlwk --whitelist|-w <add|remove> <domain|pattern>: Whitelist a domain."
         echo "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
