@@ -764,7 +764,7 @@ case "$(tolower "$1")" in
         fi
         # Prepare whitelist file
         touch "$persist_dir/whitelist.txt"
-        if [ "$option" = "add" ]; then
+        if [ "$action" = "add" ]; then
             # Detect input type
             case "$raw_input" in
                 \*\.*) # Subdomain: *.domain.com
