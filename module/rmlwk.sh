@@ -825,8 +825,6 @@ case "$(tolower "$1")" in
             echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
             printf " - %s\n" $matched_domains
             log_message SUCCESS "Whitelisted $raw_input ($match_type). Domains: $matched_domains"
-        fi
-
         else # remove
             # Remove from whitelist file any entries that match dom_re
             if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
