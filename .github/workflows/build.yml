@@ -63,8 +63,10 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           thumbnail: "$GITHUB_WORKSPACE/assets/dl.webp"
         run: |
-            curl -F chat_id="-1002271023118" \
-                 -F message_thread_id="1314" \
-                 -F document=@"${{ env.ZIP_NAME }}.zip" \
-                 -F thumb=@"${{ env.thumbnail }}" \
-                 -F caption="⚙️ *New test release!* Commit: \`${{ github.event.head_commit.message }}\` [View Commit](${{ github.event.head_commit.url }}) " -F parse_mode="Markdown" \ "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+          curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+               -F chat_id="-1002271023118" \
+               -F message_thread_id="1314" \
+               -F document=@"${{ env.ZIP_NAME }}.zip" \
+               -F thumb=@"${{ env.thumbnail }}" \
+               -F caption="⚙️ *New test release!* Commit: \`${{ github.event.head_commit.message }}\` [View Commit](${{ github.event.head_commit.url }}) " \
+               -F parse_mode="Markdown"
