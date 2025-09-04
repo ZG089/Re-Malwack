@@ -266,42 +266,56 @@ fi
 # Detect other modules and run imports (only if not already imported)
 for module in /data/adb/modules/*; do
     module_id="$(grep_prop id "${module}/module.prop")"
-    # Skip our own module
-    [ "$module_id" = "Re-Malwack" ] && continue
-    # Skip disabled modules
-    [ -f "/data/adb/modules/$module_id/disable" ] && continue
+    module_name="$(grep_prop name "${module}/module.prop")"
+    # skip if we got into our own module or any other module that 
+    # is disabled already.
+    if [ "${module_id}" == "Re-Malwack" ] || [ -f "/data/adb/modules/$module_id/disable" ] || [ ! -f "/data/adb/modules/$module_id/system/etc/hosts" ]; then
+        continue;
+    fi
     # force disable systemless hosts module
     [ "$module_id" = "hosts" ] && touch /data/adb/modules/hosts/disable
-    if [ -f "${module}/system/etc/hosts" ]; then
-        module_name="$(grep_prop name "${module}/module.prop")"
-        if [ "$import_done" -eq 0 ]; then
-            ui_print "[i] $module_id detected. Import setup?"
-            ui_print "1 - YES | 2 - NO"
-            detect_key_press 2 1
-            choice=$?
-            case "$choice" in
-                1)
-                    case "$module_id" in
-                        bindhosts) bindhosts_import_sources ;;
-                        cubic-adblock) import_cubic_sources ;;
-                        StevenBlock) ui_print "[i] StevenBlock sources already included." ;;
-                        *) ui_print "[!] Importing from $module_id unsupported." ;;
-                    esac
-                    import_done=1
+    if [ "$import_done" -eq 0 ]; then
+        ui_print "[i] $module_name detected. Import setup?"
+        ui_print "1 - YES | 2 - NO"
+        detect_key_press 2 1
+        choice=$?
+        case "$choice" in
+            1)
+                case "$module_id" in
+                    bindhosts)
+                        bindhosts_import_sources
                     ;;
-                2) ui_print "[i] Skipped import from $module_id." ;;
-                255) ui_print "[!] Timeout, skipping import from $module_id." ;;
-                *) ui_print "[!] Invalid selection. Skipping import from $module_id." ;;
-            esac
-        fi
-
-        # Always disable module, even if already imported
-        ui_print "[*] Disabling: $module_name"
-        touch "/data/adb/modules/$module_id/disable"
+                    cubic-adblock)
+                        import_cubic_sources
+                    ;;
+                    # Re-Malwack fork wtf - @ayumi-aiko
+                    StevenBlock)
+                        ui_print "[i] StevenBlock sources already included."
+                    ;;
+                    *)
+                        ui_print "[!] Importing from $module_id unsupported."
+                    ;;
+                esac
+                # i feel like this variable does nothing - @ayumi-aiko
+                import_done=1
+            ;;
+            2)
+                ui_print "[i] Skipped import from $module_id."
+            ;;
+            255)
+                ui_print "[!] Timeout, skipping import from $module_id."
+            ;;
+            *)
+                ui_print "[!] Invalid selection. Skipping import from $module_id."
+            ;;
+        esac
     fi
+    # Always disable module, even if already imported
+    ui_print "[*] Disabling: $module_name"
+    touch "/data/adb/modules/$module_id/disable"
 done
 
 # Dedup everything at the end just in case
-dedup_file "$persistent_dir/sources.txt"
-dedup_file "$persistent_dir/whitelist.txt"
-dedup_file "$persistent_dir/blacklist.txt"
+for i in sources whitelist blacklist; do
+    dedup_file "$persistent_dir/${i}.txt"
+done
