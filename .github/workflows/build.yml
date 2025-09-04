@@ -71,14 +71,14 @@ jobs:
 
           # Build caption with *real* newlines
           read -r -d '' CAPTION << EOM
-      ⚙️ *New test release\!*
-      Commit: \`${SHORT_HASH}\`
+          ⚙️ *New test release\!*
+          Commit: \`${SHORT_HASH}\`
 
-      ${COMMIT_MSG}
+          ${COMMIT_MSG}
 
-      [View Commit](${COMMIT_URL})
-      [Workflow Run](${RUN_URL})
-      EOM
+          [View Commit](${COMMIT_URL})
+          [Workflow Run](${RUN_URL})
+          EOM
 
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
