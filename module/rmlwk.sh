@@ -769,22 +769,26 @@ case "$(tolower "$1")" in
             case "$raw_input" in
                 \*\.*) # Subdomain: *.domain.com
                     domain="${raw_input#*.}"
-                    pattern="^0\.0\.0\.0 [^.]+\\.$domain\$"
+                    esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                    pattern="^0\.0\.0\.0 [^.]+\\.${esc_domain}\$"
                     match_type="subdomain"
                     ;;
                 \**) # Suffix: *something
                     suffix="${raw_input#\*}"
-                    pattern="^0\.0\.0\.0 .*${suffix}\$"
+                    esc_suffix=$(printf '%s' "$suffix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                    pattern="^0\.0\.0\.0 .*${esc_suffix}\$"
                     match_type="suffix"
                     ;;
                 *\*) # Prefix: something*
                     prefix="${raw_input%\*}"
-                    pattern="^0\.0\.0\.0 ${prefix}.*\$"
+                    esc_prefix=$(printf '%s' "$prefix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                    pattern="^0\.0\.0\.0 ${esc_prefix}.*\$"
                     match_type="prefix"
                     ;;
                 *) # Exact
                     domain="$raw_input"
-                    pattern="^0\.0\.0\.0 ${domain}\$"
+                    esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                    pattern="^0\.0\.0\.0 ${esc_domain}\$"
                     match_type="exact"
                     ;;
             esac
@@ -806,6 +810,8 @@ case "$(tolower "$1")" in
             fi
 
             # Add matched domains to whitelist file
+            log_message "Whitelisting ($match_type): $raw_input. Domains: $matched_domains"
+            echo "[*] Whitelisting ($match_type): $raw_input"
             for md in $matched_domains; do
                 if ! grep -qxF "$md" "$persist_dir/whitelist.txt"; then
                     echo "$md" >> "$persist_dir/whitelist.txt"
@@ -818,13 +824,15 @@ case "$(tolower "$1")" in
             cat "$tmp_hosts" > "$hosts_file"
             rm -f "$tmp_hosts"
 
-            # Dedup
-            sort -u "$persist_dir/whitelist.txt" -o "$persist_dir/whitelist.txt"
+            # Deduplicate whitelist file
+            tmpf="$persist_dir/.whitelist.sorted.$$"
+            sort -u "$persist_dir/whitelist.txt" > "$tmpf" && mv "$tmpf" "$persist_dir/whitelist.txt"
 
+            # Finalize
             echo "[✓] Whitelisted ($match_type): $raw_input"
             echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
             printf " - %s\n" $matched_domains
-            log_message SUCCESS "Whitelisted $raw_input ($match_type). Domains: $matched_domains"
+            log_message SUCCESS "Whitelisted $raw_input ($match_type)."
         else # remove
             # Remove from whitelist file any entries that match dom_re
             if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
