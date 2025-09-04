@@ -352,16 +352,15 @@ function handleAdd(fileType) {
     const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' }});
     result.on('exit', async (code) => {
         loading.classList.remove('show');
-
         if (code === 0) {
             showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
             inputElement.value = "";
-            await loadFile(fileType);
-            await getStatus();
         } else {
             console.error(`Error adding ${fileType} "${inputValue}":`, result.stderr);
             showPrompt(`Failed to add ${fileType} ${inputValue}`, false);
         }
+        await loadFile(fileType);
+        await getStatus();
     });
 }
 
@@ -472,6 +471,60 @@ function linkRedirect(url) {
     },100);
 }
 
+// Function to setup listener control button
+function setupControlListListeners(listElement) {
+    const controlList = listElement.previousElementSibling;
+    if (!controlList || !controlList.classList.contains('control-list')) return;
+
+    const backBtn = controlList.querySelector('.back');
+    const selectAllBtn = controlList.querySelector('.select-all');
+    const deleteBtn = controlList.querySelector('.delete');
+    const fileType = listElement.id.replace('-list', '');
+
+    if (listElement.controlListeners) {
+        listElement.controlListeners.abort();
+    }
+    const controller = new AbortController();
+    listElement.controlListeners = controller;
+
+    const hideControls = () => {
+        controlList.classList.remove('show');
+        const checkboxes = listElement.querySelectorAll('.checkbox-wrapper');
+        checkboxes.forEach(cb => {
+            cb.classList.remove('show');
+            const input = cb.querySelector('.checkbox');
+            if (input) {
+                input.checked = false;
+            }
+        });
+        controller.abort();
+    };
+
+    const backAction = () => hideControls();
+
+    const selectAllAction = () => {
+        const checkboxes = listElement.querySelectorAll('.checkbox-wrapper .checkbox');
+        const allSelected = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        checkboxes.forEach(cb => {
+            cb.checked = !allSelected;
+        });
+    };
+
+    const deleteAction = async () => {
+        const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
+        if (checkedItems.length === 0) return;
+
+        const lines = Array.from(checkedItems).map(item => item.closest('li').querySelector('span').textContent);
+        await removeLine(fileType, lines);
+
+        hideControls();
+    };
+
+    backBtn.addEventListener('click', backAction, { signal: controller.signal });
+    selectAllBtn.addEventListener('click', selectAllAction, { signal: controller.signal });
+    deleteBtn.addEventListener('click', deleteAction, { signal: controller.signal });
+}
+
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
@@ -484,19 +537,66 @@ async function loadFile(fileType) {
             .filter(line => line && !line.startsWith("#"));
         const listElement = document.getElementById(`${fileType}-list`);
         listElement.innerHTML = "";
-        lines.forEach(line => {
+        lines.forEach((line, index) => {
             const listItem = document.createElement("li");
+            const checkboxId = `${fileType}-checkbox-${index}`;
             listItem.innerHTML = `
                 <span>${line}</span>
-                <button class="delete-btn ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm72-144h72v-336h-72v336Zm120 0h72v-336h-72v336Z"/></svg>
-                </button>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" class="checkbox" id="${checkboxId}" disabled />
+                    <label for="${checkboxId}" class="custom-checkbox">
+                        <span class="tick-symbol">
+                            <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -3 26 26" width="16px" height="16px" fill="#fff"><path d="M 22.566406 4.730469 L 20.773438 3.511719 C 20.277344 3.175781 19.597656 3.304688 19.265625 3.796875 L 10.476563 16.757813 L 6.4375 12.71875 C 6.015625 12.296875 5.328125 12.296875 4.90625 12.71875 L 3.371094 14.253906 C 2.949219 14.675781 2.949219 15.363281 3.371094 15.789063 L 9.582031 22 C 9.929688 22.347656 10.476563 22.613281 10.96875 22.613281 C 11.460938 22.613281 11.957031 22.304688 12.277344 21.839844 L 22.855469 6.234375 C 23.191406 5.742188 23.0625 5.066406 22.566406 4.730469 Z"/></svg>
+                        </span>
+                    </label>
+                </div>
             `;
-            listElement.appendChild(listItem);
+
+            let pressTimer;
+            let isLongPress = false;
+
+            const startPress = (e) => {
+                if (e.button && e.button !== 0) return;
+                isLongPress = false;
+                pressTimer = window.setTimeout(() => {
+                    isLongPress = true;
+                    const list = listItem.closest('ul');
+                    if (list) {
+                        const controlList = list.previousElementSibling;
+                        const checkboxes = list.querySelectorAll('.checkbox-wrapper');
+                        checkboxes.forEach(cb => {
+                            cb.classList.add('show');
+                        });
+                        if (controlList) controlList.classList.add('show');
+                        setupControlListListeners(list);
+                        const checkbox = listItem.querySelector('.checkbox');
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    }
+                }, 500);
+            };
+
+            const cancelPress = () => clearTimeout(pressTimer);
+            const clickHandler = (e) => {
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            };
+
             listItem.addEventListener('click', () => {
-                listItem.scrollTo({ left: listItem.scrollWidth, behavior: 'smooth' });
+                if (!listItem.querySelector('.checkbox-wrapper').classList.contains('show')) return;
+                const checkbox = listItem.querySelector('.checkbox');
+                checkbox.checked = !checkbox.checked;
             });
-            listItem.querySelector(".delete-btn").addEventListener("click", () => removeLine(fileType, line));
+            listItem.addEventListener('mousedown', startPress);
+            listItem.addEventListener('mouseup', cancelPress);
+            listItem.addEventListener('mouseleave', cancelPress);
+            listItem.addEventListener('touchstart', startPress);
+            listItem.addEventListener('touchend', cancelPress);
+            listItem.addEventListener('click', clickHandler, true);
+            listElement.appendChild(listItem);
         });
         applyRippleEffect();
     } catch (error) {
@@ -505,16 +605,24 @@ async function loadFile(fileType) {
 }
 
 // Function to remove a line from whitelist/blacklist/custom-source
-async function removeLine(fileType, line) {
-    const result = await exec(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`, { env: { WEBUI: 'true' }});
-    if (result.errno === 0) {
-        showPrompt(`Removed ${line} from ${fileType}`, true);
-        await loadFile(fileType);
-        await getStatus();
-    } else {
-        console.error(`Failed to remove line from ${fileType}:`, result.stderr);
-        showPrompt(`Failed to remove ${line} from ${fileType}`, false);
-    }
+async function removeLine(fileType, lines) {
+    const removalPromises = lines.map(line => {
+        return new Promise((resolve) => {
+            const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`);
+            result.on('exit', (code) => {
+                if (code === 0) {
+                    showPrompt(`Removed ${line} from ${fileType}`, true);
+                } else {
+                    console.error(`Failed to remove line from ${fileType}:`, result.stderr);
+                    showPrompt(`Failed to remove ${line} from ${fileType}`, false);
+                }
+                resolve();
+            });
+        });
+    });
+    await Promise.all(removalPromises);
+    await loadFile(fileType);
+    await getStatus();
 }
 
 // Function to link file
