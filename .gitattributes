@@ -1,2 +1,3 @@
 module/bin/*/* binary
 *.png binary
+*.jpg binary
