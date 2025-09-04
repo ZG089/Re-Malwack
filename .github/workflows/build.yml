@@ -66,7 +66,7 @@ jobs:
         run: |
           COMMIT_MSG="$(echo "${{ github.event.head_commit.message }}" | sed 's/[_*`\[\]()~>#+=|{}.!-]/\\&/g')"
           COMMIT_URL="${{ github.event.head_commit.url }}"
-          CAPTION="⚙️ *New test release!*%0ACommit: \`${COMMIT_MSG}\`%0A[View Commit](${COMMIT_URL})%0A[Workflow Run](${RUN_URL})"
+          CAPTION="⚙️ *New test release\!*%0ACommit: \`${COMMIT_MSG}\`%0A[View Commit](${COMMIT_URL})%0A[Workflow Run](${RUN_URL})"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
