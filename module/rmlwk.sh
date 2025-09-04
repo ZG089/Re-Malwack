@@ -833,6 +833,9 @@ case "$(tolower "$1")" in
             echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
             printf " - %s\n" $matched_domains
             log_message SUCCESS "Whitelisted $raw_input ($match_type)."
+
+            refresh_blocked_counts
+            update_status
         else # remove
             # Remove from whitelist file any entries that match dom_re
             if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
@@ -846,9 +849,6 @@ case "$(tolower "$1")" in
                 exit 1
             fi
         fi
-
-        refresh_blocked_counts
-        update_status
         ;;
 
     --blacklist|-b)
@@ -884,6 +884,9 @@ case "$(tolower "$1")" in
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
                     log_message SUCCESS "Done added $domain to hosts file and blacklist."
                 fi
+
+                refresh_blocked_counts
+                update_status
             else
                 # Remove from blacklist.txt if present
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
@@ -896,8 +899,6 @@ case "$(tolower "$1")" in
                 fi
             fi
         fi
-        refresh_blocked_counts
-        update_status
         ;;
 
 	--custom-source|-c)
