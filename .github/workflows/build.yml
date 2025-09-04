@@ -61,12 +61,14 @@ jobs:
         if: env.SKIP == 'false'
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          THUMB: "$GITHUB_WORKSPACE/assets/dl.jpg"
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          THUMB: $GITHUB_WORKSPACE/assets/dl.jpg
         run: |
           COMMIT_MSG="$(echo "${{ github.event.head_commit.message }}" | sed 's/[_*`\[\]()~>#+=|{}.!-]/\\&/g')"
+          COMMIT_HASH="${{ github.sha }}"
+          SHORT_HASH="${COMMIT_HASH:0:7}"
           COMMIT_URL="${{ github.event.head_commit.url }}"
-          CAPTION="⚙️ *New test release\!*%0ACommit: \`${COMMIT_MSG}\`%0A[View Commit](${COMMIT_URL})%0A[Workflow Run](${RUN_URL})"
+          CAPTION="⚙️ *New test release\!*%0ACommit: \`${SHORT_HASH}\`%0A${COMMIT_MSG}%0A%0A[View Commit](${COMMIT_URL})%0A[Workflow Run](${RUN_URL})"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
