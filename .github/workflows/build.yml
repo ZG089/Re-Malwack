@@ -73,10 +73,10 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           THUMB: $GITHUB_WORKSPACE/assets/dl.jpg
           COMMIT_HASH: "${{ github.sha }}"
-          SHORT_HASH: "${COMMIT_HASH:0:7}"
           COMMIT_MSG: "${{ github.event.head_commit.message }}"
           COMMIT_URL: "${{ github.event.head_commit.url }}"
         run: |
+          SHORT_HASH="${COMMIT_HASH:0:7}"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
