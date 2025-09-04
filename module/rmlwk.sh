@@ -74,9 +74,9 @@ function host_process() {
     local file="$1"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
-    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts 
+    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts and collapses all multiple spaces/tabs into a single space
     log_message "Filtering $file..."
-    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//' "$file"
+    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g' "$file"
 }
 
 # Function to count blocked entries and store them
