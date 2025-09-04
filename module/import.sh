@@ -1,6 +1,6 @@
 #!/system/bin/sh
 # Re-Malwack Import Sources Script
-# All respect for the developers of the mentioned modules/apps in this script.
+# ALL respect for the developers of the mentioned modules/apps in this script.
 # ZG089, Re-Malwack founder.
 
 ABI="$(getprop ro.product.cpu.abi)"
@@ -288,7 +288,7 @@ for module in /data/adb/modules/*; do
                     cubic-adblock)
                         import_cubic_sources
                     ;;
-                    # Re-Malwack fork wtf - @ayumi-aiko
+
                     StevenBlock)
                         ui_print "[i] StevenBlock sources already included."
                     ;;
