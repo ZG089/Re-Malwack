@@ -61,7 +61,7 @@ jobs:
         if: env.SKIP == 'false'
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          thumbnail: "$GITHUB_WORKSPACE/assets/dl.webp"
+          thumbnail: "$GITHUB_WORKSPACE/assets/dl.jpg"
         run: |
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
                -F chat_id="-1002271023118" \
