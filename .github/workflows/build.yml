@@ -36,10 +36,11 @@ jobs:
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "COMMIT_NUM=$COMMIT_NUM" >> $GITHUB_ENV
+          echo "SHORT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
 
       - name: Update module.prop version
         run: |
-          sed -i "s/^version=.*/version=${VERSION} (${COMMIT_NUM})/" module/module.prop
+          sed -i "s/^version=.*/version=${VERSION}-${SHORT_HASH} (${COMMIT_NUM})/" module/module.prop
           echo "Updated module.prop:"
           grep "^version=" module/module.prop
 
