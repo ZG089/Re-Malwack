@@ -34,6 +34,14 @@ jobs:
           VERSION=$(jq -r .version update.json)
           ZIP_NAME="Re-Malwack_${VERSION}-${COMMIT_NUM}-${COMMIT_HASH}"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "COMMIT_NUM=$COMMIT_NUM" >> $GITHUB_ENV
+
+      - name: Update module.prop version
+        run: |
+          sed -i "s/^version=.*/version=${VERSION} (${COMMIT_NUM})/" module/module.prop
+          echo "Updated module.prop:"
+          grep "^version=" module/module.prop
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
