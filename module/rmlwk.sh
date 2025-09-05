@@ -1083,7 +1083,7 @@ case "$(tolower "$1")" in
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
         echo "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
-        echo "rmlwk --whitelist|-w <add|remove> <domain|pattern>: Whitelist a domain."
+        echo "--whitelist, -w <add|remove> <domain|pattern>: Whitelist a domain."
         echo "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
