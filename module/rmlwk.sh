@@ -501,7 +501,9 @@ function update_status() {
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (First time install)"
-    elif [ "$blocked_mod" -gt 10 ]; then
+    elif is_default_hosts; then
+        status_msg="Status: Protection is disabled due to reset ❌"
+    elif [ "$blocked_mod" -ge 0 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
@@ -511,8 +513,6 @@ function update_status() {
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
             status_msg="$status_msg | Last updated: $last_mod"
         fi
-    elif is_default_hosts; then
-        status_msg="Status: Protection is disabled due to reset ❌"
     fi
 
     # Update module description
@@ -659,8 +659,8 @@ case "$(tolower "$1")" in
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
         refresh_blocked_counts
         update_status
-        log_message SUCCESS "Successfully reverted changes."
-	    echo "[✓] Successfully reverted changes."
+        log_message SUCCESS "Successfully reset hosts."
+	    echo "[✓] Successfully reverted hosts."
         log_duration "reset" "$start_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt)
