@@ -57,7 +57,8 @@ function aboutMenu() {
 async function getVersion() {
     const version = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
     if (version.errno === 0) {
-        document.getElementById('version-text').textContent = version.stdout.trim();
+        const cleanVersion = version.stdout.trim().split('-')[0];
+        document.getElementById('version-text').textContent = cleanVersion;
         getStatus();
     }
 }
