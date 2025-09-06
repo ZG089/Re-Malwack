@@ -98,7 +98,7 @@ function is_protection_paused() {
 }
 
 # 1 - Pause adblock
-pause_protections() {
+function pause_protections() {
 
     # Check if protection is paused, enable if it is paused.
     if is_protection_paused; then
@@ -140,6 +140,7 @@ function resume_protections() {
         echo "[!] No backup hosts file found to resume."
         sleep 0.5
         echo "[i] Force resuming protection and running hosts update as a fallback action"
+        nuke_if_we_dont_have_internet
         sleep 3
         sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         exec "$0" --update-hosts
@@ -186,7 +187,7 @@ function log_duration() {
 # Functions to process hosts
 
 # 1. Helper to stage cached blocklist files into tmp
-stage_blocklist_files() {
+function stage_blocklist_files() {
     local block_type="$1"
     local i=1
     for file in "$persist_dir/cache/$block_type/hosts"*; do
