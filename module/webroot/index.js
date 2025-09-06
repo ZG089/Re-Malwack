@@ -55,10 +55,16 @@ function aboutMenu() {
 
 // Get module version from module.prop
 async function getVersion() {
-    const version = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
-    if (version.errno === 0) {
-        const cleanVersion = version.stdout.trim().split('-')[0];
-        document.getElementById('version-text').textContent = cleanVersion;
+    const result = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
+    if (result.errno === 0) {
+        const [version, hash] = result.stdout.trim().split('-');
+
+        document.getElementById('version-text').textContent = version || 'Unknown';        
+        if (hash) {
+            document.getElementById('test-version-box').style.display = 'flex';
+            document.getElementById('test-version-text').textContent = `You're using a test release: ${hash}`;
+        }
+
         getStatus();
     }
 }

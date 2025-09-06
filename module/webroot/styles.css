@@ -95,7 +95,9 @@ body.input-focused {
     user-select: none;
 
     svg {
-        fill: var(--text-secondary)
+        fill: var(--text-secondary);
+        height: 20px;
+        width: 20px;
     }
 }
 
