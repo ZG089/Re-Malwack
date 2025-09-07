@@ -5,7 +5,6 @@ https://badmojr.github.io/1Hosts/Lite/hosts.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
-https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt
 https://hosts.rem01gaming.dev/adblock
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt
 
