@@ -915,11 +915,11 @@ case "$(tolower "$1")" in
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
                     tmp_hosts="$persist_dir/tmp.hosts.$$"
-                    grep -Ev "^0\.0\.0\.0[[:space:]]\+$domain\$" "$hosts_file" > "$tmp_hosts"
+                    grep -vF "0.0.0.0 $domain" "$hosts_file" > "$tmp_hosts"
                     cat "$tmp_hosts" > "$hosts_file"
                     rm -f "$tmp_hosts"
                     log_message "Removed $domain from blacklist and unblocked."
-                    echo "[✓] $domain removed from blacklist and unblocked."
+                    echo "[✓] $domain has been removed from blacklist and unblocked."
                     [ "$WEBUI" = "true" ] || refresh_blocked_counts && update_status
                 else
                     echo "[!] $domain isn't found in blacklist."
