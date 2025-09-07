@@ -64,8 +64,10 @@ jobs:
           COMMIT_MSG='${{ github.event.head_commit.message }}'
           if echo "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|website|site"; then
             echo "SKIP=true" >> $GITHUB_ENV
+            SKIP=true
           else
             echo "SKIP=false" >> $GITHUB_ENV
+            SKIP=false
           fi
           echo "SKIP_RELEASE: $SKIP"
 
