@@ -77,9 +77,7 @@ rm -rf $persistent_dir/logs/* 2>/dev/null
 rm -rf $persistent_dir/cache/* 2>/dev/null
 
 
-# Handle source file
-brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
-model=$(getprop ro.product.model | tr '[:upper:]' '[:lower:]')
+# Handle hosts sources file
 # Function to add URL only if it doesn't exist
 add_url_if_not_exists() {
     local url="$1"
