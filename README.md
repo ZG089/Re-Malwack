@@ -13,17 +13,36 @@
 [![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZG089)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?style=for-the-badge&color=orange&logo=xdadevelopers)](https://xdaforums.com/m/ZG089.11432109/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
-![Built with](https://img.shields.io/badge/Made_with-Love-red?style=for-the-badge)
+![Built with](https://img.shields.io/badge/Made_with-Love_❤-red?style=for-the-badge)
 
 **If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family.**
 
+## Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Features // What makes this module special?](#features--what-makes-this-module-special)
+- [Requirements](#requirements)
+- [How to use Re-Malwack](#how-to-use-re-malwack)
+  - [Option 1 - Terminal](#option-1---terminal)
+  - [Option 2 - Via WebUI](#option-2---via-webui)
+  - [Option 3 - Local VPN (no root)](#option-3---local-vpn-no-root)
+- [Download](#download)
+- [How does it work? - Frequently Asked Questions (FAQ)](#how-does-it-work---frequently-asked-questions-faq)
+- [Activity](#activity)
+- [Credits List](#credits-list)
+  - [1 - Contributors](#1---contributors)
+  - [2 - Hosts Sources Providers](#2---hosts-sources-providers)
+  - [3 - Foundational Supporters](#3---foundational-supporters)
+  - [4 - Acknowledgment](#4---acknowledgment)
+- [Donations](#donations)
+
+
 ## Features // What makes this module special?
 
-- ⛔ It blocks ads, malware and trackers By default, you can also block p*rn sites, fake news sites, gambling sites and social sites as well.
+- ⛔ It blocks ads, malware and trackers By default, you can also block p*rn sites, fake news sites, gambling sites and social sites
 - ⚙ Allows you to modify and manage hosts file (whitelist/blacklist urls, reset hosts, auto update adblock)
 - 🤙 Allows you to add custom hosts sources, also modify default ones [*]
-- ✨ Easy to use
-- 🛠 Supports Magisk (v20.0+) (and its variants), KernelSU (and its variants) and Apatch
+- ✨ Easy to use, Just set and forget!
+- 🛠 Supports Magisk (and its variants), KernelSU (and its variants) and Apatch
 - 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-no-root)
 - 🔧 Regularly maintained & updated
 - ❤ Made with love and care
@@ -41,7 +60,7 @@
 
 ## How to use Re-Malwack
 
-### 1. Option 1 - Terminal
+### Option 1 - Terminal
 
 - Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
@@ -75,12 +94,12 @@
 > [!NOTE]
 > Default hosts sources used in the hosts are: StevenBlack, Hagezi Pro+, 1hosts, and AdGuard's DNS, MobileSpyware block and MobileAds block.
 
-## Download Module
+## Download
 
 > [!TIP]
 > - You can download the module from:\
 [![MMRL](https://mmrl.dev/assets/badge.svg)](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
-> - Or from [Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
+> - Or from [Github Releases](https://github.com/ZG089/Re-Malwack/releases/latest) section.
 
 
 ## How does it work? - Frequently Asked Questions (FAQ)
@@ -92,36 +111,53 @@
 
 > [!TIP]
 > **Does it blocks in-app ads and in-game ads as well ?**
-> - Of course it does! All of this using the magic of magisk and the hosts file !
+> - Yes, it does.
 
 > [!TIP]
-> **My device lags a lot/ there's an error when using the module, How to fix ?**
-> - Firstly, export logs, then attach it to your report. Submit [here](https://github.com/ZG089/Re-Malwack/issues) or report your problem in our [telegram support group](https://t.me/Re_Malwack), Just don't forget to attach logs!
+> **There's a problem when using the module**
+> - Export logs via module WebUI, then create an [issue](https://github.com/ZG089/Re-Malwack/issues) explaining your problem and attach ss of the problem if there is any. You can also report your problem in our [telegram support group](https://t.me/Re_Malwack)
+
+> [!TIP]
+> **AdBlock doesn't work on some apps (ex: Chrome), or doesn't work completely**
+> - Make sure you have disabled umount for the target app (if you use KernelSU), also make sure you disabled LiteMode (if you use APatch). If nothing works then create an [issue](https://github.com/ZG089/Re-Malwack/issues) about it or report the problem in our [telegram support group](https://t.me/Re_Malwack)
 
 > [!TIP]
 > **Can I help in something?**
-> - Surely, You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
+> - You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
 
 > [!NOTE]
-> - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089)
+> - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089), I am active there more.
 > - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 ## Activity
 
 ![Alt](https://repobeats.axiom.co/api/embed/50cd7eb6e07d7ff3f816d826d9cd6d2bf0551c03.svg)
 
-## Contributors
+## Credits List
+
+### 1 - Contributors
 
 - [@KOWX712](https://github.com/KOWX712)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
 - [@myst-25](https://github.com/myst-25) (Active tester)
-## This project wouldn't exist without:
 
-- [@person0z](https://github.com/Person0z) - Malwack founder
+### 2 - Hosts Sources Providers
+
+- [@Hagezi](https://github.com/hagezi)
+- [@badmojr](https://github.com/badmojr)
+- [@StevenBlack](https://github.com/StevenBlack)
+- [@r-a-y](https://github.com/r-a-y)
+- [@Rem01Gaming](https://github.com/Rem01Gaming)
+
+### 3 - Foundational Supporters
+
+- [@person0z](https://github.com/Person0z) - Malwack Founder
 - [@topjohnwu](https://github.com/topjohnwu) - Magisk Founder
-- [@Hagezi](https://github.com/hagezi) - Hosts file source
-- [@badmojr](https://github.com/badmojr) - Hosts file source
-- [@StevenBlack](https://github.com/StevenBlack) - fake news sites and gambling sites blocklist
+
+### 4 - Acknowledgment
+
+- [jqlang/jq](https://github.com/jqlang/jq) - Command-line JSON processor 
+
 
 ## Donations
 As an 11th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
