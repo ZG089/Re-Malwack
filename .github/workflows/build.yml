@@ -86,7 +86,7 @@ jobs:
               -F thumb=@"${{ env.THUMB }}" \
               -F caption="⚙️ *New test release!*
           Commit Hash: \`$SHORT_HASH\`
-          Commit Message: $COMMIT_MSG
-          [View Commit]($COMMIT_URL)
-          [Workflow Run]($RUN_URL)" \
+          Commit Message: \`$COMMIT_MSG\`
+          [- View Commit -]($COMMIT_URL)
+          [- Workflow Run -]($RUN_URL)" \
               -F parse_mode="Markdown"
