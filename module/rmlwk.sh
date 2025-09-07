@@ -442,7 +442,6 @@ function nuke_if_we_dont_have_internet() {
 }
 
 # Fetches hosts from sources.txt
-# Don't be concerned from these filenames when checking cached files during hosts downloading/processing
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
