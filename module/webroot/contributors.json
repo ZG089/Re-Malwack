@@ -1,7 +1,7 @@
 [
     {
         "username": "ZG089",
-        "type": "Author",
+        "type": "Founder",
         "description": "Main developer"
     },
     {
@@ -45,8 +45,18 @@
         "description": "Hosts file source"
     },
     {
+        "username": "Rem01Gaming",
+        "type": "Hosts Provider",
+        "description": "Hosts file source"
+    },
+    {
         "username": "StevenBlack",
         "type": "Hosts Provider",
         "description": "fake news sites and gambling sites blocklist"
+    },
+    {
+        "username": "r-a-y",
+        "type": "Hosts Provider",
+        "description": "AdGuard Tracking blocklist"
     }
 ]
