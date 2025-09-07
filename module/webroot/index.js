@@ -55,9 +55,16 @@ function aboutMenu() {
 
 // Get module version from module.prop
 async function getVersion() {
-    const version = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
-    if (version.errno === 0) {
-        document.getElementById('version-text').textContent = version.stdout.trim();
+    const result = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
+    if (result.errno === 0) {
+        const [version, hash] = result.stdout.trim().split('-');
+
+        document.getElementById('version-text').textContent = version || 'Unknown';        
+        if (hash) {
+            document.getElementById('test-version-box').style.display = 'flex';
+            document.getElementById('test-version-text').textContent = `You're using a test release: ${hash}`;
+        }
+
         getStatus();
     }
 }
@@ -118,29 +125,30 @@ async function getlastUpdated(isEnable = true) {
         return;
     }
 
-    const last = await exec(`date -r '${modulePath}/system/etc/hosts' '+%H %d/%m'`);
-    const now = await exec("date +'%H %d/%m'");
+    const last = await exec(`date -r '${modulePath}/system/etc/hosts' '+%H %d/%m/%Y'`);
+    const now = await exec("date +'%H %d/%m/%Y'");
     if (last.errno === 0 || now.errno === 0) {
-        // Last update today
-        if (last.stdout.split(' ')[1] === now.stdout.split(' ')[1]) {
-            if (last.stdout.split(' ')[0] === now.stdout.split(' ')[0]) {
-                // Last update less than 1hr
+        const [lastHour, lastDay, lastMonth, lastYear] = last.stdout.trim().split(/[ /]/);
+        const [nowHour, nowDay, nowMonth, nowYear] = now.stdout.trim().split(/[ /]/);
+
+        // Convert to Date objects for accurate comparison
+        const lastDate = new Date(lastYear, parseInt(lastMonth) - 1, parseInt(lastDay), parseInt(lastHour));
+        const nowDate = new Date(nowYear, parseInt(nowMonth) - 1, parseInt(nowDay), parseInt(nowHour));
+
+        const diffMs = nowDate - lastDate;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) {
+            if (diffHours === 0) {
                 lastUpdatedElement.textContent = 'Just Now';
             } else {
-                // Last update less than 24hr
-                const hours = parseInt(now.stdout.split(' ')[0]) - parseInt(last.stdout.split(' ')[0]);
-                lastUpdatedElement.textContent = `${hours}h ago`;
+                lastUpdatedElement.textContent = `${diffHours}h ago`;
             }
+        } else if (diffDays === 1) {
+            lastUpdatedElement.textContent = 'Yesterday';
         } else {
-            // Last update yesterday
-            if (parseInt(now.stdout.split(' ')[1].split('/')[0]) - parseInt(last.stdout.split(' ')[1].split('/')[0]) === 1) {
-                lastUpdatedElement.textContent = 'Yesterday';
-            }
-            // Last update XX days ago
-            else {
-                const days = parseInt(now.stdout.split(' ')[1].split('/')[0]) - parseInt(last.stdout.split(' ')[1].split('/')[0]);
-                lastUpdatedElement.textContent = `${days}d ago`;
-            }
+            lastUpdatedElement.textContent = `${diffDays}d ago`;
         }
     } else {
         console.error("Error getting last updated time:", last.stderr || now.stderr);
