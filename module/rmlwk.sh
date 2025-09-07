@@ -474,6 +474,7 @@ function fetch() {
 
 # Updates module status, modifying module description in module.prop
 function update_status() {
+    log_message "Updating module status"
     start_time=$(date +%s)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
@@ -739,6 +740,12 @@ case "$(tolower "$1")" in
             host="$raw_input"
         fi
 
+        # Validate domain format
+        if ! printf '%s' "$host" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+            echo "[!] Invalid domain: $host"
+            exit 1
+        fi
+
         # Determine wildcard mode
         # - suffix wildcard if starts with "*.something" or ".something"
         # - glob mode if contains '*' anywhere (over entire domain)
@@ -892,26 +899,34 @@ case "$(tolower "$1")" in
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
             exit 1
         else
+            # Validate domain format
+            if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+                echo "[!] Invalid domain: $domain"
+                exit 1
+            fi
+
             touch "$persist_dir/blacklist.txt"
             if [ "$option" = "add" ]; then
-                # Add to blacklist.txt if not already there
-                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
-
                 # Add to hosts file if not already present
                 if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
-                    echo "[!] $domain is already blacklisted."
+                    echo "[!] $domain is already blocked."
                     exit 1
                 else
+                    echo "[*] Blacklisting $domain..."
+                    log_message "Blacklisting $domain..."
+                    # Add to blacklist.txt if not already there
+                    grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
                     # Ensure newline at end before appending
                     [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                     echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
                     log_message SUCCESS "Done added $domain to hosts file and blacklist."
                 fi
-
                 refresh_blocked_counts
                 update_status
             else
                 # Remove from blacklist.txt and hosts
+                echo "[*] Removing $domain from blacklist..."
+                log_message "Removing $domain from blacklist..."
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
                     tmp_hosts="$persist_dir/tmp.hosts.$$"
@@ -932,7 +947,6 @@ case "$(tolower "$1")" in
 	--custom-source|-c)
         option="$2"
         domain="$3"
-
         if [ -z "$option" ]; then
             echo "[!] Missing argument: You must specify 'add' or 'remove'."
             echo "Usage: rmlwk --custom-source <add/remove> <domain>"
@@ -948,6 +962,12 @@ case "$(tolower "$1")" in
         if [ -z "$domain" ]; then
             echo "[!] Missing domain: You must specify a domain."
             echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+            exit 1
+        fi
+
+        # Validate domain format
+        if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+            echo "[!] Invalid domain: $domain"
             exit 1
         fi
 
@@ -990,9 +1010,7 @@ case "$(tolower "$1")" in
 
     --update-hosts|-u)
         start_time=$(date +%s)
-        sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || {
-        			abort "No hosts sources were found, Aborting."
-        			}
+        sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
         if [ -d /data/adb/modules/Re-Malwack ]; then
@@ -1049,7 +1067,6 @@ case "$(tolower "$1")" in
                   fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
                   wait
               fi
-          
               # Process downloaded hosts
               for file in "$persist_dir/cache/$bl/hosts"*; do
                   [ -f "$file" ] && host_process "$file"
