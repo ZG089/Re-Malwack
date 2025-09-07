@@ -65,8 +65,12 @@ function rmlwk_banner() {
 }
 
 # Function to check hosts file reset state
-function is_default_hosts() {
-    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ]
+# Becomes true in case of both hosts counts = 0
+# And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
+# AKA only blacklisted entries are active
+is_default_hosts() {
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] \
+    || { [ "$blocked_mod" -eq "$blacklist_count" ] && [ "$blocked_sys" -eq "$blacklist_count" ]; }
 }
 
 # Function to process hosts, maybe?
@@ -108,7 +112,7 @@ function pause_protections() {
     
     # Prevent pausing if hosts is reset
     if is_default_hosts && ! is_protection_paused; then
-        echo "[i] You cannot pause protections while hosts is reset."
+        echo "[!] You cannot pause protections while hosts is reset."
         exit 1
     fi
     log_message "Pausing Protections"
@@ -503,13 +507,18 @@ function update_status() {
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (First time install)"
     elif is_default_hosts; then
-        status_msg="Status: Protection is disabled due to reset ❌"
+        if [ "$blacklist_count" -gt 0 ]; then
+            plural="entries are active"
+            [ "$blacklist_count" -eq 1 ] && plural="entry is active"
+            status_msg="Status: Protection is disabled due to reset ❌ | Only $blacklist_count blacklist $plural"
+        else
+            status_msg="Status: Protection is disabled due to reset ❌"
+        fi
     elif [ "$blocked_mod" -ge 0 ]; then
         if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-            status_msg="$status_msg | Blocklist: $((blocked_mod - blacklist_count))"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
             status_msg="$status_msg | Last updated: $last_mod"
@@ -838,13 +847,26 @@ case "$(tolower "$1")" in
             refresh_blocked_counts
             update_status
         else # remove
-            # Remove from whitelist file any entries that match dom_re
+            log_message "Removing from whitelist: $host"
             if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
                 tmpf="$persist_dir/.whitelist.$$"
+                # Extract entries that are being removed
+                removed_entries=$(grep -E "$dom_re" "$persist_dir/whitelist.txt")
+
+                # Remove entry from whitelist file
                 grep -Ev "$dom_re" "$persist_dir/whitelist.txt" > "$tmpf" || true
                 mv "$tmpf" "$persist_dir/whitelist.txt"
-                log_message SUCCESS "Removed '$host' (pattern) from whitelist. Re-blocking will happen on next hosts update."
-                echo "[✓] $host removed from whitelist, Blocking of that domain will happen again on next hosts update."
+
+                # Re-add them into hosts (blocked form)
+                for re in $removed_entries; do
+                    if ! grep -qE "^0\.0\.0\.0[[:space:]]+$re\$" "$hosts_file"; then
+                        echo " " >> "$hosts_file" # Ensure newline before appending
+                        echo "0.0.0.0 $re" >> "$hosts_file"
+                    fi
+                done
+
+                log_message SUCCESS "Removed '$host' (pattern) from whitelist and re-blocked domains."
+                echo "[✓] $host removed from whitelist. Domain(s) are now blocked again."
             else
                 echo "[!] $host isn't found in whitelist."
                 exit 1
@@ -889,11 +911,16 @@ case "$(tolower "$1")" in
                 refresh_blocked_counts
                 update_status
             else
-                # Remove from blacklist.txt if present
+                # Remove from blacklist.txt and hosts
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
-                    log_message "Removed $domain from blacklist."
-                    echo "[✓] $domain removed from blacklist, domain will be unblocked after hosts update."
+                    tmp_hosts="$persist_dir/tmp.hosts.$$"
+                    grep -Ev "^0\.0\.0\.0[[:space:]]\+$domain\$" "$hosts_file" > "$tmp_hosts"
+                    cat "$tmp_hosts" > "$hosts_file"
+                    rm -f "$tmp_hosts"
+                    log_message "Removed $domain from blacklist and unblocked."
+                    echo "[✓] $domain removed from blacklist and unblocked."
+                    [ "$WEBUI" = "true" ] || refresh_blocked_counts && update_status
                 else
                     echo "[!] $domain isn't found in blacklist."
                     exit 1
