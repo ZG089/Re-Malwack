@@ -67,6 +67,7 @@ jobs:
           else
             echo "SKIP=false" >> $GITHUB_ENV
           fi
+          echo "SKIP_RELEASE: $SKIP"
 
       - name: Send Release
         if: env.SKIP == 'false'
