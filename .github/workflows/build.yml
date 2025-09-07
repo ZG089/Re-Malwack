@@ -32,15 +32,17 @@ jobs:
           COMMIT_NUM=$(git rev-list --count HEAD)
           COMMIT_HASH=$(git rev-parse --short HEAD)
           VERSION=$(jq -r .version update.json)
-          ZIP_NAME="Re-Malwack_${VERSION}-${COMMIT_NUM}-${COMMIT_HASH}"
+          TEST_BUILD_ID="${COMMIT_NUM}-${COMMIT_HASH}"
+          ZIP_NAME="Re-Malwack_${VERSION}-${TEST_BUILD_ID}"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "COMMIT_NUM=$COMMIT_NUM" >> $GITHUB_ENV
           echo "SHORT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "TEST_BUILD_ID=$TEST_BUILD_ID" >> $GITHUB_ENV
 
       - name: Update module.prop version
         run: |
-          sed -i "s/^version=.*/version=${VERSION}-${SHORT_HASH} (${COMMIT_NUM})/" module/module.prop
+          sed -i "s/^version=.*/version=${VERSION}-test (${TEST_BUILD_ID})/" module/module.prop
           echo "Updated module.prop:"
           grep "^version=" module/module.prop
 
@@ -60,8 +62,7 @@ jobs:
         id: check_commit
         run: |
           COMMIT_MSG='${{ github.event.head_commit.message }}'
-          first_line=$(printf '%s\n' "$COMMIT_MSG" | head -n1 | sed "s/'/\\\\'/g")
-          if printf '%s\n' "$first_line" | grep -qiE "release|version|readme|workflow|website|site"; then
+          if echo "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|workflow|website|site"; then
             echo "SKIP=true" >> $GITHUB_ENV
           else
             echo "SKIP=false" >> $GITHUB_ENV
@@ -77,16 +78,19 @@ jobs:
           COMMIT_MSG_RAW: "${{ github.event.head_commit.message }}"
           COMMIT_URL: "${{ github.event.head_commit.url }}"
         run: |
-          SHORT_HASH=$(echo "$COMMIT_HASH" | cut -c1-7)
-          COMMIT_MSG=$(echo "$COMMIT_MSG_RAW" | sed 's/[_*`\[]/\\&/g')          
+          COMMIT_MSG=$(echo "$COMMIT_MSG_RAW")
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
               -F document=@"${{ env.ZIP_NAME }}.zip" \
               -F thumb=@"${{ env.THUMB }}" \
               -F caption="⚙️ *New test release!*
-          Commit Hash: \`$SHORT_HASH\`
-          Commit Message: \`$COMMIT_MSG\`
+          \`\`\`
+          $COMMIT_MSG
+          \`\`\`
+          Base Version: \`${VERSION}\`
+          Test Build ID: \`${TEST_BUILD_ID}\`
+          =================================
           [- View Commit -]($COMMIT_URL)
           [- Workflow Run -]($RUN_URL)" \
               -F parse_mode="Markdown"
