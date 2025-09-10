@@ -29,11 +29,25 @@ blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
 echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
 
+# Count blacklisted entries (excluding comments and empty lines)
+blacklist_count=0
+[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+log_message "Blacklist entries count: $blacklist_count"
+
+# Count whitelisted entries (excluding comments and empty lines)
+whitelist_count=0
+[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+log_message "Whitelist entries count: $whitelist_count"
+
 # =========== Functions ===========
 
 # Function to check hosts file reset state
-function is_default_hosts() {
-    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ]
+# Becomes true in case of both hosts counts = 0
+# And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
+# AKA only blacklisted entries are active
+is_default_hosts() {
+    [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] \
+    || { [ "$blocked_mod" -eq "$blacklist_count" ] && [ "$blocked_sys" -eq "$blacklist_count" ]; }
 }
 
 # Logging function
@@ -61,41 +75,44 @@ else
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
 
+# Module hosts count
+blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
+blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
 
-   # Module hosts count
-    blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
-    blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
-    
-    # Count blacklisted entries (excluding comments and empty lines)
-    blacklist_count=0
-    [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+# Count blacklisted entries (excluding comments and empty lines)
+blacklist_count=0
+[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
 
-    # Count whitelisted entries (excluding comments and empty lines)
-    whitelist_count=0
-    [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+# Count whitelisted entries (excluding comments and empty lines)
+whitelist_count=0
+[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
 
-    log_message "Blacklist entries count: $blacklist_count"
-    log_message "Whitelist entries count: $whitelist_count"
-    log_message "System hosts entries count: $blocked_sys"
-    log_message "Module hosts entries count: $blocked_mod"
+log_message "Blacklist entries count: $blacklist_count"
+log_message "Whitelist entries count: $whitelist_count"
+log_message "System hosts entries count: $blocked_sys"
+log_message "Module hosts entries count: $blocked_mod"
   
 # Here goes the part where we actually determine module status
 if is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
+elif is_default_hosts; then
+    if [ "$blacklist_count" -gt 0 ]; then
+        plural="entries are active"
+        [ "$blacklist_count" -eq 1 ] && plural="entry is active"
+        status_msg="Status: Protection is disabled due to reset ❌ | Only $blacklist_count blacklist $plural"
+    else
+        status_msg="Status: Protection is disabled due to reset ❌"
+    fi
 elif [ "$blocked_mod" -gt 10 ]; then
     if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
         status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
     else
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-        status_msg="$status_msg | Blocklist: $((blocked_mod - blacklist_count))"
         [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
         [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
         status_msg="$status_msg | Last updated: $last_mod"
     fi
-elif is_default_hosts; then
-    status_msg="Status: Protection is disabled due to reset ❌"
 fi
-
 # Apply module status into module description
 sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 log_message "$status_msg"
