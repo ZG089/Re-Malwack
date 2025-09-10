@@ -739,9 +739,9 @@ case "$(tolower "$1")" in
             host="$raw_input"
         fi
 
-        # Validate domain format
-        if ! printf '%s' "$host" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
-            echo "[!] Invalid domain: $host"
+        # Validate domain format (Special cases for wildcards)
+        if ! printf '%s' "$host" | grep -qE '(\*|\.)'; then
+            echo "[!] Invalid domain input: $raw_input"
             exit 1
         fi
 
