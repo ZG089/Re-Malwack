@@ -1,0 +1,149 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g., v7.0)"
+        required: true
+      versionCode:
+        description: "Numeric versionCode (must increase each release)"
+        required: true
+      releaseName:
+        description: "Release name (optional)"
+        required: false
+        default: ""
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set variables
+        id: setup
+        run: |
+          VERSION="${{ github.event.inputs.tag }}"
+          VERSIONCODE="${{ github.event.inputs.versionCode }}"
+          ZIP_NAME="Re-Malwack_${VERSION}"
+          REPO="${{ github.repository }}"
+          DL_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ZIP_NAME}.zip"
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSIONCODE=$VERSIONCODE" >> $GITHUB_ENV
+          echo "DL_URL=$DL_URL" >> $GITHUB_ENV
+
+      - name: Update module.prop version + versionCode
+        run: |
+          sed -i "s/^version=.*/version=${VERSION}/" module/module.prop
+          sed -i "s/^versionCode=.*/versionCode=${VERSIONCODE}/" module/module.prop
+          echo "Updated module.prop:"
+          grep -E "^(version|versionCode)=" module/module.prop
+
+      - name: Update update.json
+        run: |
+          jq ".version = \"${VERSION}\" | .versionCode = ${VERSIONCODE} | .zipUrl = \"${DL_URL}\"" update.json > update.json.tmp
+          mv update.json.tmp update.json
+          echo "Updated update.json:"
+          cat update.json
+      
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get install -y imagemagick
+
+      - name: Resize banner for Telegram
+        run: |
+          mogrify -resize 1280x1280\> module/banner.png
+
+      - name: Extract changelog for the new version
+        id: changelog
+        run: |
+          awk "/^## ${VERSION}/{flag=1;next}/^## /{flag=0}flag" changelog.md > CHANGELOG_PART.md
+          if [ ! -s CHANGELOG_PART.md ]; then
+            echo "No changelog found for ${VERSION}"
+            exit 1
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          cat CHANGELOG_PART.md >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "Extracted changelog:"
+          cat CHANGELOG_PART.md
+
+      - name: Commit updated version files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add module/module.prop update.json
+          git commit -m "module_release: bump version to ${VERSION} [release]"
+          git push
+
+      - name: Create ZIP
+        run: |
+          cd module
+          zip -r "../$ZIP_NAME.zip" ./*
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: "${{ github.event.inputs.releaseName || github.event.inputs.tag }}"
+          body: ${{ env.CHANGELOG }}
+          draft: false
+          prerelease: false
+          files: ${{ env.ZIP_NAME }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Update notification to Telegram Group
+        if: success()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          CHAT_ID="-1002271023118"
+          THREAD_ID="347"
+          VERSION="${{ env.VERSION }}"
+          CHANGELOG="$(cat CHANGELOG_PART.md)"
+          CAPTION="🚨 *New Re-Malwack Update Released!*  
+          - Version: *${VERSION}*
+          \`\`\`
+          What's new? 👀:
+          ${CHANGELOG}
+          \`\`\`
+          🔗 Download: [Github](https://github.com/${{ github.repository }}/releases/latest) | [MMRL](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
+          🌐 @zgx\_projects x @Re\_Malwack
+          ☕ [Support Development](https://buymeacoffee.com/zg089)"
+          curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendPhoto" \
+            -F chat_id="$CHAT_ID" \
+            -F message_thread_id="$THREAD_ID" \
+            -F photo="@module/banner.png" \
+            -F caption="$CAPTION" \
+            -F parse_mode="Markdown"
+
+      - name: Send update notification to Telegram Channel
+        if: success()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          CHANNEL_ID="-1002453262614"
+          VERSION="${{ env.VERSION }}"
+          CHANGELOG="$(cat CHANGELOG_PART.md)"
+          CAPTION="*Re-Malwack | New Update ✨*
+          - Version: *${VERSION}*
+          \`\`\`
+          What's new? 👀:
+          ${CHANGELOG}
+          \`\`\`
+          🔗 Download: [Github](https://github.com/${{ github.repository }}/releases/latest) | [MMRL](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
+          🌐 @zgx\_projects x @Re\_Malwack
+          ☕ [Support Development](https://buymeacoffee.com/zg089)"
+          curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendPhoto" \
+            -F chat_id="$CHANNEL_ID" \
+            -F photo="@module/banner.png" \
+            -F caption="$CAPTION" \
+            -F parse_mode="Markdown"
