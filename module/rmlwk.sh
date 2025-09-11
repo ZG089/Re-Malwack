@@ -515,7 +515,10 @@ function update_status() {
             status_msg="Status: Protection is disabled due to reset ❌"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
-        if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases when mount breaks between module hosts and system hosts
+        if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+            status_msg="Status: ❌ Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
+            echo "[!!!] Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
+        elif [ "$blocked_mod" -ne "$blocked_sys" ]; then
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
@@ -726,6 +729,7 @@ case "$(tolower "$1")" in
         raw_input="$3"
 
         if [ -z "$action" ] || [ -z "$raw_input" ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
+            echo "[!] Invalid arguments for --whitelist|-w"
             echo "Usage: rmlwk --whitelist|-w <add|remove> <domain|pattern>"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
@@ -742,6 +746,13 @@ case "$(tolower "$1")" in
         # Validate domain format (Special cases for wildcards)
         if ! printf '%s' "$host" | grep -qE '(\*|\.)'; then
             echo "[!] Invalid domain input: $raw_input"
+            echo "[i] Valid domain input examples: 'domain.com', '*.domain.com', '*something', 'something*'"
+            exit 1
+        fi
+
+        # Ensure the domain is not already blacklisted
+        if grep -Fxq "$host" "$persist_dir/blacklist.txt"; then
+            echo "[!] Cannot whitelist $raw_input, it already exists in blacklist."
             exit 1
         fi
 
@@ -825,6 +836,21 @@ case "$(tolower "$1")" in
                 exit 1
             fi
 
+            # Remove blacklisted entries from the match set
+            if [ -s "$persist_dir/blacklist.txt" ]; then
+                matched_domains=$(printf '%s\n' "$matched_domains" | grep -Fvxf "$persist_dir/blacklist.txt")
+            fi
+
+            # If nothing left, bail out
+            # This code may be removed in the future?
+            # I only wrote it just in case a very rare chance that all matched domains are blacklisted
+            # Like, someone tries to whitelist the whole blacklisted domains list in one wildcard :sob:
+            # idk who's going to do such a thing like this, but uhmmmmmm
+            if [ -z "$matched_domains" ]; then
+                echo "[!] All matched domains are already blacklisted, nothing to whitelist."
+                exit 1
+            fi
+
             # Add matched domains to whitelist file
             log_message "Whitelisting ($match_type): $raw_input. Domains: $matched_domains"
             echo "[*] Whitelisting ($match_type): $raw_input"
@@ -901,6 +927,13 @@ case "$(tolower "$1")" in
             # Validate domain format
             if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
                 echo "[!] Invalid domain: $domain"
+                echo "Example valid domain: example.com"
+                exit 1
+            fi
+            
+            # Ensure domain not already whitelisted
+            if grep -Fxq "$domain" "$persist_dir/whitelist.txt"; then
+                echo "[!] Cannot blacklist $domain, it already exists in whitelist."
                 exit 1
             fi
 
@@ -964,9 +997,10 @@ case "$(tolower "$1")" in
             exit 1
         fi
 
-        # Validate domain format
-        if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+        # Validate URL format (accept http/https)
+        if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})$'; then
             echo "[!] Invalid domain: $domain"
+            echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
             exit 1
         fi
 
