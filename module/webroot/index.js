@@ -57,7 +57,8 @@ function aboutMenu() {
 async function getVersion() {
     const result = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
     if (result.errno === 0) {
-        const [version, hash] = result.stdout.trim().split('-');
+        const [version, ...hashParts] = result.stdout.trim().split('-');
+        const hash = hashParts.join('-');
 
         document.getElementById('version-text').textContent = version || 'Unknown';        
         if (hash) {
@@ -345,6 +346,7 @@ function handleAdd(fileType) {
     const inputElement = document.getElementById(`${fileType}-input`);
     const inputValue = inputElement.value.trim();
     const loading = box.querySelector('.loading');
+    const output = [];
 
     if (inputValue === "" || (loading && loading.classList.contains('show'))) return;
     console.log(`Input value for ${fileType}: "${inputValue}"`);
@@ -358,15 +360,11 @@ function handleAdd(fileType) {
     loading.classList.add('show');
 
     const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' }});
+    result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         loading.classList.remove('show');
-        if (code === 0) {
-            showPrompt(`${fileType}ed ${inputValue} successfully.`, true);
-            inputElement.value = "";
-        } else {
-            console.error(`Error adding ${fileType} "${inputValue}":`, result.stderr);
-            showPrompt(`Failed to add ${fileType} ${inputValue}`, false);
-        }
+        showPrompt(output[output.length - 1].trim(), code === 0);
+        if (code === 0) inputElement.value = "";
         await loadFile(fileType);
         await getStatus();
     });
