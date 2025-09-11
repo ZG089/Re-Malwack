@@ -518,8 +518,10 @@ function update_status() {
         if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
             status_msg="Status: ❌ Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
             echo "[!!!] Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
+            echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
         elif [ "$blocked_mod" -ne "$blocked_sys" ]; then
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
+            echo "[i] Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
