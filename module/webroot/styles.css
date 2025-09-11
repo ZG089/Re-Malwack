@@ -101,6 +101,23 @@ body.input-focused {
     }
 }
 
+.header-disabled p {
+    margin: 0;
+    font-size: 0.7em;
+}
+
+#broken-mount-box {
+    background-color: var(--btn-primary-text);
+    color: var(--btn-primary);
+
+    svg {
+        flex-shrink: 0;
+        fill: var(--btn-primary);
+        height: 1.5em;
+        width: 1.5em;
+    }
+}
+
 .logo {
     height: 100%;
     display: flex;

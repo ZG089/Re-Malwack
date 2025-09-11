@@ -70,6 +70,13 @@ async function getVersion() {
     }
 }
 
+function checkMount() {
+    exec(`[ "$(wc -l /system/etc/hosts)" -eq "$(wc -l ${modulePath}/system/etc/hosts)" ]`)
+        .then(({ errno }) => {
+            if (errno !== 0) document.getElementById('broken-mount-box').style.display = 'flex';
+        });
+}
+
 // Function to check if running in MMRL
 async function checkMMRL() {
     if (typeof $Re_Malwack !== 'undefined' && Object.keys($Re_Malwack).length > 0) {
@@ -850,6 +857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListener();
     applyRippleEffect();
     getVersion();
+    checkMount();
     updateAdblockSwtich();
     initCredit();
     floatBtn.classList.add('show');
