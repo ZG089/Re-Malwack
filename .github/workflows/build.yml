@@ -32,7 +32,7 @@ jobs:
           COMMIT_NUM=$(git rev-list --count HEAD)
           COMMIT_HASH=$(git rev-parse --short HEAD)
           VERSION=$(jq -r .version update.json)
-          TEST_BUILD_ID="${COMMIT_NUM}-${COMMIT_HASH}"
+          TEST_BUILD_ID="#${COMMIT_NUM}-${COMMIT_HASH}"
           ZIP_NAME="Re-Malwack_${VERSION}-${TEST_BUILD_ID}"
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -92,7 +92,7 @@ jobs:
           $COMMIT_MSG
           \`\`\`
           Base Version: \`${VERSION}\`
-          Test Build ID: \`#${TEST_BUILD_ID}\`
+          Test Build ID: \`${TEST_BUILD_ID}\`
           =================================
           [- View Commit -]($COMMIT_URL)
           [- Workflow Run -]($RUN_URL)" \
