@@ -54,7 +54,7 @@ is_default_hosts() {
 function log_message() {
     local message="$1"
     touch "$persist_dir/logs/service.log"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] - $message" >> "$persist_dir/logs/service.log"   
+    echo "[$(date +"%Y-%m-%d %I:%M:%S %p")] - $message" >> "$persist_dir/logs/service.log"   
 }
 
 # function to check adblock pause
@@ -63,6 +63,9 @@ function is_protection_paused() {
 }
 
 # =========== Main script logic ===========
+
+# Log errors
+exec 2>>"$persist_dir/logs/service.log"
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
@@ -103,8 +106,10 @@ elif is_default_hosts; then
     else
         status_msg="Status: Protection is disabled due to reset ❌"
     fi
-elif [ "$blocked_mod" -gt 10 ]; then
-    if [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
+elif [ "$blocked_mod" -ge 0 ]; then
+    if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+        status_msg="Status: ❌ Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
+    elif [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
         status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
     else
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
