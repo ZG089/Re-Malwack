@@ -71,9 +71,11 @@ async function getVersion() {
 }
 
 function checkMount() {
-    exec(`[ "$(wc -l /system/etc/hosts)" -eq "$(wc -l ${modulePath}/system/etc/hosts)" ]`)
-        .then(({ errno }) => {
-            if (errno !== 0) document.getElementById('broken-mount-box').style.display = 'flex';
+    exec(`system_hosts="$(cat /system/etc/hosts | wc -l)"
+          module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
+          [ $system_hosts -eq $module_hosts ] || echo "error"
+        `).then(({ stdout }) => {
+            if (stdout === "error") document.getElementById('broken-mount-box').style.display = 'flex';
         });
 }
 
