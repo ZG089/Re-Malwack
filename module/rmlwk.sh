@@ -607,14 +607,14 @@ exec 2>>"$LOGFILE"
 # 2 - Trap runtime errors (logs failing command + exit code)
 trap '
 err_code=$?
-timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
 # 3 - Trap final script exit
 trap '
 exit_code=$?
-timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 
 case $exit_code in
     0)
