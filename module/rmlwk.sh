@@ -644,6 +644,9 @@ done
 # Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
+# Log Module Version
+log_message "Running Re-Malwack version $version"
+
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
