@@ -683,7 +683,7 @@ case "$(tolower "$1")" in
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt)
             start_time=$(date +%s)
-            is_protection_paused && abort "[!] Ad-block is paused. Please resume before running this command."
+            is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     
             case "$1" in
                 --block-porn|-bp) block_type="porn" ;;
