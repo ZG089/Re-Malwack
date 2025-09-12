@@ -9,36 +9,6 @@ persist_dir="/data/adb/Re-Malwack"
 system_hosts="/system/etc/hosts"
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
 
-#  =========== Preparation ===========
-
-# 1 - Sourcing config file
-. $persist_dir/config.sh
-
-# 2 - creating logs dir in case if not created
-mkdir -p "$persist_dir/logs"
-# 3 - Remove previous logs
-rm -rf "$persist_dir/logs/"*
-
-# System hosts count
-blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
-log_message "System hosts entries count: $blocked_sys"
-
-# Module hosts count
-blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
-log_message "Module hosts entries count: $blocked_mod"
-
-# Count blacklisted entries (excluding comments and empty lines)
-blacklist_count=0
-[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
-log_message "Blacklist entries count: $blacklist_count"
-
-# Count whitelisted entries (excluding comments and empty lines)
-whitelist_count=0
-[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
-log_message "Whitelist entries count: $whitelist_count"
-
 # =========== Functions ===========
 
 # Function to check hosts file reset state
@@ -62,10 +32,45 @@ function is_protection_paused() {
     [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
-# =========== Main script logic ===========
+#  =========== Preparation ===========
 
-# Log errors
+# 1 - Sourcing config file
+. $persist_dir/config.sh
+
+# 2 - creating logs dir in case if not created
+mkdir -p "$persist_dir/logs"
+# 3 - Remove previous logs
+rm -rf "$persist_dir/logs/"*
+
+# 4 - Log errors
 exec 2>>"$persist_dir/logs/service.log"
+
+# 4.1 - Log module version and service start
+version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
+log_message "service.sh Started"
+log_message "Re-Malwack Version: $version" >> "$LOGFILE"
+
+# 5 - System hosts count
+blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+log_message "System hosts entries count: $blocked_sys"
+
+# 6 - Module hosts count
+blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+log_message "Module hosts entries count: $blocked_mod"
+
+# 7 - Count blacklisted entries (excluding comments and empty lines)
+blacklist_count=0
+[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+log_message "Blacklist entries count: $blacklist_count"
+
+# 8 - Count whitelisted entries (excluding comments and empty lines)
+whitelist_count=0
+[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+log_message "Whitelist entries count: $whitelist_count"
+
+# =========== Main script logic ===========
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
