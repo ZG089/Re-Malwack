@@ -48,7 +48,7 @@ exec 2>>"$persist_dir/logs/service.log"
 # 4.1 - Log module version and service start
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 log_message "service.sh Started"
-log_message "Re-Malwack Version: $version" >> "$LOGFILE"
+log_message "Re-Malwack Version: $version"
 
 # 5 - System hosts count
 blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
