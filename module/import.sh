@@ -316,6 +316,4 @@ for module in /data/adb/modules/*; do
 done
 
 # Dedup everything at the end just in case
-for i in sources whitelist blacklist; do
-    dedup_file "$persistent_dir/${i}.txt"
-done
+dedup_file $persistent_dir/{sources,whitelist,blacklist}.txt
