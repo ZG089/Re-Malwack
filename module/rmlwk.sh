@@ -397,8 +397,8 @@ function block_trackers() {
 
         if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
             nuke_if_we_dont_have_internet
-            log_message "Fetching trackers block hosts for $brand device"
-            echo "[*] Fetching trackers block file(s) for $brand device"
+            log_message "Fetching trackers block hosts for $brand"
+            echo "[*] Fetching trackers block files for $brand"
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
@@ -412,7 +412,7 @@ function block_trackers() {
             [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
         fi
         log_message "Enabling trackers block"
-        echo "[*] Enabling trackers block for $brand device"
+        echo "[*] Enabling trackers block for $brand"
         stage_blocklist_files "trackers"
         install_hosts "trackers"
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
