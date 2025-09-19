@@ -525,12 +525,12 @@ function setupControlListListeners(listElement) {
         });
     };
 
-    const deleteAction = async () => {
+    const deleteAction = () => {
         const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
         if (checkedItems.length === 0) return;
 
         const lines = Array.from(checkedItems).map(item => item.closest('li').querySelector('span').textContent);
-        await removeLine(fileType, lines);
+        removeLine(fileType, lines);
 
         hideControls();
     };
@@ -620,24 +620,20 @@ async function loadFile(fileType) {
 }
 
 // Function to remove a line from whitelist/blacklist/custom-source
-async function removeLine(fileType, lines) {
-    const removalPromises = lines.map(line => {
-        return new Promise((resolve) => {
-            const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`);
-            result.on('exit', (code) => {
-                if (code === 0) {
-                    showPrompt(`Removed ${line} from ${fileType}`, true);
-                } else {
-                    console.error(`Failed to remove line from ${fileType}:`, result.stderr);
-                    showPrompt(`Failed to remove ${line} from ${fileType}`, false);
-                }
-                resolve();
-            });
-        });
+function removeLine(fileType, lines) {
+    const line = lines.join(' ');
+    showPrompt(`Removing ${line}`, false);
+    const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`);
+    result.on('exit', (code) => {
+        if (code === 0) {
+            showPrompt(`Removed ${line} from ${fileType}`, true);
+        } else {
+            console.error(`Failed to remove line from ${fileType}:`, result.stderr);
+            showPrompt(`Failed to remove ${line} from ${fileType}`, false);
+        }
+        loadFile(fileType);
+        getStatus();
     });
-    await Promise.all(removalPromises);
-    await loadFile(fileType);
-    await getStatus();
 }
 
 // Function to link file
