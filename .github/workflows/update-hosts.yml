@@ -41,7 +41,7 @@ jobs:
       - name: Clean and Merge Hosts
         run: |
           echo "Cleaning hosts..."
-          sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/\t/ /g; s/  */ /g' raw_hosts.txt > tmp_hosts.txt
+          sed '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g' raw_hosts.txt > tmp_hosts.txt
           sort -u tmp_hosts.txt > hosts
           rm -f tmp_hosts.txt
           rm -f raw_hosts.txt
