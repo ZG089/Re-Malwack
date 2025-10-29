@@ -83,23 +83,6 @@ else
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
 
-# Module hosts count
-blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
-blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
-
-# Count blacklisted entries (excluding comments and empty lines)
-blacklist_count=0
-[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
-
-# Count whitelisted entries (excluding comments and empty lines)
-whitelist_count=0
-[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
-
-log_message "Blacklist entries count: $blacklist_count"
-log_message "Whitelist entries count: $whitelist_count"
-log_message "System hosts entries count: $blocked_sys"
-log_message "Module hosts entries count: $blocked_mod"
-  
 # Here goes the part where we actually determine module status
 if is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
@@ -123,9 +106,6 @@ elif [ "$blocked_mod" -ge 0 ]; then
         status_msg="$status_msg | Last updated: $last_mod"
     fi
 fi
-# Apply module status into module description
-sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
-log_message "$status_msg"
 
 # Check if auto-update is enabled
 if [ "$daily_update" = 1 ]; then
@@ -138,3 +118,8 @@ if [ "$daily_update" = 1 ]; then
         log_message "Crond is already running."
     fi
 fi
+
+# Apply module status into module description
+sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
+log_message "$status_msg"
+
