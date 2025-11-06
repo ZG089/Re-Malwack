@@ -64,9 +64,11 @@ detect_key_press() {
 
 # Dedup helper function
 dedup_file() {
-    file="$1"
-    [ -f "$file" ] || return
-    awk '!seen[$0]++' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+    file="$@"
+    for i in $file; do
+        [ -f "$i" ] || continue;
+        awk '!seen[$0]++' "$i" > "$i.tmp" && mv "$i.tmp" "$i"
+    done
 }
 
 # bindhosts import
