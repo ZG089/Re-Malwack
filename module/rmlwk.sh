@@ -485,7 +485,7 @@ function update_status() {
     # Module hosts count
     blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
     blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
-    
+
     # Count blacklisted entries (excluding comments and empty lines)
     blacklist_count=0
     [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
@@ -735,7 +735,10 @@ case "$(tolower "$1")" in
 
         if [ -z "$action" ] || [ -z "$raw_input" ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
             echo "[!] Invalid arguments for --whitelist|-w"
-            echo "Usage: rmlwk --whitelist|-w <add|remove> <domain|pattern>"
+            echo "[i] Usage: rmlwk --whitelist|-w <add|remove> [domain2] [domain3] ..."
+            echo "[i] Examples:"
+            echo "  rmlwk -w add example.com           # Add domain to the whitelist"
+            echo "  rmlwk -w remove domain1.com domain2.com domain3.com # Remove multiple domains from whitelist"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
@@ -880,88 +883,154 @@ case "$(tolower "$1")" in
             echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
             printf " - %s\n" $matched_domains
             log_message SUCCESS "Whitelisted $raw_input ($match_type)."
-
             refresh_blocked_counts
             update_status
-        else # remove
-            log_message "Removing from whitelist: $host"
-            if grep -Eq "$dom_re" "$persist_dir/whitelist.txt"; then
-                tmpf="$persist_dir/.whitelist.$$"
-                # Extract entries that are being removed
-                removed_entries=$(grep -E "$dom_re" "$persist_dir/whitelist.txt")
-
-                # Remove entry from whitelist file
-                grep -Ev "$dom_re" "$persist_dir/whitelist.txt" > "$tmpf" || true
-                mv "$tmpf" "$persist_dir/whitelist.txt"
-
-                # Re-add them into hosts (blocked form)
-                for re in $removed_entries; do
-                    if ! grep -qE "^0\.0\.0\.0[[:space:]]+$re\$" "$hosts_file"; then
-                        echo " " >> "$hosts_file" # Ensure newline before appending
-                        echo "0.0.0.0 $re" >> "$hosts_file"
-                    fi
-                done
-
-                log_message SUCCESS "Removed '$host' (pattern) from whitelist and re-blocked domains."
-                echo "[✓] $host removed from whitelist. Domain(s) are now blocked again."
-            else
-                echo "[!] $host isn't found in whitelist."
+        else  # remove
+            shift 2  # move past: --whitelist remove
+            if [ $# -lt 1 ]; then
+                echo "[!] No domains/patterns provided to remove."
                 exit 1
             fi
+
+            removed_total=""
+            for raw in "$@"; do
+                # Extract host (strip protocol if URL)
+                if printf '%s' "$raw" | grep -qE '^https?://'; then
+                    host=$(printf '%s' "$raw" | awk -F[/:] '{print $4}')
+                else
+                    host="$raw"
+                fi
+
+                # Skip invalid inputs quickly
+                if [ -z "$host" ]; then
+                    echo "[!] Invalid input: $raw"
+                    continue
+                fi
+
+                # Determine pattern → build regex exactly like ADD mode
+                suffix_wildcard=0
+                glob_mode=0
+                if printf '%s' "$host" | grep -qE '^\*\.|^\.'; then
+                    suffix_wildcard=1
+                elif printf '%s' "$host" | grep -q '\*'; then
+                    glob_mode=1
+                fi
+
+                base="$host"
+                [ "$suffix_wildcard" -eq 1 ] && base="${base#*.}"
+
+                esc_base=$(printf '%s' "$base" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+
+                if [ "$suffix_wildcard" -eq 1 ]; then
+                    dom_re="(^|.*\.)${esc_base}$"
+                elif [ "$glob_mode" -eq 1 ]; then
+                    esc_glob=$(printf '%s' "$esc_base" | sed 's/\*/.*/g')
+                    dom_re="^${esc_glob}$"
+                else
+                    dom_re="^${esc_base}$"
+                fi
+
+                # Find matches inside whitelist
+                matches=$(grep -E "$dom_re" "$persist_dir/whitelist.txt" || true)
+                if [ -z "$matches" ]; then
+                    echo "[i] No whitelist matches for: $raw"
+                    continue
+                fi
+
+                echo "[*] Removing from whitelist: $raw"
+                removed_total="$removed_total $matches"
+
+                # Remove from whitelist
+                tmpf="$persist_dir/.whitelist.$$"
+                grep -Ev "$dom_re" "$persist_dir/whitelist.txt" > "$tmpf" || true
+                mv "$tmpf" "$persist_dir/whitelist.txt"
+            done
+
+            if [ -z "$removed_total" ]; then
+                echo "[!] Nothing was removed from whitelist."
+                exit 1
+            fi
+
+            # Re-block once at the end
+            for dom in $removed_total; do
+                if ! grep -qE "^0\.0\.0\.0[[:space:]]+$dom\$" "$hosts_file"; then
+                    echo "0.0.0.0 $dom" >> "$hosts_file"
+                fi
+            done
+            log_message SUCCESS "Whitelist multi-remove: $removed_total"
+            echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
+            refresh_blocked_counts
+            update_status
         fi
         ;;
 
     --blacklist|-b)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         option="$2"
-        raw_input="$3"
+        shift 2 # Remove script name and option from arguments
 
-        # Sanitize input
-        if printf "%s" "$raw_input" | grep -qE '^https?://'; then
-            domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
-        else
-            domain="$raw_input"
-        fi
-
-        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ -z "$domain" ]; then
-            echo "Usage: rmlwk --blacklist, -b <add/remove> <domain>"
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ $# -eq 0 ]; then
+            echo "Usage: rmlwk --blacklist, -b <add/remove> <domain1> [domain2] [domain3] ..."
             display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
             exit 1
-        else
+        fi
+        touch "$persist_dir/blacklist.txt"
+        if [ "$option" = "add" ]; then
+            # Process multiple domains for addition (but only first one for now to maintain compatibility)
+            raw_input="$1"
+
+            # Sanitize input
+            if printf "%s" "$raw_input" | grep -qE '^https?://'; then
+                domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
+            else
+                domain="$raw_input"
+            fi
+
             # Validate domain format
             if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
                 echo "[!] Invalid domain: $domain"
                 echo "Example valid domain: example.com"
                 exit 1
             fi
-            
+
             # Ensure domain not already whitelisted
             if grep -Fxq "$domain" "$persist_dir/whitelist.txt"; then
                 echo "[!] Cannot blacklist $domain, it already exists in whitelist."
                 exit 1
             fi
 
-            touch "$persist_dir/blacklist.txt"
-            if [ "$option" = "add" ]; then
-                # Add to hosts file if not already present
-                if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
-                    echo "[!] $domain is already blocked."
-                    exit 1
-                else
-                    echo "[*] Blacklisting $domain..."
-                    log_message "Blacklisting $domain..."
-                    # Add to blacklist.txt if not already there
-                    grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
-                    # Ensure newline at end before appending
-                    [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
-                    echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
-                    log_message SUCCESS "Done added $domain to hosts file and blacklist."
-                fi
-                refresh_blocked_counts
-                update_status
+            # Add to hosts file if not already present
+            if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
+                echo "[!] $domain is already blocked."
+                exit 1
             else
-                # Remove from blacklist.txt and hosts
+                echo "[*] Blacklisting $domain..."
+                log_message "Blacklisting $domain..."
+                # Add to blacklist.txt if not already there
+                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+                # Ensure newline at end before appending
+                [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+                echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
+                log_message SUCCESS "Done added $domain to hosts file and blacklist."
+            fi
+            refresh_blocked_counts
+            update_status
+        else
+            # Remove multiple domains from blacklist
+            log_message "Removing multiple domains from blacklist: $*"
+
+            total_removed=0
+            failed_removals=""
+
+            for domain_to_remove in "$@"; do
+                # Sanitize input
+                if printf "%s" "$domain_to_remove" | grep -qE '^https?://'; then
+                    domain=$(printf "%s" "$domain_to_remove" | awk -F[/:] '{print $4}')
+                else
+                    domain="$domain_to_remove"
+                fi
+
                 echo "[*] Removing $domain from blacklist..."
                 log_message "Removing $domain from blacklist..."
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
@@ -972,46 +1041,62 @@ case "$(tolower "$1")" in
                     rm -f "$tmp_hosts"
                     log_message "Removed $domain from blacklist and unblocked."
                     echo "[✓] $domain has been removed from blacklist and unblocked."
-                    [ "$WEBUI" = "true" ] || refresh_blocked_counts && update_status
+                    total_removed=$((total_removed + 1))
                 else
                     echo "[!] $domain isn't found in blacklist."
-                    exit 1
+                    failed_removals="$failed_removals $domain_to_remove"
+                    log_message WARN "$domain not found in blacklist"
                 fi
+            done
+
+            # Summary
+            if [ $total_removed -gt 0 ]; then
+                echo "[i] Successfully removed $total_removed domain(s) from blacklist"
+                log_message SUCCESS "Successfully removed $total_removed domains from blacklist"
+                refresh_blocked_counts
+                update_status
+            fi
+            
+            if [ -n "$failed_removals" ]; then
+                echo "[i] Failed to remove:$failed_removals"
+                log_message WARN "Failed to remove domains:$failed_removals"
+            fi
+            
+            if [ $total_removed -eq 0 ]; then
+                echo "[!] No domains were removed from blacklist"
+                exit 1
             fi
         fi
         ;;
 
 	--custom-source|-c)
         option="$2"
-        domain="$3"
-        if [ -z "$option" ]; then
-            echo "[!] Missing argument: You must specify 'add' or 'remove'."
-            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+        shift 2 # Remove script name and option from arguments        
+        if [ -z "$option" ] || [ $# -eq 0 ]; then
+            echo "[!] Missing arguments."
+            echo "Usage: rmlwk --custom-source <add/remove> <domain1> [domain2] [domain3] ..."
+            display_sources=$(cat "$persist_dir/sources.txt" 2>/dev/null)
+            [ -n "$display_sources" ] && echo -e "Current sources:\n$display_sources" || echo "Current sources: no saved sources"
             exit 1
         fi
 
         if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
             echo "[!] Invalid option: Use 'add' or 'remove'."
-            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
+            echo "Usage: rmlwk --custom-source <add/remove> <domain1> [domain2] [domain3] ..."
             exit 1
         fi
-
-        if [ -z "$domain" ]; then
-            echo "[!] Missing domain: You must specify a domain."
-            echo "Usage: rmlwk --custom-source <add/remove> <domain>"
-            exit 1
-        fi
-
-        # Validate URL format (accept http/https)
-        if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})$'; then
-            echo "[!] Invalid domain: $domain"
-            echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
-            exit 1
-        fi
-
         touch "$persist_dir/sources.txt"
-
         if [ "$option" = "add" ]; then
+            # For add, process only the first domain to maintain current behavior
+            domain="$1"
+            
+            # Validate URL format (accept http/https)
+            if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
+                echo "[!] Invalid domain: $domain"
+                echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
+                exit 1
+            fi
+
             if grep -qx "$domain" "$persist_dir/sources.txt"; then
                 echo "[!] $domain is already in sources."
             else
@@ -1020,30 +1105,46 @@ case "$(tolower "$1")" in
                 echo "[✓] Added $domain to sources."
             fi
         else
-            if grep -qx "$domain" "$persist_dir/sources.txt"; then
-                sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
-                log_message SUCCESS "Removed $domain from sources."
-                echo "[✓] Removed $domain from sources."
-            else
-                log_message ERROR "Failed to remove $domain from sources, maybe wasn't even found?."
-                echo "[!] $domain was not even found in sources."
+            # Remove multiple domains from sources
+            log_message "Removing multiple domains from sources: $*"
+            total_removed=0
+            failed_removals=""
+            for domain_to_remove in "$@"; do
+                # Validate URL format
+                if ! printf '%s' "$domain_to_remove" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
+                    echo "[!] Invalid domain format: $domain_to_remove"
+                    failed_removals="$failed_removals $domain_to_remove"
+                    continue
+                fi
+
+                if grep -qx "$domain_to_remove" "$persist_dir/sources.txt"; then
+                    sed -i "/^$(printf '%s' "$domain_to_remove" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
+                    log_message SUCCESS "Removed $domain_to_remove from sources."
+                    echo "[✓] Removed $domain_to_remove from sources."
+                    total_removed=$((total_removed + 1))
+                else
+                    echo "[!] $domain_to_remove was not found in sources."
+                    failed_removals="$failed_removals $domain_to_remove"
+                    log_message WARN "$domain_to_remove not found in sources"
+                fi
+            done
+            
+            # Summary
+            if [ $total_removed -gt 0 ]; then
+                echo "[i] Successfully removed $total_removed source(s)"
+                log_message SUCCESS "Successfully removed $total_removed sources"
+            fi
+            
+            if [ -n "$failed_removals" ]; then
+                echo "[i] Failed to remove:$failed_removals"
+                log_message WARN "Failed to remove sources:$failed_removals"
+            fi
+            
+            if [ $total_removed -eq 0 ]; then
+                echo "[!] No sources were removed"
+                exit 1
             fi
         fi
-        ;;
-
-    --auto-update|-a)
-        case "$2" in
-            enable)
-                enable_cron
-                ;;
-            disable)
-                disable_cron
-                ;;
-            *)
-                echo "[!] Invalid option for --auto-update / -a"
-                echo "Usage: rmlwk <--auto-update|-a> <enable|disable>"
-                ;;
-        esac
         ;;
 
     --update-hosts|-u)
@@ -1158,7 +1259,7 @@ case "$(tolower "$1")" in
         echo "[i] Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
-        echo "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
+        echo "--custom-source, -c <add|remove> <domain1> [domain2] ...: Add/remove custom hosts sources."
         echo "--reset, -r: Restore original hosts file."
         echo "--adblock-switch, -as: Toggle protections on/off"
         echo "--block-trackers, -bt <disable>, block trackers, use disable to unblock."
@@ -1166,8 +1267,8 @@ case "$(tolower "$1")" in
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
         echo "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
         echo "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
-        echo "--whitelist, -w <add|remove> <domain|pattern>: Whitelist a domain."
-        echo "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
+        echo "--whitelist, -w <add|remove> <domain|pattern> [IP] [domain2] ...: Whitelist domain(s) with optional IP."
+        echo "--blacklist, -b <add|remove> <domain1> [domain2] ...: Blacklist domain(s)."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
