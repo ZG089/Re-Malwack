@@ -298,7 +298,7 @@ for module in /data/adb/modules/*; do
                         ui_print "[!] Importing from $module_id unsupported."
                     ;;
                 esac
-                # i feel like this variable does nothing - @ayumi-aiko
+                # i feel like this variable does nothing - @bocchi-the-dev
                 import_done=1
             ;;
             2)

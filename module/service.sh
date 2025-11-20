@@ -122,4 +122,3 @@ fi
 # Apply module status into module description
 sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 log_message "$status_msg"
-
