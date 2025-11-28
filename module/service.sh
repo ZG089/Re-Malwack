@@ -4,10 +4,11 @@
 
 # =========== Variables ===========
 MODDIR="${0%/*}"
-hosts_file="$MODDIR/system/etc/hosts"
 persist_dir="/data/adb/Re-Malwack"
+zn_module_dir="/data/adb/modules/hostsredirect"
 system_hosts="/system/etc/hosts"
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
+is_zn_detected=0
 
 # =========== Functions ===========
 
@@ -15,7 +16,7 @@ last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last
 # Becomes true in case of both hosts counts = 0
 # And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
 # AKA only blacklisted entries are active
-is_default_hosts() {
+function is_default_hosts() {
     [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] \
     || { [ "$blocked_mod" -eq "$blacklist_count" ] && [ "$blocked_sys" -eq "$blacklist_count" ]; }
 }
@@ -34,6 +35,10 @@ function is_protection_paused() {
 
 # Function to remount hosts
 function remount_hosts() {
+    if [ "$is_zn_detected" -eq 1 ]; then
+        log_message "zn-hostsredirect detected, skipping mount operation"
+        return 0
+    fi
     log_message "Attempting to remount hosts..."
     mount --bind "$hosts_file" "$system_hosts" || {
         log_message "Failed to bind mount $hosts_file to $system_hosts"
@@ -60,22 +65,32 @@ version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 log_message "service.sh Started"
 log_message "Re-Malwack Version: $version"
 
-# 5 - System hosts count
+# 5 - Check if zygisk host redirect module is enabled
+if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
+    is_zn_detected=1
+    hosts_file="/data/adb/hostsredirect/hosts"
+    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts"
+else
+    hosts_file="$MODDIR/system/etc/hosts"
+    log_message "Using standard mount method with $MODDIR/system/etc/hosts"
+fi
+
+# 6 - System hosts count
 blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
 echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 log_message "System hosts entries count: $blocked_sys"
 
-# 6 - Module hosts count
+# 7 - Module hosts count
 blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
 echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
 
-# 7 - Count blacklisted entries (excluding comments and empty lines)
+# 8 - Count blacklisted entries (excluding comments and empty lines)
 blacklist_count=0
 [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
 log_message "Blacklist entries count: $blacklist_count"
 
-# 8 - Count whitelisted entries (excluding comments and empty lines)
+# 9 - Count whitelisted entries (excluding comments and empty lines)
 whitelist_count=0
 [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
 log_message "Whitelist entries count: $whitelist_count"
