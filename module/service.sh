@@ -32,6 +32,16 @@ function is_protection_paused() {
     [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
+# Function to remount hosts
+function remount_hosts() {
+    log_message "Attempting to remount hosts..."
+    mount --bind "$hosts_file" "$system_hosts" || {
+        log_message "Failed to bind mount $hosts_file to $system_hosts"
+        return 1
+    }
+    log_message "Hosts remounted successfully."
+}
+
 #  =========== Preparation ===========
 
 # 1 - Sourcing config file
@@ -96,7 +106,7 @@ elif is_default_hosts; then
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
     if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
-        status_msg="Status: ❌ Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
+        remount_hosts || status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
     elif [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
         status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
     else
