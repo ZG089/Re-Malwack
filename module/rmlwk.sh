@@ -351,6 +351,20 @@ function block_content() {
     fi
     log_duration "block_content ($block_type, $status)" "$start_time"
 }
+
+# Function to remount hosts
+function remount_hosts() {
+    log_message "Attempting to remount hosts..."
+    echo "[*] Attempting to remount hosts..."
+    mount --bind "$hosts_file" "$system_hosts" || {
+        log_message ERROR "Failed to bind mount $hosts_file to $system_hosts"
+        echo "[!] Failed to remount hosts, please report to developer!"
+        return 1
+    }
+    log_message SUCCESS "Hosts remounted successfully."
+    echo "[✓] Hosts remounted successfully."
+}
+
 # Function to block trackers
 function block_trackers() {
     start_time=$(date +%s)
@@ -516,9 +530,20 @@ function update_status() {
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
         if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
-            status_msg="Status: ❌ Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
-            echo "[!!!] Critical Error Detected (Broken hosts mount). Please check your root manager settings and disable any conflicted module(s)."
-            echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
+            # Attempt to remount hosts and refresh status
+            # Only in case of broken mount detection
+            remount_hosts
+            refresh_blocked_counts
+            if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+                status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
+                echo "[!!!] Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
+                echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
+            else
+                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                status_msg="$status_msg | Last updated: $last_mod"
+            fi
         elif [ "$blocked_mod" -ne "$blocked_sys" ]; then
             status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
             echo "[i] Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
