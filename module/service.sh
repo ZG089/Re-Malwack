@@ -7,7 +7,6 @@ MODDIR="${0%/*}"
 persist_dir="/data/adb/Re-Malwack"
 zn_module_dir="/data/adb/modules/hostsredirect"
 system_hosts="/system/etc/hosts"
-last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
 is_zn_detected=0
 
 # =========== Functions ===========
@@ -75,22 +74,25 @@ else
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
 fi
 
-# 6 - System hosts count
+# 6 - Check last modification date for hosts file
+last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
+
+# 7 - System hosts count
 blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
 echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 log_message "System hosts entries count: $blocked_sys"
 
-# 7 - Module hosts count
+# 8 - Module hosts count
 blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
 echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
 
-# 8 - Count blacklisted entries (excluding comments and empty lines)
+# 9 - Count blacklisted entries (excluding comments and empty lines)
 blacklist_count=0
 [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
 log_message "Blacklist entries count: $blacklist_count"
 
-# 9 - Count whitelisted entries (excluding comments and empty lines)
+# 10 - Count whitelisted entries (excluding comments and empty lines)
 whitelist_count=0
 [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
 log_message "Whitelist entries count: $whitelist_count"
