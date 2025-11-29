@@ -332,7 +332,9 @@ body.input-focused {
     align-items: center;
     height: 80px;
     width: 80px;
+    padding: 12px;
     border-radius: 15px;
+    box-sizing: border-box;
     background-color: var(--logo-bg);
 
     svg {
