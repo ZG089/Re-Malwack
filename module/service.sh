@@ -68,10 +68,17 @@ log_message "Re-Malwack Version: $version"
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
-    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts"
+    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"
 else
     hosts_file="$MODDIR/system/etc/hosts"
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
+fi
+
+# 5.1 - Determine mode based on zn-hostsredirect detection
+if [ "$is_zn_detected" -eq 1 ]; then
+    mode="hosts mount mode: zn-hostsredirect"
+else
+    mode="hosts mount mode: Standard mount"
 fi
 
 # 6 - Check last modification date for hosts file
@@ -122,15 +129,13 @@ elif is_default_hosts; then
         status_msg="Status: Protection is disabled due to reset ❌"
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
-    if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+    if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then
         remount_hosts || status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
-    elif [ "$blocked_mod" -ne "$blocked_sys" ]; then # Only for cases if mount is broken between module hosts and system hosts
-        status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
     else
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
         [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
         [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-        status_msg="$status_msg | Last updated: $last_mod"
+        status_msg="$status_msg | Last updated: $last_mod | $mode"
     fi
 fi
 
