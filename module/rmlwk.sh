@@ -25,7 +25,7 @@ zn_module_dir="/data/adb/modules/hostsredirect"
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
-    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts"
+    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"
 else
     hosts_file="$MODDIR/system/etc/hosts"
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
@@ -521,11 +521,17 @@ function update_status() {
     # Count whitelisted entries (excluding comments and empty lines)
     whitelist_count=0
     [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
-
-    log_message "Blacklist entries count: $blacklist_count"
-    log_message "Whitelist entries count: $whitelist_count"
     log_message "System hosts entries count: $blocked_sys"
     log_message "Module hosts entries count: $blocked_mod"
+    log_message "Blacklist entries count: $blacklist_count"
+    log_message "Whitelist entries count: $whitelist_count"
+
+    # Determine mode based on zn-hostsredirect detection
+    if [ "$is_zn_detected" -eq 1 ]; then
+        mode="hosts mount mode: zn-hostsredirect"
+    else
+        mode="hosts mount mode: Standard mount"
+    fi
 
     # Here goes the part where we actually determine module status
     if is_protection_paused; then
@@ -543,7 +549,7 @@ function update_status() {
             status_msg="Status: Protection is disabled due to reset ❌"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
-        if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+        if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then
             # Attempt to remount hosts and refresh status
             # Only in case of broken mount detection
             remount_hosts
@@ -552,20 +558,12 @@ function update_status() {
                 status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
-            else
-                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-                status_msg="$status_msg | Last updated: $last_mod"
             fi
-        elif [ "$blocked_mod" -ne "$blocked_sys" ]; then
-            status_msg="Status: Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
-            echo "[i] Reboot required to apply changes 🔃 | Module blocks $blocked_mod domains, system hosts blocks $blocked_sys."
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            status_msg="$status_msg | Last updated: $last_mod"
+            status_msg="$status_msg | Last updated: $last_mod | $mode"
         fi
     fi
 
