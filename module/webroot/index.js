@@ -70,12 +70,20 @@ async function getVersion() {
     }
 }
 
+function isZnhr() {
+    return new Promise((resolve) => {
+        exec(`znhr="/data/adb/modules/hostsredirect" && [ -f "$znhr/module.prop" ] && [ ! -f "$znhr/disable" ]`).then(({errno}) => {
+            resolve(errno === 0);
+        }).catch(() => resolve(false))
+    })
+}
+
 function checkMount() {
     exec(`system_hosts="$(cat /system/etc/hosts | wc -l)"
           module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
           [ $system_hosts -eq $module_hosts ] || echo "error"
         `).then(({ stdout }) => {
-            if (stdout === "error") document.getElementById('broken-mount-box').style.display = 'flex';
+            if (stdout === "error" && !isZnhr()) document.getElementById('broken-mount-box').style.display = 'flex';
         });
 }
 
@@ -135,7 +143,8 @@ async function getlastUpdated(isEnable = true) {
         return;
     }
 
-    const last = await exec(`date -r '${modulePath}/system/etc/hosts' '+%H %d/%m/%Y'`);
+    const hostsFile = isZnhr() ? `/data/adb/hostsredirect/hosts` : `${modulePath}/system/etc/hosts`;
+    const last = await exec(`date -r '${hostsFile}' '+%H %d/%m/%Y'`);
     const now = await exec("date +'%H %d/%m/%Y'");
     if (last.errno === 0 || now.errno === 0) {
         const [lastHour, lastDay, lastMonth, lastYear] = last.stdout.trim().split(/[ /]/);
