@@ -18,22 +18,11 @@ tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 
-# ====== Pre-func ======
+# ====== Pre-config ======
 
-# 1 - Check if zygisk host redirect module is enabled
-zn_module_dir="/data/adb/modules/hostsredirect"
-if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
-    is_zn_detected=1
-    hosts_file="/data/adb/hostsredirect/hosts"
-    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"
-else
-    hosts_file="$MODDIR/system/etc/hosts"
-    log_message "Using standard mount method with $MODDIR/system/etc/hosts"
-fi
-
-# 2 - Sourcing config file
+# 1 - Sourcing config file
 . "$persist_dir/config.sh"
-# 3 - creating logs dir in case if not created
+# 2 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
 
 # ====== Functions ======
@@ -631,26 +620,37 @@ function disable_cron() {
     fi
 }
 
-# Now enough functions and variables, Let's start the real work 😎
+# ===== Pre-main logic =====
 
-# Trigger force stats refresh on WebUI
+# 1 - Check if zygisk host redirect module is enabled
+zn_module_dir="/data/adb/modules/hostsredirect"
+if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
+    is_zn_detected=1
+    hosts_file="/data/adb/hostsredirect/hosts"
+    log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"
+else
+    hosts_file="$MODDIR/system/etc/hosts"
+    log_message "Using standard mount method with $MODDIR/system/etc/hosts"
+fi
+
+# 2 - Trigger force stats refresh on WebUI
 if [ "$WEBUI" = "true" ]; then
     refresh_blocked_counts
     update_status
 fi
-#### Error logging lore
+# 3 -Error logging lore
 
-# 1 - Log errors
+# 3.1 - Log errors
 exec 2>>"$LOGFILE"
 
-# 2 - Trap runtime errors (logs failing command + exit code)
+# 3.2 - Trap runtime errors (logs failing command + exit code)
 trap '
 err_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
-# 3 - Trap final script exit
+# 3.3 - Trap final script exit
 trap '
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
@@ -670,7 +670,7 @@ esac
 [ $exit_code -ne 0 ] && echo "[$timestamp] - [ERROR] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
 ' EXIT
 
-# Check for --quiet argument
+# 4- Check for --quiet argument
 for arg in "$@"; do
     if [ "$arg" = "--quiet" ]; then
         quiet_mode=1
@@ -678,10 +678,10 @@ for arg in "$@"; do
     fi
 done
 
-# Show banner if not running from Magisk Manager / quiet mode is disabled
+# 5 - Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
-# Log Module Version
+# 6 - Log Module Version
 log_message "Running Re-Malwack version $version"
 
 # ====== Main Logic ======
