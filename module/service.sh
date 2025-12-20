@@ -108,10 +108,13 @@ log_message "Whitelist entries count: $whitelist_count"
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
+    log_message "Root manager: KernelSU"
     [ -L "/data/adb/ksu/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/ksu/bin/rmlwk" && log_message "symlink created at /data/adb/ksu/bin/rmlwk"
 elif [ "$APATCH" = "true" ]; then
+    log_message "Root manager: APatch"
     [ -L "/data/adb/ap/bin/rmlwk" ] || ln -sf "$MODDIR/rmlwk.sh" "/data/adb/ap/bin/rmlwk" && log_message "symlink created at /data/adb/ap/bin/rmlwk"
 else
+    log_message "Root manager: Magisk"
     [ -w /sbin ] && magisktmp=/sbin
     [ -w /debug_ramdisk ] && magisktmp=/debug_ramdisk
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
