@@ -1,8 +1,8 @@
-ui_print '         ____            __         __  '
-ui_print '        / __ \____ ___  / /      __/ /__'
-ui_print '       / /_/ / __ `__ \/ / | /| / / //_/'
-ui_print '      / _, _/ / / / / / /| |/ |/ / ,<   '
-ui_print '     /_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '                   
+ui_print '           ____            __         __  '
+ui_print '          / __ \____ ___  / /      __/ /__'
+ui_print '         / /_/ / __ `__ \/ / | /| / / //_/'
+ui_print '        / _, _/ / / / / / /| |/ |/ / ,<   '
+ui_print '       /_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '                   
 ui_print " "
 ui_print "   Welcome to Re-Malwack installation wizard!"
 sleep 0.2
@@ -11,7 +11,7 @@ ui_print " ----------------------------------"
 ui_print "                                   \ "
 ui_print ""
 sleep 0.2
-ui_print "- ⚙ Module Version: $(grep_prop version $MODPATH/module.prop)"
+ui_print "- ⚙️ Module Version: $(grep_prop version $MODPATH/module.prop)"
 sleep 0.2
 ui_print "- 📱 Device Brand: $(getprop ro.product.brand)"
 sleep 0.2
@@ -19,7 +19,7 @@ ui_print "- 📱 Device Model: $(getprop ro.product.model)"
 sleep 0.2
 ui_print "- 🤖 Android Version: $(getprop ro.build.version.release)"
 sleep 0.2
-ui_print "- ⚙ Device Arch: $(getprop ro.product.cpu.abi)"
+ui_print "- 🏹 Device Arch: $(getprop ro.product.cpu.abi)"
 sleep 0.2
 ui_print "- 🛠 Kernel version: $(uname -r)"
 sleep 0.2
