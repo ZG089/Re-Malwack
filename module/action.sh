@@ -1,13 +1,19 @@
+# ====== Re-Malwack Action script ======
+
+# ====== Variables ======
 MODDIR="/data/adb/modules/Re-Malwack"
 persist_dir="/data/adb/Re-Malwack"
 
+# ====== Functions ======
+
+# 1 - Abort function
 function abort() {
     echo "- $1"
     sleep 0.5
     exit 1
 }
 
-# APRIL_FOOLS
+# 2 - April Fools prank function
 function april_fools() {
     touch $persist_dir/get_pranked
     clear
@@ -45,11 +51,13 @@ if [ "$(date +%m%d)" = "0401" ] && [ ! -f "$persist_dir/get_pranked" ]; then
 else
     rm -f $persist_dir/get_pranked 2>/dev/null
 fi
+
+# ====== Main Script ======
 echo '    ____            __         __  '
 echo '   / __ \____ ___  / /      __/ /__'
 echo '  / /_/ / __ `__ \/ / | /| / / //_/'
 echo ' / _, _/ / / / / / /| |/ |/ / ,<   '
 echo '/_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '
 echo " "
-echo "============================================"
+echo "==================================="
 sh "$MODDIR/rmlwk.sh" --update-hosts --quiet || abort "- Failed to update hosts."
