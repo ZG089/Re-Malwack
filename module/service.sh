@@ -134,7 +134,9 @@ elif is_default_hosts; then
 elif [ "$blocked_mod" -ge 0 ]; then
     if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then
         remount_hosts || status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
-    else
+    fi
+    # Set success message if not set to error
+    if [ -z "$status_msg" ]; then
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
         [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
         [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"

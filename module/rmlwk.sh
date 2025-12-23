@@ -548,7 +548,9 @@ function update_status() {
                 echo "[!!!] Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
             fi
-        else
+        fi
+        # Set success message if not set to error
+        if [ -z "$status_msg" ]; then
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
