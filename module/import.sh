@@ -291,9 +291,6 @@ for module in /data/adb/modules/*; do
                         import_cubic_sources
                     ;;
 
-                    StevenBlock)
-                        ui_print "[i] StevenBlock sources already included."
-                    ;;
                     *)
                         ui_print "[!] Importing from $module_id unsupported."
                     ;;
