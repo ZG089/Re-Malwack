@@ -3,13 +3,16 @@
 # ALL respect for the developers of the mentioned modules/apps in this script.
 # ZG089, Re-Malwack founder.
 
+# ====== Variables ======
 ABI="$(getprop ro.product.cpu.abi)"
 PATH="$MODPATH/bin/$ABI:$PATH"
 persistent_dir="/data/adb/Re-Malwack"
 adaway_json="/sdcard/Download/adaway-backup.json"
 import_done=0
 
-# Vol key press detect
+# ====== Functions ======
+
+# 1 - Vol key press detect
 detect_key_press() {
     timeout_seconds=10
     total_options=$1
@@ -62,7 +65,7 @@ detect_key_press() {
     done
 }
 
-# Dedup helper function
+# 2 - Dedup helper function
 dedup_file() {
     file="$@"
     for i in $file; do
@@ -71,8 +74,8 @@ dedup_file() {
     done
 }
 
-# bindhosts import
-bindhosts_import_sources() {
+# 3 - bindhosts import
+bindhosts_import() {
     bindhosts="/data/adb/bindhosts"
     bindhosts_sources="$bindhosts/sources.txt"
     dest_sources="$persistent_dir/sources.txt"
@@ -82,10 +85,8 @@ bindhosts_import_sources() {
     ui_print "1 - Use only bindhosts setup (replace)"
     ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
     ui_print "3 - Skip importing. (Do not Import)"
-
     detect_key_press 3 2
     choice=$?
-
     sources_count=0
     whitelist_count=0
     blacklist_count=0
@@ -96,15 +97,15 @@ bindhosts_import_sources() {
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
             sources_count=$(grep -c "$dest_sources")
-            bindhosts_import_list whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
-            bindhosts_import_list blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
+            bindhosts_import_helper whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
             sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
-            bindhosts_import_list whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
-            bindhosts_import_list blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
+            bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
+            bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             ;;
         3|255) ui_print "[i] Skipped bindhosts import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped bindhosts import."; return ;;
@@ -114,7 +115,8 @@ bindhosts_import_sources() {
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
-bindhosts_import_list() {
+# 3.1 - bindhosts import helper
+bindhosts_import_helper() {
     list_type="$1"
     mode="$2"
     bindhosts="/data/adb/bindhosts"
@@ -131,6 +133,7 @@ bindhosts_import_list() {
     fi
 }
 
+# 4 - cubic-adblock import
 import_cubic_sources() {
     src_file="$persistent_dir/sources.txt"
     ui_print "[i] How would you like to import cubic-adblock hosts sources?"
@@ -156,12 +159,6 @@ import_cubic_sources() {
         sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
     fi
 
-    # replace 1Hosts Lite with Pro
-    if grep -q 'https://badmojr.github.io/1Hosts/Lite/hosts.txt' "$src_file"; then
-        ui_print "[*] Replacing 1Hosts Lite with Pro version."
-        sed -i 's|https://badmojr.github.io/1Hosts/Lite/hosts.txt|https://badmojr.github.io/1Hosts/Pro/hosts.txt|' "$src_file"
-    fi
-
     # cubic-adblock sources
     while IFS= read -r url; do
         [ -z "$url" ] && continue
@@ -180,13 +177,12 @@ https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_ty
 https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
 https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
-https://badmojr.github.io/1Hosts/Pro/hosts.txt
 EOF
     ui_print "[✓] Cubic-Adblock sources imported successfully."
     ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
 }
 
-# AdAway import
+# 5 - AdAway import
 import_adaway_data() {
     src_file="$persistent_dir/sources.txt"
     whitelist_file="$persistent_dir/whitelist.txt"
@@ -257,6 +253,8 @@ import_adaway_data() {
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 }
 
+# ====== Main Script ======
+
 # Exec perms for jq
 chmod +x $MODPATH/bin/$ABI/jq
 # AdAway import if backup exists
@@ -285,7 +283,7 @@ for module in /data/adb/modules/*; do
             1)
                 case "$module_id" in
                     bindhosts)
-                        bindhosts_import_sources
+                        bindhosts_import
                     ;;
                     cubic-adblock)
                         import_cubic_sources
