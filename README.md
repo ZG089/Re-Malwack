@@ -149,6 +149,7 @@
 - [@StevenBlack](https://github.com/StevenBlack)
 - [@r-a-y](https://github.com/r-a-y)
 - [@Rem01Gaming](https://github.com/Rem01Gaming)
+- [@blocklistproject](https://github.com/blocklistproject)
 
 ### 3 - Foundational Supporters
 
