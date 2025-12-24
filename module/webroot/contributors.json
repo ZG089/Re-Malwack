@@ -58,5 +58,10 @@
         "username": "r-a-y",
         "type": "Hosts Provider",
         "description": "AdGuard Tracking blocklist"
+    },
+    {
+        "username": "blocklistproject",
+        "type": "Hosts Provider",
+        "description": "Hosts provider"
     }
 ]
