@@ -46,6 +46,13 @@ function remount_hosts() {
     log_message "Hosts remounted successfully."
 }
 
+function refresh_blocked_counts() {
+    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+}
+
 #  =========== Preparation ===========
 
 # 1 - Sourcing config file
@@ -81,25 +88,14 @@ else
     mode="hosts mount mode: Standard mount"
 fi
 
-# 6 - Check last modification date for hosts file
+# 6 - Module status determination preparations
+refresh_blocked_counts
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
-
-# 7 - System hosts count
-blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
-echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 log_message "System hosts entries count: $blocked_sys"
-
-# 8 - Module hosts count
-blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
-echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 log_message "Module hosts entries count: $blocked_mod"
-
-# 9 - Count blacklisted entries (excluding comments and empty lines)
 blacklist_count=0
 [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
 log_message "Blacklist entries count: $blacklist_count"
-
-# 10 - Count whitelisted entries (excluding comments and empty lines)
 whitelist_count=0
 [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
 log_message "Whitelist entries count: $whitelist_count"
@@ -137,6 +133,9 @@ elif [ "$blocked_mod" -ge 0 ]; then
     fi
     # Set success message if not set to error
     if [ -z "$status_msg" ]; then
+        refresh_blocked_counts
+        log_message "System hosts entries count: $blocked_sys"
+        log_message "Module hosts entries count: $blocked_mod"
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
         [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
         [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
