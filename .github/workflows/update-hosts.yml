@@ -28,6 +28,8 @@ jobs:
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt"
             "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt"
+            "https://blocklistproject.github.io/Lists/malware.txt"
+            "https://blocklistproject.github.io/Lists/ads.txt"
           )
           for url in "${sources[@]}"; do
             curl -sL "$url" >> raw_hosts.txt
