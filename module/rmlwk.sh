@@ -315,6 +315,11 @@ function block_content() {
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
                 fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
                 fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                fetch "${cache_hosts}5" https://blocklistproject.github.io/Lists/porn.txt &
+                wait
+            }
+            [ "$block_type" = "gambling"] && {
+                fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
                 wait
             }
             # Stage cache to tmp then install
@@ -333,6 +338,11 @@ function block_content() {
                 fetch "${cache_hosts}2" https://raw.githubusercontent.com/johnlouie09/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt &
                 fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
                 fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                fetch "${cache_hosts}5" https://blocklistproject.github.io/Lists/porn.txt &
+                wait
+            }
+            [ "$block_type" = "gambling"] && {
+                fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
                 wait
             }
             for file in "$persist_dir/cache/$block_type/hosts"*; do
@@ -388,6 +398,7 @@ function block_trackers() {
             log_message WARN "No cached trackers blocklist file found for $brand device, redownloading before removal."
             echo "[!] No cached trackers blocklist file(s) found for $brand device, redownloading before removal."
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/tracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
@@ -417,6 +428,7 @@ function block_trackers() {
             log_message "Fetching trackers block hosts for $brand"
             echo "[*] Fetching trackers block files for $brand"
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/tracking.txt"
             case "$brand" in
                 xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
                 samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;

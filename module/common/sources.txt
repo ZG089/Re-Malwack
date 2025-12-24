@@ -7,5 +7,7 @@ https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMo
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt
 https://hosts.rem01gaming.dev/adblock
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt
+https://blocklistproject.github.io/Lists/malware.txt
+https://blocklistproject.github.io/Lists/ads.txt
 
 # User Custom Hosts Sources (Add your own below)

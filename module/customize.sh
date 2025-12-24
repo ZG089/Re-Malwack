@@ -94,6 +94,8 @@ else
     sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://badmojr.github.io/1Hosts/Lite/hosts.txt|' $persistent_dir/sources.txt
     add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
     add_url_if_not_exists "https://hosts.rem01gaming.dev/adblock"
+    add_url_if_not_exists "https://blocklistproject.github.io/Lists/malware.txt"
+    add_url_if_not_exists "https://blocklistproject.github.io/Lists/ads.txt"
 fi
 
 # Initialize
