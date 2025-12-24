@@ -84,7 +84,7 @@ function host_process() {
 # Function to count blocked entries and store them
 function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
-
+    log_message INFO "Refreshing blocked entries counts"
     blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 
@@ -153,7 +153,7 @@ function resume_protections() {
 function log_message() {
 
     timestamp() {
-        date +"%m-%d-%Y %I:%M:%S %p"
+        date +"%Y-%m-%d %I:%M:%S %p"
     }
 
     # Handle optional log level (default: INFO)
@@ -251,7 +251,7 @@ function install_hosts() {
     # In case of hosts update (since only combined file exists only on --update-hosts)
     if [ -f "$combined_file" ]; then
         log_message "Detected unified hosts, sorting..."
-        cat "${tmp_hosts}0" >> "$combined_file" 
+        cat "${tmp_hosts}0" >> "$combined_file"
         awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
     else # In case of install_hosts() being called in block_content() or block_trackers()
         log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
@@ -475,10 +475,9 @@ function nuke_if_we_dont_have_internet() {
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
     start_time=$(date +%s)
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local output_file="$1"
     local url="$2"
-
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     # Curly hairyyy- *ahem*
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
@@ -502,6 +501,7 @@ function fetch() {
 
 # Updates module status, modifying module description in module.prop
 function update_status() {
+    status_msg=""  # Reset status message
     log_message "Updating module status"
     start_time=$(date +%s)
     log_message "Fetching last hosts file update"
@@ -698,6 +698,22 @@ done
 # 6 - Log Module Version
 log_message "Running Re-Malwack version $version"
 
+# 6.1 Log enabled blocklists
+enabled_blocklists=""
+for bl in porn gambling fakenews social; do
+    eval enabled=\$block_${bl}
+    if [ "$enabled" = "1" ]; then
+        enabled_blocklists="$enabled_blocklists $bl"
+    fi
+done
+if [ "$block_trackers" = "1" ]; then
+    enabled_blocklists="$enabled_blocklists trackers"
+fi
+if [ -n "$enabled_blocklists" ]; then
+    log_message INFO "Enabled blocklists:$enabled_blocklists"
+else
+    log_message INFO "No blocklists enabled"
+fi
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
@@ -1261,7 +1277,7 @@ case "$(tolower "$1")" in
               for file in "$persist_dir/cache/$bl/hosts"*; do
                   [ -f "$file" ] && host_process "$file"
               done
-          
+
               # Append only if enabled
               cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
               echo "[✓] Fetched $bl blocklist"
