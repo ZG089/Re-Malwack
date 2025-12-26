@@ -9,6 +9,19 @@ const filePaths = {
     "custom-source": 'sources.txt',
 };
 
+const festivals = [
+    {
+        id: 'christmas',
+        start: { month: 12, day: 1 }, // December 1
+        end: { month: 12, day: 31 }   // December 31
+    }
+    // {
+    //     id: 'halloween',
+    //     start: { month: 9, day: 25 }, // October 25
+    //     end: { month: 9, day: 31 }   // October 31
+    // }
+];
+
 let isShellRunning = false;
 
 // Link redirect
@@ -858,11 +871,42 @@ function setupEventListener() {
     document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
 }
 
+// Function to handle festival themes
+function setupFestivalThemes() {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentDay = now.getDate();
+
+    festivals.forEach(festival => {
+        const start = festival.start;
+        const end = festival.end;
+        let isActive = false;
+
+        if (start.month === end.month) {
+            // Same month
+            if (currentMonth === start.month && currentDay >= start.day && currentDay <= end.day) {
+                isActive = true;
+            }
+        } else {
+            // Spans year end, like Dec to Jan
+            if ((currentMonth === start.month && currentDay >= start.day) ||
+                (currentMonth === end.month && currentDay <= end.day)) {
+                isActive = true;
+            }
+        }
+        if (isActive) {
+            const element = document.getElementById(festival.id);
+            if (element) element.classList.add('show');
+        }
+    });
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     setupTheme();
     checkMMRL();
     setupPrank();
+    setupFestivalThemes();
     setupEventListener();
     applyRippleEffect();
     getVersion();

@@ -161,7 +161,7 @@ body.input-focused {
 }
 
 .festival {
-    display: block;
+    display: none;
     position: fixed;
     left: 0;
     top: 0;
@@ -172,6 +172,10 @@ body.input-focused {
 .festival img {
     width: 100%;
     height: auto;
+}
+
+.festival.show {
+    display: block;
 }
 
 .about {
