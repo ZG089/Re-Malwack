@@ -76,7 +76,7 @@
          --block-gambling, -bg <disable>: Block gambling sites, use disable to unblock.
          --block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock.
          --block-social, -bs <disable>: Block social media sites, use disable to unblock.
-         --whitelist, -w <add|remove> <domain1> <domain2> <domain|pattern> ...: Whitelist domain(s), only whitelist one domain at a time, otherwise use wildcard or use multiple domains in case of unwhitelisting.
+         --whitelist, -w <add|remove> <domain|pattern> <domain2> ...: Whitelist domain(s), only whitelist one domain at a time, otherwise use wildcard or use multiple domains in case of unwhitelisting.
          --blacklist, -b <add|remove> <domain1> <domain2> ...: Blacklist domain(s).
          --help, -h: Display help.
         Example command: su -c rmlwk --update-hosts
