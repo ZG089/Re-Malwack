@@ -1,7 +1,7 @@
 id=Re-Malwack
 name=Re-Malwack | Not just a normal ad-blocker module ✨
-version=v6.0
-versionCode=600
+version=v7.0
+versionCode=700
 author=ZG089
 description=A fully-fledged ad-block module. Contains all your needs ✨
 updateJson=https://raw.githubusercontent.com/ZG089/Re-Malwack/main/update.json
