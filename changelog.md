@@ -1,8 +1,3 @@
-## v7.1
-### 🐛 Bug Fixes
-**Scripts**
-- Removed a dead hosts source from script related to porn blocklist
-
 ## v7.0
 
 ### Please take a look at the notes at the end of the changelog after reading it, thank you.
