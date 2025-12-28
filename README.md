@@ -65,18 +65,21 @@
 - Type``su -c rmlwk`` terminal to show up the next help message which will clarify how to use it:
 
 ```sh
- "Usage: rmlwk [--argument]"
-         "--update-hosts, -u: Update the hosts file."
-         "--auto-update, -a <enable|disable>: Toggle auto hosts update."
-         "--custom-source, -c <add|remove> <domain>: Add custom hosts source."
-         "--reset, -r: Restore original hosts file."
-         "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
-         "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."
-         "--block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock."
-         "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
-         "--whitelist, -w <add|remove> <domain>: Whitelist a domain."
-         "--blacklist, -b <add|remove> <domain>: Blacklist a domain."
-         "--help, -h: Display help."
+        [i] Usage: rmlwk [--argument] OPTIONAL: [--quiet]
+         --update-hosts, -u: Update the hosts file.
+         --auto-update, -a <enable|disable>: Toggle auto hosts update.
+         --custom-source, -c <add|remove> <domain1> [domain2] ...: Add/remove custom hosts sources.
+         --reset, -r: Reset hosts file to default.
+         --adblock-switch, -as: Toggle protections on/off.
+         --block-trackers, -bt <disable>, block trackers, use disable to unblock.
+         --block-porn, -bp <disable>: Block pornographic sites, use disable to unblock.
+         --block-gambling, -bg <disable>: Block gambling sites, use disable to unblock.
+         --block-fakenews, -bf <disable>: Block fake news sites, use disable to unblock.
+         --block-social, -bs <disable>: Block social media sites, use disable to unblock.
+         --whitelist, -w <add|remove> <domain1> <domain2> <domain|pattern> ...: Whitelist domain(s), only whitelist one domain at a time, otherwise use wildcard or use multiple domains in case of unwhitelisting.
+         --blacklist, -b <add|remove> <domain1> <domain2> ...: Blacklist domain(s).
+         --help, -h: Display help.
+        Example command: su -c rmlwk --update-hosts
 ```
 
 ### Option 2 - Via WebUI

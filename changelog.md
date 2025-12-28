@@ -1,3 +1,100 @@
+## v7.0
+
+### Please take a look at the notes at the end of the changelog after reading it, thank you.
+### Oh and also HAPPY NEW YEAR!!!
+
+### 🐛 Bug Fixes
+
+**Scripts**
+- Fixed a whitelist bug that could delete entire hosts file if a non-raw URL was entered
+- Fixed abnormal output issues
+- Fixed possible issue with internet connectivity check on module installation
+- Fixed module status being reset
+- Fixed other ad-blocking modules can be enabled after Re-Malwack installation & rebooting
+- Fixed blacklist entries being parsed incorrectly as "0.0.0.0 domain.com0.0.0.0 blacklisted-domain.com"
+- Removed non-related host source which was _accidentally_ added to pornography blocklist
+- Fixed hosts file not being filtered during update
+- Fixed "unexpected `0`" error during status updates
+- Fixed incorrect root manager path detection for KernelSU/APatch
+- Fixed hosts file having multiple spaces not being collapsed
+- Fixed parsing of default hosts entries
+- Fixed possible links being broken after using module (e.g Google Maps)
+
+**WebUI**
+- Fixed some ripple animation issues
+- Fixed abnormal output issues
+
+### ✨ Features
+
+**Scripts**
+- **Protection switch (Pause/Resume)**: Ability to pause and resume ad-blocking protection without disabling the module
+- **Trackers block feature** (toggleable): New dedicated blocklist for tracking domains with separate toggle and auto-update capability
+- **Import from other ad-blocker modules/apps**: New feature to import hosts from other ad-blocker modules/apps like bindhosts, Cubic-Adblock and AdAway [1] [2]
+- **Improved hosts mounting**: The module now does an automatic hosts mount handling, this means that the module should work in most cases especially with mountify (technically any metamodule), or in case APatch lite mode was enabled [3]
+- **ZN host redirect support**: Added initial support for ZN-hostsredirect module
+- **Enhanced whitelisting**: Support for full URLs (automatic conversion to raw domains), better subdomain support, and wildcard whitelisting for domains containing asterisks (*) [4]
+- **Better blacklist/whitelist/sources entries management**: You can now remove multiple domains instead of removing domains one-by-one.
+- **Improved logging system**: Enhanced error logging outputs, included more detailed logging for an easier debugging process
+- **Better URL sanitization**: Simpler and more robust URL handling for blacklist, whitelist and hosts sources
+- **New ASCII banners**: Additional ASCII art banners with randomization for variety
+- **Quiet mode argument (`--quiet`)**: Added `--quiet` argument for quieter operations (not to show ascii banner in case this argument was passed)
+- **fail-safe strategies**: Added critical errors handling strategies, also some anti-exploit Implementations
+- **Better module status message on module description**: More detailed, yet more perfect module status indicator message
+
+**WebUI**
+- **Complete UI Revamp**: 
+  - New header card with module information
+  - New module status dashboard
+  - Warning card when protection is paused/reset
+  - Revamped "About" section
+- **test release indicator** Added a test release indicator for test releases
+- **Theme switcher** (Light/Dark mode) in the header
+- **Live terminal**: Real-time display during hosts update and blocklist toggling
+- **Loading spinner on buttons**: Visual feedback for ongoing operations
+- **Dashboard view**: Comprehensive overview of module status and statistics
+- **FAB button**: Quick access to pause/resume protections
+- **Multi-select capability**: Ability to select and batch remove multiple whitelist, blacklist entries, and sources
+- **Batch operations**: Remove multiple entries at once instead of one by one
+- **Paused status text**: Clear indication when protection is paused
+- **Mount check**: Warning about broken hosts mount
+- **ZN host redirect support**: Added support for ZN-hostredirect module
+- **Festival mode**: Christmas edition with special visual effects
+
+### General Changes
+
+**Performance & Code Quality**
+- Rewritten hosts update logic for significantly faster installation and processing
+- Improved overall performance of hosts installation and processing pipeline
+- Reduced unnecessary comments and code remnants
+- Better code arrangement
+- Improved trap logic for better error handling and logging
+
+**Enhancements**
+- Better output messages throughout the module
+- Improved error logging and messages
+- Replaced/Updated hosts sources file with extra and/or better hosts sources
+- Logging of blocked entries count and last hosts file update time
+- Logging of command execution time and triggers
+- Better hosts reset/default state detection
+- Improved detection of default hosts entries
+- Sourcing config file earlier in script execution
+- Better conditional arrangements for status checking
+
+**Dependencies & Compatibility**
+- Dropped compressed hosts support
+- Dropped MMRL version check requirement in WebUI
+- Support for KernelSU and APatch improved significantly
+
+### Notes
+- 1 - These are the supported things that you can import/merge into Re-Malwack:
+> - `bindhosts` and `AdAway` -> hosts sources, blacklist, whitelist
+> - `cubic-adblock` -> hosts sources only, you can refer to the sources from [here](https://github.com/Vaz15k/Cubic-AdBlock/blob/5c605d6ea5fba9a841615ec28de1c8ff1393029f/update_hosts.py#L53), 1hosts Pro is **excluded due to it being discontinued by 1hosts founder**
+- 2 - In order to be able to import your adblock setup from AdAway to Re-Malwack, make sure you export a backup file from AdAway, uninstall AdAway + systemless hosts module, then store the exported backup file it in your `internal storage` -> `Downloads` folder, **do not rename the file to anything else other than `adaway-backup.json`**
+- 3 - In case adblock doesn't work on browsers even though the module is active, or domain blacklisting/whitelisting doesn't apply or work perfectly inside browsers (and you don't have zn-hostsredirect module installed), while you're using KernelSU or any of its forks, **make sure to enable superuser option for browsers**
+- 4 - Whitelist wildcard examples: `*domain.com - *.domain.com - *something - somthing*`
+- 5 - Many thanks for @KOWX712, @bocchi-the-dev for their huge contributions to the module. Also thanks for @myst-25 for being an active tester and bug reporter in the module's [Telegram group](https://t.me/Re_Malwack)!
+- 6 - And Finally, Thanks for everyone who waited for the new version of the module, I owe you all an apology for the release delay, but because I have a very busy life and after all, and that Re-Malwack is just a hobby project for me so yeah. But I'm always planning to make it bigger and better, so stay tuned for more :D
+
 ## v6.0
 - 🐛 Fixed bug where installer detects disabled conflicted module.  
 - 🐛 Fixed bug where whitelist, blacklist, and newly downloaded hosts don't apply due to a broken mount.  
