@@ -105,8 +105,8 @@
   ```
 
 > [!NOTE]
-> Default hosts sources used in the hosts can be found [here](https://github.com/ZG089/Re-Malwack/blob/main/module/common/sources.txt)
-
+> Default hosts sources used for non-root hosts can be found [here](https://github.com/ZG089/Re-Malwack/blob/main/.github/workflows/update-hosts.yml#L24)
+> You can also see default hosts sources used for the module itself [here](https://github.com/ZG089/Re-Malwack/blob/main/module/common/sources.txt)
 ## Download
 
 > [!TIP]
