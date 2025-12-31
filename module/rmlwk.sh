@@ -96,7 +96,7 @@ function refresh_blocked_counts() {
 
 # function to check adblock pause
 function is_protection_paused() {
-    [ -f "$persist_dir/hosts.bak" ] || [ "$adblock_switch" -eq 1 ]
+    [ -f "$persist_dir/hosts.bak" ] || return 1
 }
 
 # 1 - Pause adblock
