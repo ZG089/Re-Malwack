@@ -312,16 +312,21 @@ function block_content() {
             nuke_if_we_dont_have_internet
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts"
             [ "$block_type" = "porn" ] && {
-
-                fetch "${cache_hosts}3" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
-                fetch "${cache_hosts}4" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
-                fetch "${cache_hosts}5" https://blocklistproject.github.io/Lists/porn.txt &
+                fetch "${cache_hosts}2" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
+                fetch "${cache_hosts}3" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                fetch "${cache_hosts}4" https://blocklistproject.github.io/Lists/porn.txt &
                 wait
             }
-            [ "$block_type" = "gambling"] && {
+            [ "$block_type" = "gambling" ] && {
                 fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
                 wait
             }
+
+            # Process downloaded hosts
+            for file in "$persist_dir/cache/$block_type/hosts"*; do
+                [ -f "$file" ] && host_process "$file"
+            done
+
             # Stage cache to tmp then install
             stage_blocklist_files "$block_type"
             install_hosts "$block_type"
@@ -340,10 +345,11 @@ function block_content() {
                 fetch "${cache_hosts}4" https://blocklistproject.github.io/Lists/porn.txt &
                 wait
             }
-            [ "$block_type" = "gambling"] && {
+            [ "$block_type" = "gambling" ] && {
                 fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
                 wait
             }
+            # Process downloaded hosts
             for file in "$persist_dir/cache/$block_type/hosts"*; do
                 [ -f "$file" ] && host_process "$file"
             done
@@ -407,7 +413,8 @@ function block_trackers() {
                 *) url="" ;;
             esac
             host_process "${cache_hosts}1"
-            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+            host_process "${cache_hosts}2"
+            [ -n "$url" ] && fetch "${cache_hosts}3" "$url" && host_process "${cache_hosts}3"
             stage_blocklist_files "trackers"
             install_hosts "trackers"
         fi
@@ -437,7 +444,8 @@ function block_trackers() {
                 *) url="" ;;
             esac
             host_process "${cache_hosts}1"
-            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
+            host_process "${cache_hosts}2"
+            [ -n "$url" ] && fetch "${cache_hosts}3" "$url" && host_process "${cache_hosts}3"
         fi
         log_message "Enabling trackers block"
         echo "[*] Enabling trackers block for $brand"
@@ -787,7 +795,7 @@ case "$(tolower "$1")" in
                     fi
                 fi
             fi
-    
+
             refresh_blocked_counts
             update_status
             log_duration "block-$block_type" "$start_time"
@@ -1217,6 +1225,21 @@ case "$(tolower "$1")" in
         fi
         ;;
 
+    --auto-update|-a)
+        case "$2" in
+            enable)
+                enable_cron
+                ;;
+            disable)
+                disable_cron
+                ;;
+            *)
+                echo "[!] Invalid option for --auto-update / -a"
+                echo "Usage: rmlwk <--auto-update|-a> <enable|disable>"
+                ;;
+        esac
+        ;;
+
     --update-hosts|-u)
         start_time=$(date +%s)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
@@ -1291,7 +1314,6 @@ case "$(tolower "$1")" in
             echo "[*] Fetching trackers blocklist..."
             log_message "Fetching trackers blocklist"
             mkdir -p "$persist_dir/cache/trackers"
-
             cache_hosts="$persist_dir/cache/trackers/hosts"
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
             brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
