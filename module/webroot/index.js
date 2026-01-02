@@ -73,7 +73,7 @@ async function getVersion() {
         const [version, ...hashParts] = result.stdout.trim().split('-');
         const hash = hashParts.join('-');
 
-        document.getElementById('version-text').textContent = version || 'Unknown';        
+        document.getElementById('version-text').textContent = version || 'Unknown';
         if (hash) {
             document.getElementById('test-version-box').style.display = 'flex';
             document.getElementById('test-version-text').textContent = `You're using a test release: ${hash}`;
@@ -87,7 +87,7 @@ async function isZnhr() {
     await exec(`
         znhr="/data/adb/modules/hostsredirect"
         [ -f "$znhr/module.prop" ] && [ ! -f "$znhr/disable" ]
-    `).then(({errno}) => {
+    `).then(({ errno }) => {
         return errno === 0;
     }).catch(() => { return false });
 }
@@ -97,9 +97,9 @@ function checkMount() {
           module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
           [ $system_hosts -eq $module_hosts ] || echo "error"
         `).then(async ({ stdout }) => {
-            const isZnhr = await isZnhr();
-            if (stdout === "error" && !isZnhr) document.getElementById('broken-mount-box').style.display = 'flex';
-        });
+        const isZnhr = await isZnhr();
+        if (stdout === "error" && !isZnhr) document.getElementById('broken-mount-box').style.display = 'flex';
+    });
 }
 
 // Function to check if running in MMRL
@@ -258,7 +258,7 @@ function performAction(commandOption) {
     closeBtn.addEventListener('click', () => closeTerminal());
 
     isShellRunning = true;
-    const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' }});
+    const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
     output.stdout.on('data', (data) => {
         const newline = document.createElement('p');
         newline.className = 'output-line';
@@ -317,14 +317,28 @@ async function resetHostsFile() {
 
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
-    const isEnabled = document.getElementById('daily-update-toggle').checked;
-    const result = await exec(`sh ${modulePath}/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
-    if (result.errno !== 0) {
-        showPrompt("Failed to toggle daily update", false);
-        console.error("Error toggling daily update:", result.stderr);
-    } else {
-        showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
-        await checkBlockStatus();
+    const loadingOverlay = document.getElementById('loading-overlay');
+    loadingOverlay.style.display = 'flex';
+    setTimeout(() => loadingOverlay.style.opacity = '1', 10);
+
+    try {
+        const isEnabled = document.getElementById('daily-update-toggle').checked;
+        const result = await exec(`sh ${modulePath}/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
+        if (result.errno !== 0) {
+            showPrompt("Failed to toggle daily update", false);
+            console.error("Error toggling daily update:", result.stderr);
+        } else {
+            showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
+            await checkBlockStatus();
+        }
+    } catch (error) {
+        console.error("Error in toggleDailyUpdate:", error);
+        showPrompt("An error occurred", false);
+    } finally {
+        loadingOverlay.style.opacity = '0';
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+        }, 200);
     }
 }
 
@@ -392,7 +406,7 @@ function handleAdd(fileType) {
 
     loading.classList.add('show');
 
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' }});
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         loading.classList.remove('show');
@@ -503,11 +517,11 @@ function applyRippleEffect() {
 function linkRedirect(url) {
     toast("Redirecting to " + url);
     setTimeout(() => {
-        exec(`am start -a android.intent.action.VIEW -d ${url}`, { env: { PATH: '/system/bin' }})
+        exec(`am start -a android.intent.action.VIEW -d ${url}`, { env: { PATH: '/system/bin' } })
             .then(({ errno }) => {
                 if (errno !== 0) toast("Failed to open link");
             });
-    },100);
+    }, 100);
 }
 
 // Function to setup listener control button
@@ -679,7 +693,7 @@ async function linkFile() {
  * Double click on blank space to exit early
  * @returns {void} 
  */
-function setupPrank() { 
+function setupPrank() {
     const today = new Date();
     if (today.getMonth() !== 3 || today.getDate() !== 1) return;
 
@@ -700,7 +714,7 @@ function setupPrank() {
     });
 
     const redirectRr = () => {
-        closeOverlay(); 
+        closeOverlay();
         linkRedirect('https://youtu.be/dQw4w9WgXcQ');
     }
 
