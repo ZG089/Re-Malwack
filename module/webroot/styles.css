@@ -695,6 +695,15 @@ input:checked+.slider:before {
     }
 }
 
+.loading-spinner {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    border: 5px solid var(--border-color);
+    border-top-color: var(--btn-primary);
+    animation: spin 1s linear infinite;
+}
+
 .checkbox-wrapper {
     flex-shrink: 0;
     position: relative;
