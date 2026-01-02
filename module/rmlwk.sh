@@ -240,7 +240,7 @@ function install_hosts() {
     done
 
     # Merge whitelist files into one
-    cat $whitelist_file | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
+    cat "$whitelist_file" | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -603,7 +603,7 @@ function enable_cron() {
             echo "[✗] Failed to enable auto update: cron-side error."
             log_message ERROR "Failed to enable auto update: cron-side error."
         else
-            log_message "Cron job added."
+            log_message SUCCESS "Cron job added."
             crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
             log_message SUCCESS "Auto-update has been enabled."
@@ -1281,58 +1281,56 @@ case "$(tolower "$1")" in
         wait
 
         # 3. Download & process blocklists (cached + enabled)
-        blocklists_to_install=""
-        for bl in porn gambling fakenews social; do
+        for bl in porn gambling fakenews social trackers; do
             block_var="block_${bl}"
             eval enabled=\$$block_var
             cache_hosts="$persist_dir/cache/$bl/hosts"
 
             # Download & process only if blocklist is enabled
-          if [ "$enabled" = "1" ]; then
-              mkdir -p "$persist_dir/cache/$bl"
-              echo "[*] Fetching blocklist: $bl"
-              log_message "Fetching blocklist: $bl"
-              fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
-              if [ "$bl" = "porn" ]; then
-                  fetch "${cache_hosts}2" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
-                  fetch "${cache_hosts}3" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
-                  wait
-              fi
-              # Process downloaded hosts
-              for file in "$persist_dir/cache/$bl/hosts"*; do
-                  [ -f "$file" ] && host_process "$file"
-              done
+            if [ "$enabled" = "1" ]; then
+                mkdir -p "$persist_dir/cache/$bl"
+                echo "[*] Fetching blocklist: $bl"
+                log_message "Fetching blocklist: $bl"
+                fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${bl}-only/hosts"
+                [ "$bl" = "porn" ] && {
+                    fetch "${cache_hosts}2" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
+                    fetch "${cache_hosts}3" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
+                    fetch "${cache_hosts}4" https://blocklistproject.github.io/Lists/porn.txt &
+                    wait
+                }
 
-              # Append only if enabled
-              cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
-              echo "[✓] Fetched $bl blocklist"
-              log_message "Added $bl blocklist to combined file"
-          fi
+                [ "$bl" = "gambling" ] && {
+                    fetch "${cache_hosts}5" https://blocklistproject.github.io/Lists/gambling.txt &
+                    wait
+                }
+
+                [ "$bl" = "trackers" ] && {
+                    fetch "${cache_hosts}6" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
+                    fetch "${cache_hosts}7" "https://blocklistproject.github.io/Lists/tracking.txt"
+                    brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
+                    case "$brand" in
+                        xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
+                        samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
+                        oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
+                        vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
+                        huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
+                        *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
+                    esac
+                    [ -n "$url" ] && fetch "${cache_hosts}8" "$url"
+                    wait
+                }
+
+                # Process downloaded hosts
+                for file in "$persist_dir/cache/$bl/hosts"*; do
+                    [ -f "$file" ] && host_process "$file"
+                done
+
+                # Append only if enabled
+                cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
+                echo "[✓] Fetched $bl blocklist"
+                log_message "Added $bl blocklist to combined file"
+            fi
         done
-        # 3b. Handle trackers blocklist if enabled
-        if [ "$block_trackers" = "1" ]; then
-            echo "[*] Fetching trackers blocklist..."
-            log_message "Fetching trackers blocklist"
-            mkdir -p "$persist_dir/cache/trackers"
-            cache_hosts="$persist_dir/cache/trackers/hosts"
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
-            brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
-            case "$brand" in
-                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
-                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
-                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
-                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
-                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) echo "[i] Your device brand isn't supported, using general trackers blocklist only." && url="" ;;
-            esac
-
-            host_process "${cache_hosts}1"
-            [ -n "$url" ] && fetch "${cache_hosts}2" "$url" && host_process "${cache_hosts}2"
-
-            cat "$persist_dir/cache/trackers/hosts"* >> "$combined_file"
-            echo "[✓] Fetched trackers blocklist"
-            log_message "Added trackers blocklist to combined file"
-        fi
         echo "[*] Installing hosts"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "all"
