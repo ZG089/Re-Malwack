@@ -219,7 +219,7 @@ function install_hosts() {
     log_message "Processing Whitelist..."
     whitelist_file="$persist_dir/cache/whitelist/whitelist.txt"
 
-    if [ "$block_social" -eq 0 ]; then
+    if [ "$block_social" -eq 0 ] && [ "$type" != "social" ]; then
         whitelist_file="$whitelist_file $persist_dir/cache/whitelist/social_whitelist.txt"
     else
         log_message WARN "Social Block triggered, Social whitelist won't be applied"
@@ -240,7 +240,7 @@ function install_hosts() {
     done
 
     # Merge whitelist files into one
-    cat "$whitelist_file" | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
+    cat $whitelist_file | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -459,7 +459,7 @@ function block_trackers() {
     log_duration "block_trackers ($status)" "$start_time"
 }
 
-fetch_blocklist() {
+function fetch_blocklist() {
     bl="$1"
     cache_hosts="$persist_dir/cache/$bl/hosts"
 
@@ -761,6 +761,9 @@ if [ -n "$enabled_blocklists" ]; then
 else
     log_message INFO "No blocklists enabled"
 fi
+
+log_message INFO "========== End of pre-main logic =========="
+
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
@@ -817,21 +820,21 @@ case "$(tolower "$1")" in
                     if [ "$block_toggle" = 0 ]; then
                         echo "[i] $block_type block is already disabled"
                     else
-                        log_message "Disabling ${block_type} has been initiated."
-                        echo "[*] Removing block entries for ${block_type} sites."
+                        log_message "Disabling ${block_type} blocklist has been initiated."
+                        echo "[*] Disabling ${block_type} blocklist has been initiated."
                         block_content "$block_type" 0
-                        log_message SUCCESS "Unblocked ${block_type} sites successfully."
-                        echo "[✓] Unblocked ${block_type} sites successfully."
+                        log_message SUCCESS "Disabled ${block_type} blocklist successfully."
+                        echo "[✓] Disabled ${block_type} blocklist successfully."
                     fi
                 else
                     if [ "$block_toggle" = 1 ]; then
                         echo "[!] ${block_type} block is already enabled"
                     else
-                        log_message "Enabling/Adding block entries for $block_type has been initiated."
-                        echo "[*] Adding block entries for ${block_type} sites."
+                        log_message "Enabling block entries for $block_type has been initiated."
+                        echo "[*] Enabling block entries for ${block_type} has been initiated."
                         block_content "$block_type" 1
-                        log_message SUCCESS "Blocked ${block_type} sites successfully."
-                        echo "[*] Blocked ${block_type} sites successfully."
+                        log_message SUCCESS "Enabled ${block_type} blocklist successfully."
+                        echo "[✓] Enabled ${block_type} blocklist successfully."
                     fi
                 fi
             fi
@@ -1344,7 +1347,7 @@ case "$(tolower "$1")" in
             # 2.5 - Append to combined file
             cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
             echo "[✓] Fetched $bl blocklist"
-            log_message "Added $bl blocklist"
+            log_message "Added $bl hosts entries to combined hosts"
         done
 
         # 3 - Install hosts
