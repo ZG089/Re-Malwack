@@ -310,17 +310,7 @@ function block_content() {
             log_message WARN "No cached $block_type blocklist found, redownloading to disable properly."
             echo "[!] No cached $block_type blocklist found, redownloading to disable properly"
             nuke_if_we_dont_have_internet
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts"
-            [ "$block_type" = "porn" ] && {
-                fetch "${cache_hosts}2" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
-                fetch "${cache_hosts}3" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
-                fetch "${cache_hosts}4" https://blocklistproject.github.io/Lists/porn.txt &
-                wait
-            }
-            [ "$block_type" = "gambling" ] && {
-                fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
-                wait
-            }
+            fetch_blocklist "$block_type"
 
             # Process downloaded hosts
             for file in "$persist_dir/cache/$block_type/hosts"*; do
@@ -338,17 +328,7 @@ function block_content() {
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
             nuke_if_we_dont_have_internet
             echo "[*] Downloading hosts for $block_type block."
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/${block_type}-only/hosts"
-            [ "$block_type" = "porn" ] && {
-                fetch "${cache_hosts}2" https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts &
-                fetch "${cache_hosts}3" https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing &
-                fetch "${cache_hosts}4" https://blocklistproject.github.io/Lists/porn.txt &
-                wait
-            }
-            [ "$block_type" = "gambling" ] && {
-                fetch "${cache_hosts}2" https://blocklistproject.github.io/Lists/gambling.txt &
-                wait
-            }
+            fetch_blocklist "$block_type"
             # Process downloaded hosts
             for file in "$persist_dir/cache/$block_type/hosts"*; do
                 [ -f "$file" ] && host_process "$file"
@@ -402,19 +382,10 @@ function block_trackers() {
             nuke_if_we_dont_have_internet
             log_message WARN "No cached trackers blocklist file found for $brand device, redownloading before removal."
             echo "[!] No cached trackers blocklist file(s) found for $brand device, redownloading before removal."
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
-            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/tracking.txt"
-            case "$brand" in
-                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
-                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
-                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
-                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
-                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) url="" ;;
-            esac
-            host_process "${cache_hosts}1"
-            host_process "${cache_hosts}2"
-            [ -n "$url" ] && fetch "${cache_hosts}3" "$url" && host_process "${cache_hosts}3"
+            fetch_blocklist "trackers"
+            for file in "$persist_dir/cache/trackers/hosts"*; do
+                [ -f "$file" ] && host_process "$file"
+            done
             stage_blocklist_files "trackers"
             install_hosts "trackers"
         fi
@@ -466,13 +437,12 @@ function fetch_blocklist() {
     case "$bl" in
         porn)
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
-            fetch "${cache_hosts}2" "https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts" &
-            fetch "${cache_hosts}3" "https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing" &
-            fetch "${cache_hosts}4" "https://blocklistproject.github.io/Lists/porn.txt" &
+            fetch "${cache_hosts}2" "https://raw.githubusercontent.com/Sinfonietta/hostfiles/refs/heads/master/pornography-hosts"
+            fetch "${cache_hosts}3" "https://blocklistproject.github.io/Lists/porn.txt"
             ;;
         gambling)
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling-only/hosts"
-            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/gambling.txt" &
+            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/gambling.txt"
             ;;
         fakenews|social)
             fetch "${cache_hosts}1" \
@@ -494,6 +464,9 @@ function fetch_blocklist() {
             esac
 
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"
+            ;;
+        safebrowsing)
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing"
             ;;
     esac
     wait
@@ -798,7 +771,7 @@ case "$(tolower "$1")" in
 	    echo "[✓] Successfully reverted hosts."
         log_duration "reset" "$start_time"
         ;;
-    --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt)
+    --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
             start_time=$(date +%s)
             is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     
@@ -808,6 +781,7 @@ case "$(tolower "$1")" in
                 --block-fakenews|-bf) block_type="fakenews" ;;
                 --block-social|-bs) block_type="social" ;;
                 --block-trackers|-bt) block_type="trackers" ;;
+                --block-safebrowsing|-bsb) block_type="safebrowsing" ;;
             esac
             status="$2"
             if [ "$block_type" = "trackers" ]; then
