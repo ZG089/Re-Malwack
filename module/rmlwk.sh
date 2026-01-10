@@ -86,10 +86,10 @@ function host_process() {
 function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$hosts_file" 2>/dev/null | grep -v '^127\.0\.0\.1[[:space:]]' | grep -v '^::1[[:space:]]' | wc -l)
+    blocked_mod=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$hosts_file" 2>/dev/null | grep -v -E '^127\.0\.0\.1[[:space:]]+localhost([[:space:]]|$)' | grep -v '^::1[[:space:]]' | wc -l)
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 
-    blocked_sys=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$system_hosts" 2>/dev/null | grep -v '^127\.0\.0\.1[[:space:]]' | grep -v '^::1[[:space:]]' | wc -l)
+    blocked_sys=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$system_hosts" 2>/dev/null | grep -v -E '^127\.0\.0\.1[[:space:]]+localhost([[:space:]]|$)' | grep -v '^::1[[:space:]]' | wc -l)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
 
