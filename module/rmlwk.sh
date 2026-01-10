@@ -11,6 +11,7 @@
 quiet_mode=0
 is_zn_detected=0
 persist_dir="/data/adb/Re-Malwack"
+zn_module_dir="/data/adb/modules/hostsredirect"
 REALPATH=$(readlink -f "$0")
 MODDIR=$(dirname "$REALPATH")
 system_hosts="/system/etc/hosts"
@@ -85,10 +86,10 @@ function host_process() {
 function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -c '^0\.0\.0\.0[[:space:]]' "$hosts_file" 2>/dev/null)
+    blocked_mod=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$hosts_file" 2>/dev/null | grep -v '^127\.0\.0\.1[[:space:]]' | grep -v '^::1[[:space:]]' | wc -l)
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 
-    blocked_sys=$(grep -c '^0\.0\.0\.0[[:space:]]' "$system_hosts" 2>/dev/null)
+    blocked_sys=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$system_hosts" 2>/dev/null | grep -v '^127\.0\.0\.1[[:space:]]' | grep -v '^::1[[:space:]]' | wc -l)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
 
@@ -554,6 +555,20 @@ function update_status() {
         mode="hosts mount mode: Standard mount"
     fi
 
+    # Log enabled blocklists
+    enabled_blocklists=""
+    for bl in porn gambling fakenews social trackers safebrowsing; do
+        eval enabled=\$block_${bl}
+        if [ "$enabled" = "1" ]; then
+            enabled_blocklists="$enabled_blocklists $bl"
+        fi
+    done
+    if [ -n "$enabled_blocklists" ]; then
+        log_message INFO "Enabled blocklists:$enabled_blocklists"
+    else
+        log_message INFO "No blocklists enabled"
+    fi
+
     # Here goes the part where we actually determine module status
     if is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️"
@@ -586,6 +601,7 @@ function update_status() {
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Blocklists:$enabled_blocklists"
             status_msg="$status_msg | Last updated: $last_mod | $mode"
         fi
     fi
@@ -657,7 +673,6 @@ function disable_cron() {
 # ===== Pre-main logic =====
 
 # 1 - Check if zygisk host redirect module is enabled
-zn_module_dir="/data/adb/modules/hostsredirect"
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
@@ -717,24 +732,6 @@ done
 
 # 6 - Log Module Version
 log_message "Running Re-Malwack version $version"
-
-# 6.1 Log enabled blocklists
-enabled_blocklists=""
-for bl in porn gambling fakenews social; do
-    eval enabled=\$block_${bl}
-    if [ "$enabled" = "1" ]; then
-        enabled_blocklists="$enabled_blocklists $bl"
-    fi
-done
-if [ "$block_trackers" = "1" ]; then
-    enabled_blocklists="$enabled_blocklists trackers"
-fi
-if [ -n "$enabled_blocklists" ]; then
-    log_message INFO "Enabled blocklists:$enabled_blocklists"
-else
-    log_message INFO "No blocklists enabled"
-fi
-
 log_message INFO "========== End of pre-main logic =========="
 
 # ====== Main Logic ======
@@ -1298,7 +1295,7 @@ case "$(tolower "$1")" in
         wait
 
         # 2 - Download & process blocklists
-        for bl in porn gambling fakenews social trackers; do
+        for bl in porn gambling fakenews social trackers safebrowsing; do
             block_var="block_${bl}"
             eval enabled=\$$block_var
 
