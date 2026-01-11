@@ -417,6 +417,28 @@ function handleAdd(fileType) {
     });
 }
 
+// Function to handle query domain
+function handleQuery() {
+    const inputElement = document.getElementById('query-input');
+    const resultCard = document.getElementById('query-result-card');
+    const resultText = document.getElementById('query-result-text');
+    const inputValue = inputElement.value.trim();
+
+    if (inputValue === "") return;
+
+    inputElement.value = "";
+    resultText.textContent = "Querying...";
+    resultCard.style.display = 'block';
+
+    const output = [];
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`], { env: { WEBUI: 'true' } });
+    result.stdout.on('data', (data) => output.push(data));
+    result.stderr.on('data', (data) => output.push(data));
+    result.on('exit', () => {
+        resultText.textContent = output.join("\n").trim();
+    });
+}
+
 // Prevent input box blocked by keyboard
 const inputs = document.querySelectorAll('input');
 const focusClass = 'input-focused';
@@ -883,6 +905,12 @@ function setupEventListener() {
     document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
     document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
     document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
+
+    // Query
+    document.getElementById("query-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleQuery();
+    });
+    document.getElementById("query-search").addEventListener("click", () => handleQuery());
 }
 
 // Function to handle festival themes
