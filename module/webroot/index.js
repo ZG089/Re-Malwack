@@ -325,7 +325,12 @@ async function toggleDailyUpdate() {
         const isEnabled = document.getElementById('daily-update-toggle').checked;
         const result = await exec(`sh ${modulePath}/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
         if (result.errno !== 0) {
-            showPrompt("Failed to toggle daily update", false);
+            // Check for crond not found error (exit code 4)
+            if (result.errno === 4) {
+                showPrompt("crond not found. Please install a busybox module to use this feature.", false);
+            } else {
+                showPrompt("Failed to toggle daily update", false);
+            }
             console.error("Error toggling daily update:", result.stderr);
         } else {
             showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
