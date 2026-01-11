@@ -187,6 +187,61 @@ function log_duration() {
     log_message "$name took $(duration_to_hms $duration) (hh:mm:ss)"
 }
 
+# Function to query domain status in hosts file
+function query_domain() {
+    local domain="$1"
+
+    if [ -z "$domain" ]; then
+        echo "[!] No domain provided."
+        echo "[i] Usage: rmlwk --query-domain <domain> or rmlwk -q <domain>"
+        echo "[i] Example: rmlwk --query-domain example.com"
+        exit 1
+    fi
+
+    # Sanitize input - extract domain from URL if needed
+    if printf '%s' "$domain" | grep -qE '^https?://'; then
+        domain=$(printf '%s' "$domain" | awk -F[/:] '{print $4}')
+    fi
+
+    # Validate domain format
+    if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9]([a-z0-9-]*\.)*[a-z0-9-]*[a-z0-9]$|^[a-z0-9]$'; then
+        echo "[!] Invalid domain format: $domain"
+        exit 1
+    fi
+
+    log_message "Querying domain: $domain"
+
+    # Search in hosts file for the domain
+    # This will find lines like "0.0.0.0 example.com" or "127.0.0.1 example.com"
+    entry=$(grep -E "^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]+${domain}([[:space:]]|$)" "$hosts_file" 2>/dev/null | head -1)
+
+    if [ -z "$entry" ]; then
+        echo "[i] Domain '$domain' is NOT blocked"
+        log_message "Domain query result: $domain is NOT blocked"
+        return 0
+    fi
+
+    # Extract the IP address from the entry
+    ip=$(echo "$entry" | awk '{print $1}')
+
+    # Check if it's a blocking IP (0.0.0.0 or 127.0.0.1)
+    case "$ip" in
+        0.0.0.0|127.0.0.1)
+            echo "[!] Domain '$domain' IS BLOCKED"
+            echo "[i] IP: $ip"
+            log_message "Domain query result: $domain IS BLOCKED with IP $ip"
+            return 0
+            ;;
+        *)
+            # If it's a different IP, it's redirected
+            echo "[⟳] Domain '$domain' IS REDIRECTED"
+            echo "[i] Redirected to IP: $ip"
+            log_message "Domain query result: $domain IS REDIRECTED to IP $ip"
+            return 0
+            ;;
+    esac
+}
+
 # Functions to process hosts
 
 # 1. Helper to stage cached blocklist files into tmp
@@ -768,6 +823,12 @@ case "$(tolower "$1")" in
 	    echo "[✓] Successfully reverted hosts."
         log_duration "reset" "$start_time"
         ;;
+    --query-domain|-q)
+        start_time=$(date +%s)
+        domain="$2"
+        query_domain "$domain"
+        log_duration "query-domain" "$start_time"
+        ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
             start_time=$(date +%s)
             is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
@@ -1341,6 +1402,7 @@ case "$(tolower "$1")" in
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove> <domain1> [domain2] ...: Add/remove custom hosts sources."
         echo "--reset, -r: Reset hosts file to default."
+        echo "--query-domain, -q <domain>: Query if a domain is blocked, redirected, or not blocked."
         echo "--adblock-switch, -as: Toggle protections on/off."
         echo "--block-trackers, -bt <disable>, block trackers, use disable to unblock."
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
