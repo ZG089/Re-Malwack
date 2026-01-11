@@ -687,7 +687,7 @@ function enable_cron() {
             log_message ERROR "Failed to enable auto update: cron-side error."
         else
             log_message SUCCESS "Cron job added."
-            crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            busybox crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
             log_message SUCCESS "Auto-update has been enabled."
             echo "[✓] Auto-update enabled."
@@ -704,10 +704,10 @@ function disable_cron() {
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
-    busybox pkill crond > /dev/null 2>&1
-    busybox pkill busybox crond > /dev/null 2>&1
-    busybox pkill busybox crontab > /dev/null 2>&1
-    busybox pkill crontab > /dev/null 2>&1
+    busybox pkill "crond" > /dev/null 2>&1
+    busybox pkill "busybox crond" > /dev/null 2>&1
+    busybox pkill "busybox crontab" > /dev/null 2>&1
+    busybox pkill "crontab" > /dev/null 2>&1
     log_message "Cron processes stopped."
 
     # Check if cron job exists
@@ -1300,6 +1300,13 @@ case "$(tolower "$1")" in
         ;;
 
     --auto-update|-a)
+
+        if ! command -v busybox crond >/dev/null 2>&1; then
+            echo "[✗] crond not found. Please install a busybox module in order to use this feature."
+            log_message ERROR "crond command not found. Auto-update feature requires crond to be available."
+            exit 4
+        fi
+
         case "$2" in
             enable)
                 enable_cron
