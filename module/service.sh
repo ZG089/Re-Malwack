@@ -47,8 +47,8 @@ function remount_hosts() {
 }
 
 function refresh_blocked_counts() {
-    blocked_mod=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$hosts_file" 2>/dev/null | grep -v -E '^127\.0\.0\.1[[:space:]]+localhost([[:space:]]|$)' | grep -v '^::1[[:space:]]' | wc -l)
-    blocked_sys=$(grep -E '^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]' "$system_hosts" 2>/dev/null | grep -v -E '^127\.0\.0\.1[[:space:]]+localhost([[:space:]]|$)' | grep -v '^::1[[:space:]]' | wc -l)
+    blocked_mod=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$hosts_file" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
+    blocked_sys=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$system_hosts" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 }
