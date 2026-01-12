@@ -133,9 +133,6 @@ elif [ "$blocked_mod" -ge 0 ]; then
     fi
     # Set success message if not set to error
     if [ -z "$status_msg" ]; then
-        refresh_blocked_counts
-        log_message "System hosts entries count: $blocked_sys"
-        log_message "Module hosts entries count: $blocked_mod"
         status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
         [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
         [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
