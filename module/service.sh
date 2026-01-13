@@ -47,8 +47,8 @@ function remount_hosts() {
 }
 
 function refresh_blocked_counts() {
-    blocked_mod=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$hosts_file" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
-    blocked_sys=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$system_hosts" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 }
