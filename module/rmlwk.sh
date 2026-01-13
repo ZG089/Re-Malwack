@@ -77,18 +77,18 @@ function host_process() {
     local file="$1"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
-    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts and collapses all multiple spaces/tabs into a single space
+    # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts, collapses all multiple spaces/tabs into a single space and converts 127.0.0.1 to 0.0.0.0
     log_message "Filtering $file..."
-    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g' "$file"
+    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g s/127.0.0.1/0.0.0.0/g' "$file"
 }
 
 # Function to count blocked entries and store them
 function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$hosts_file" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
-    blocked_sys=$(grep -E '^(0\.0\.0\.0|127\.0\.0\.1)[[:space:]]+' "$system_hosts" | grep -vE '^127\.0\.0\.1[[:space:]]+localhost' | wc -l)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
 }
 
@@ -204,8 +204,7 @@ function query_domain() {
 
     # Validate domain format
     if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9]([a-z0-9-]*\.)*[a-z0-9-]*[a-z0-9]$|^[a-z0-9]$'; then
-        echo "[!] Invalid domain format: $domain"
-        exit 1
+        abort "[!] Invalid domain format: $domain"
     fi
 
     log_message "Querying domain: $domain"
@@ -223,9 +222,9 @@ function query_domain() {
     # Extract the IP address from the entry
     ip=$(echo "$entry" | awk '{print $1}')
 
-    # Check if it's a blocking IP (0.0.0.0 or 127.0.0.1)
+    # Check if it's a blocking IP
     case "$ip" in
-        0.0.0.0|127.0.0.1)
+        0.0.0.0)
             echo "[!] Domain '$domain' IS BLOCKED"
             echo "[i] IP: $ip"
             log_message "Domain query result: $domain IS BLOCKED with IP $ip"
@@ -655,7 +654,7 @@ function update_status() {
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Blocklists:$enabled_blocklists"
+            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
             status_msg="$status_msg | Last updated: $last_mod | $mode"
         fi
     fi
@@ -682,12 +681,12 @@ function enable_cron() {
         mkdir -p "$JOB_DIR"
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
-        if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
+        if ! crontab "$JOB_FILE" -c "$JOB_DIR"; then
             echo "[✗] Failed to enable auto update: cron-side error."
             log_message ERROR "Failed to enable auto update: cron-side error."
         else
             log_message SUCCESS "Cron job added."
-            busybox crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
             log_message SUCCESS "Auto-update has been enabled."
             echo "[✓] Auto-update enabled."
@@ -704,10 +703,8 @@ function disable_cron() {
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
-    busybox pkill "crond" > /dev/null 2>&1
-    busybox pkill "busybox crond" > /dev/null 2>&1
-    busybox pkill "busybox crontab" > /dev/null 2>&1
-    busybox pkill "crontab" > /dev/null 2>&1
+    pkill crond > /dev/null 2>&1
+    pkill crontab > /dev/null 2>&1
     log_message "Cron processes stopped."
 
     # Check if cron job exists
@@ -1301,7 +1298,7 @@ case "$(tolower "$1")" in
 
     --auto-update|-a)
 
-        if ! command -v busybox crond >/dev/null 2>&1; then
+        if ! command -v crond >/dev/null 2>&1; then
             echo "[✗] crond not found. Please install a busybox module in order to use this feature."
             log_message ERROR "crond command not found. Auto-update feature requires crond to be available."
             exit 4
