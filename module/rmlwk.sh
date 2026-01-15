@@ -79,7 +79,7 @@ function host_process() {
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
     # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts, collapses all multiple spaces/tabs into a single space and converts 127.0.0.1 to 0.0.0.0
     log_message "Filtering $file..."
-    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g s/127.0.0.1/0.0.0.0/g' "$file"
+    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g; s/127.0.0.1/0.0.0.0/g' "$file"
 }
 
 # Function to count blocked entries and store them
