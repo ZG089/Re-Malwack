@@ -534,7 +534,7 @@ function tolower() {
 # uhhhhh
 function abort() {
     log_message "Aborting: $1"
-    echo "[!] $1"
+    echo "[✗] $1"
     sleep 0.5
     exit 1
 }
@@ -672,7 +672,6 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo '[AUTO UPDATE TIME!!!]' >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
 
     if [ -d "$JOB_DIR" ]; then
         echo "[i] Auto update is already enabled"
@@ -682,7 +681,7 @@ function enable_cron() {
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
         if ! crontab "$JOB_FILE" -c "$JOB_DIR"; then
-            echo "[✗] Failed to enable auto update: cron-side error."
+            abort "Failed to enable auto update: cron-side error."
             log_message ERROR "Failed to enable auto update: cron-side error."
         else
             log_message SUCCESS "Cron job added."
@@ -699,7 +698,6 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
@@ -1297,8 +1295,8 @@ case "$(tolower "$1")" in
         ;;
 
     --auto-update|-a)
-
-        if ! command -v crond >/dev/null 2>&1; then
+        PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+        if ! command -v crond >/dev/null 2>&1 || ! command -v busybox >/dev/null 2>&1; then
             echo "[✗] crond not found. Please install a busybox module in order to use this feature."
             log_message ERROR "crond command not found. Auto-update feature requires crond to be available."
             exit 4
