@@ -8,6 +8,7 @@ persist_dir="/data/adb/Re-Malwack"
 zn_module_dir="/data/adb/modules/hostsredirect"
 system_hosts="/system/etc/hosts"
 is_zn_detected=0
+FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 
 # =========== Functions ===========
 
@@ -143,12 +144,14 @@ fi
 # Check if auto-update is enabled
 if [ "$daily_update" = 1 ]; then
     # Check if crond is running
-    if ! pgrep -x crond >/dev/null; then
+    if [ -f $FALLBACK_SCRIPT ]; then
+        log_message "Auto-update is enabled, executing fallback script..."
+        sh $FALLBACK_SCRIPT &
+        return 0 # Avoiding running crond in case of fallback script
+    elif ! pgrep -x crond >/dev/null; then
         log_message "Auto-update is enabled, but crond is not running. Starting crond..."
         busybox crond -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
         log_message "Crond started."
-    else
-        log_message "Crond is already running."
     fi
 fi
 
