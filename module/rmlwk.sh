@@ -18,6 +18,7 @@ system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 
 # ====== Pre-config ======
 
@@ -672,8 +673,8 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo '[AUTO UPDATE TIME!!!]' >> /data/adb/Re-Malwack/logs/auto_update.log"
-
-    if [ -d "$JOB_DIR" ]; then
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+    if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already enabled"
     else
         # Create directory and file if they don't exist
@@ -681,15 +682,28 @@ function enable_cron() {
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
         if ! crontab "$JOB_FILE" -c "$JOB_DIR"; then
-            abort "Failed to enable auto update: cron-side error."
-            log_message ERROR "Failed to enable auto update: cron-side error."
+            echo "[!] Failed to enable auto update with crond, falling back to loop-based update."
+            log_message WARN "Failed to enable auto update with crond, falling back to loop-based update."
+            # Create fallback script
+            cat > "$FALLBACK_SCRIPT" << 'EOF'
+#!/system/bin/sh
+while true; do
+    sleep 86400  # Sleep for 24 hours
+    sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet
+done
+EOF
+            chmod +x "$FALLBACK_SCRIPT"
+            # Start the fallback script in background
+            nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &
+            log_message SUCCESS "Fallback auto-update script started."
+            echo "[✓] Auto-update enabled with fallback (24h loop)."
         else
             log_message SUCCESS "Cron job added."
             crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
-            sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
-            log_message SUCCESS "Auto-update has been enabled."
-            echo "[✓] Auto-update enabled."
+            echo "[✓] Auto-update enabled with crond."
         fi
+        sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
+        log_message SUCCESS "Auto-update has been enabled."
     fi
 }
 
@@ -698,6 +712,7 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
@@ -705,8 +720,15 @@ function disable_cron() {
     pkill crontab > /dev/null 2>&1
     log_message "Cron processes stopped."
 
+    # Kill fallback script if running
+    if [ -f "$FALLBACK_SCRIPT" ]; then
+        pkill -f "$FALLBACK_SCRIPT" > /dev/null 2>&1
+        rm -f "$FALLBACK_SCRIPT"
+        log_message "Fallback auto-update script stopped and removed."
+    fi
+
     # Check if cron job exists
-    if [ ! -d "$JOB_DIR" ]; then
+    if [ ! -d "$JOB_DIR" ] && [ ! -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already disabled"
     else    
         rm -rf "$JOB_DIR"
@@ -1295,13 +1317,6 @@ case "$(tolower "$1")" in
         ;;
 
     --auto-update|-a)
-        PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
-        if ! command -v crond >/dev/null 2>&1 || ! command -v busybox >/dev/null 2>&1; then
-            echo "[✗] crond not found. Please install a busybox module in order to use this feature."
-            log_message ERROR "crond command not found. Auto-update feature requires crond to be available."
-            exit 4
-        fi
-
         case "$2" in
             enable)
                 enable_cron
