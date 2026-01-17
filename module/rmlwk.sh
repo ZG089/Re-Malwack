@@ -591,12 +591,10 @@ function update_status() {
     blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
 
     # Count blacklisted entries (excluding comments and empty lines)
-    blacklist_count=0
-    [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+    [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt") || blacklist_count=0
 
     # Count whitelisted entries (excluding comments and empty lines)
-    whitelist_count=0
-    [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+    [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
     log_message "System hosts entries count: $blocked_sys"
     log_message "Module hosts entries count: $blocked_mod"
     log_message "Blacklist entries count: $blacklist_count"
@@ -743,7 +741,10 @@ function disable_cron() {
 
 # ===== Pre-main logic =====
 
-# 1 - Check if zygisk host redirect module is enabled
+# 1 - log module version
+log_message "Running Re-Malwack version $version"
+
+# 2 - Check if zygisk host redirect module is enabled
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
@@ -753,24 +754,24 @@ else
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
 fi
 
-# 2 - Trigger force stats refresh on WebUI
+# 3 - Trigger force stats refresh on WebUI
 if [ "$WEBUI" = "true" ]; then
     refresh_blocked_counts
     update_status
 fi
-# 3 -Error logging lore
+# 4 -Error logging lore
 
-# 3.1 - Log errors
+# 4.1 - Log errors
 exec 2>>"$LOGFILE"
 
-# 3.2 - Trap runtime errors (logs failing command + exit code)
+# 4.2 - Trap runtime errors (logs failing command + exit code)
 trap '
 err_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
-# 3.3 - Trap final script exit
+# 4.3 - Trap final script exit
 trap '
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
@@ -790,7 +791,7 @@ esac
 [ $exit_code -ne 0 ] && echo "[$timestamp] - [ERROR] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
 ' EXIT
 
-# 4- Check for --quiet argument
+# 5 - Check for --quiet argument
 for arg in "$@"; do
     if [ "$arg" = "--quiet" ]; then
         quiet_mode=1
@@ -798,11 +799,9 @@ for arg in "$@"; do
     fi
 done
 
-# 5 - Show banner if not running from Magisk Manager / quiet mode is disabled
+# 6 - Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
-# 6 - Log Module Version
-log_message "Running Re-Malwack version $version"
 log_message INFO "========== End of pre-main logic =========="
 
 # ====== Main Logic ======
