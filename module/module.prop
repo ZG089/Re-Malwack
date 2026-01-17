@@ -8,3 +8,5 @@ updateJson=https://raw.githubusercontent.com/ZG089/Re-Malwack/main/update.json
 support=https://t.me/Re_Malwack
 donate=https://buymeacoffee.com/zg089
 banner=banner.png
+actionIcon=webroot/icon.png
+webuiIcon=webroot/icon.png
