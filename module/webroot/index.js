@@ -756,9 +756,9 @@ function setupPrank() {
 /**
  * Setup WebUI color theme
  * localStorage: remalwack_theme - light, dark
- * @return {void}
+ * @return {Promise<void>}
  */
-function setupTheme() {
+async function setupTheme() {
     const savedTheme = localStorage.getItem('remalwack_theme');
     const themeSelect = document.getElementById('theme-select');
 
@@ -945,7 +945,7 @@ function setupFestivalThemes() {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
-    setupTheme();
+    await Promise.all([setupTheme()]);
     checkMMRL();
     setupPrank();
     setupFestivalThemes();
