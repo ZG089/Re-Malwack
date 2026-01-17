@@ -762,16 +762,17 @@ async function setupTheme() {
     const savedTheme = localStorage.getItem('remalwack_theme');
     const themeSelect = document.getElementById('theme-select');
 
-    if (savedTheme === 'light') {
-        applyTheme('light');
-        themeSelect.value = 'light';
-    } else if (savedTheme === 'dark') {
-        applyTheme('dark');
-        themeSelect.value = 'dark';
-    } else {
-        applyTheme('system');
-        themeSelect.value = 'system';
+    const applyTheme = (theme) => {
+        document.documentElement.classList.toggle(
+            'dark-theme',
+            (theme === 'system')
+                ? window.matchMedia('(prefers-color-scheme: dark)').matches // system theme
+                : theme === 'dark' // user theme
+        );
     }
+
+    applyTheme(savedTheme || 'system');
+    themeSelect.value = savedTheme || 'system';
 
     // theme switcher
     themeSelect.addEventListener('change', () => {
@@ -782,20 +783,6 @@ async function setupTheme() {
         }
         applyTheme(themeSelect.value);
     });
-
-    function applyTheme(theme) {
-        if (theme === 'light') {
-            document.documentElement.classList.remove('dark-theme');
-        } else if (theme === 'dark') {
-            document.documentElement.classList.add('dark-theme');
-        } else {
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.classList.add('dark-theme');
-            } else {
-                document.documentElement.classList.remove('dark-theme');
-            }
-        }
-    }
 }
 
 // update adblock swtich
