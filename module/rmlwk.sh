@@ -19,6 +19,8 @@ tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
 LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
+LOCK_FILE="$persist_dir/.rmlwk.lock"
+LOCK_TIMEOUT=300  # 5 minutes timeout
 
 # ====== Pre-config ======
 
@@ -64,6 +66,33 @@ function rmlwk_banner() {
     printf '\033[0m'
 }
 
+# Lock mechanism to prevent concurrent execution
+function acquire_lock() {
+    local timeout=$LOCK_TIMEOUT
+    while [ $timeout -gt 0 ]; do
+        if mkdir "$LOCK_FILE" 2>/dev/null; then
+            echo $$ > "$LOCK_FILE/pid"
+            return 0
+        fi
+        # Check if lock is stale (older than 5 minutes)
+        if [ -f "$LOCK_FILE/pid" ]; then
+            local lock_pid=$(cat "$LOCK_FILE/pid" 2>/dev/null)
+            if ! kill -0 "$lock_pid" 2>/dev/null; then
+                log_message WARN "Removing stale lock from PID $lock_pid"
+                rm -rf "$LOCK_FILE" 2>/dev/null
+                continue
+            fi
+        fi
+        sleep 1
+        timeout=$((timeout - 1))
+    done
+    return 1
+}
+
+function release_lock() {
+    rm -rf "$LOCK_FILE" 2>/dev/null
+}
+
 # Function to check hosts file reset state
 # Becomes true in case of both hosts counts = 0
 # And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
@@ -87,10 +116,25 @@ function host_process() {
 function refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
-    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
-    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
-    echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+
+    # Count entries with validation
+    if [ -f "$hosts_file" ]; then
+        blocked_mod=$(grep -c "0.0.0.0" "$hosts_file" 2>/dev/null || echo 0)
+    else
+        blocked_mod=0
+    fi
+
+    echo $blocked_mod > "$persist_dir/counts/blocked_mod.count"
+
+    if [ -f "$system_hosts" ]; then
+        blocked_sys=$(grep -c "0.0.0.0" "$system_hosts" 2>/dev/null || echo 0)
+    else
+        blocked_sys=0
+    fi
+
+    echo $blocked_sys > "$persist_dir/counts/blocked_sys.count"
+
+    log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries"
 }
 
 # Functions for protection switch
@@ -111,8 +155,7 @@ function pause_protections() {
     
     # Prevent pausing if hosts is reset
     if is_default_hosts && ! is_protection_paused; then
-        echo "[!] You cannot pause protections while hosts is reset."
-        exit 1
+        abort "You cannot pause protections while hosts is reset."
     fi
     log_message "Pausing Protections"
     echo "[*] Pausing Protections"
@@ -205,7 +248,7 @@ function query_domain() {
 
     # Validate domain format
     if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9]([a-z0-9-]*\.)*[a-z0-9-]*[a-z0-9]$|^[a-z0-9]$'; then
-        abort "[!] Invalid domain format: $domain"
+        abort "Invalid domain format: $domain"
     fi
 
     log_message "Querying domain: $domain"
@@ -256,7 +299,7 @@ function stage_blocklist_files() {
 
 # 2. Install hosts
 function install_hosts() {
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     type="$1"
     log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
@@ -314,7 +357,11 @@ function install_hosts() {
     fi
 
     log_message "Filtering hosts"
-    grep -Fvxf "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file"
+    grep -Fvxf "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file" || {
+        log_message WARN "Failed to filter with grep, trying awk fallback"
+        # Fallback to awk if grep fails
+        awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file"
+    }
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -326,7 +373,7 @@ function install_hosts() {
 
 # 3. Remove hosts
 function remove_hosts() {
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -354,7 +401,7 @@ function remove_hosts() {
 
 # Function to block conte- bruhhh doesn't that seem to be clear to you already? -_-
 function block_content() {
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
@@ -420,7 +467,7 @@ function remount_hosts() {
 
 # Function to block trackers
 function block_trackers() {
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     status=$1
     cache_dir="$persist_dir/cache/trackers"
     cache_hosts="$cache_dir/hosts"
@@ -549,7 +596,7 @@ function nuke_if_we_dont_have_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 function fetch() {
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     local output_file="$1"
     local url="$2"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
@@ -557,18 +604,20 @@ function fetch() {
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
         dl_tool=curl
-        curl -Ls "$url" > "$output_file" || {
+        if ! curl -Ls "$url" > "$output_file"; then
             log_message ERROR "Failed to download from $url with curl"
             echo "[!] Failed to download from $url"
-        }
-        echo "" >> "$output_file"
+            echo "" > "$output_file"
+            return 1
+        fi
     else # Else we gotta just fallback to windows ge- my bad I mean winget- BRUH it's wget :sob:
         dl_tool=wget
-        busybox wget --no-check-certificate -qO - "$url" > "$output_file" || {
+        if ! busybox wget --no-check-certificate -qO - "$url" > "$output_file"; then
             log_message ERROR "Failed to download from $url with wget"
             echo "[!] Failed to download from $url"
-        }
-        echo "" >> "$output_file"
+            echo "" > "$output_file"
+            return 1
+        fi
     fi
     log_message SUCCESS "Downloaded from $url using $dl_tool, stored in $output_file"
     log_duration "fetch file from url: $url" "$start_time"
@@ -577,8 +626,10 @@ function fetch() {
 # Updates module status, modifying module description in module.prop
 function update_status() {
     status_msg=""  # Reset status message
+    . "$persist_dir/config.sh" # Sourcing config file
+    log_message INFO "loaded config file!"
     log_message "Updating module status"
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
     log_message "Last hosts file update was in: $last_mod"
@@ -670,13 +721,14 @@ function update_status() {
 function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
-    CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo '[AUTO UPDATE TIME!!!]' >> /data/adb/Re-Malwack/logs/auto_update.log"
+    CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
     if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already enabled"
     else
         # Create directory and file if they don't exist
         mkdir -p "$JOB_DIR"
+        mkdir -p "$persist_dir/logs"
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
         if ! crontab "$JOB_FILE" -c "$JOB_DIR"; then
@@ -685,9 +737,18 @@ function enable_cron() {
             # Create fallback script
             cat > "$FALLBACK_SCRIPT" << 'EOF'
 #!/system/bin/sh
+LOGFILE="/data/adb/Re-Malwack/logs/auto_update.log"
 while true; do
     sleep 86400  # Sleep for 24 hours
-    sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet
+    {
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update check started"
+        sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1
+        if [ $? -eq 0 ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update completed successfully"
+        else
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update failed with exit code $?"
+        fi
+    } >> "$LOGFILE" 2>&1
 done
 EOF
             chmod +x "$FALLBACK_SCRIPT"
@@ -744,7 +805,13 @@ function disable_cron() {
 # 1 - log module version
 log_message "Running Re-Malwack version $version"
 
-# 2 - Check if zygisk host redirect module is enabled
+# 2 - Acquire lock to prevent concurrent executions
+if ! acquire_lock; then
+    abort "Another process of Re-Malwack is already running. Please wait..."
+fi
+trap release_lock EXIT
+
+# 3 - Check if zygisk host redirect module is enabled
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
@@ -754,24 +821,24 @@ else
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
 fi
 
-# 3 - Trigger force stats refresh on WebUI
+# 4 - Trigger force stats refresh on WebUI
 if [ "$WEBUI" = "true" ]; then
     refresh_blocked_counts
     update_status
 fi
-# 4 -Error logging lore
+# 5 - Error logging lore
 
-# 4.1 - Log errors
+# 5.1 - Log errors
 exec 2>>"$LOGFILE"
 
-# 4.2 - Trap runtime errors (logs failing command + exit code)
+# 5.2 - Trap runtime errors (logs failing command + exit code)
 trap '
 err_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
 ' ERR
 
-# 4.3 - Trap final script exit
+# 5.3 - Trap final script exit
 trap '
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
@@ -791,7 +858,7 @@ esac
 [ $exit_code -ne 0 ] && echo "[$timestamp] - [ERROR] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
 ' EXIT
 
-# 5 - Check for --quiet argument
+# 6 - Check for --quiet argument
 for arg in "$@"; do
     if [ "$arg" = "--quiet" ]; then
         quiet_mode=1
@@ -799,7 +866,7 @@ for arg in "$@"; do
     fi
 done
 
-# 6 - Show banner if not running from Magisk Manager / quiet mode is disabled
+# 7 - Show banner if not running from Magisk Manager / quiet mode is disabled
 [ -z "$MAGISKTMP" ] && [ "$quiet_mode" = 0 ] && rmlwk_banner
 
 log_message INFO "========== End of pre-main logic =========="
@@ -807,13 +874,14 @@ log_message INFO "========== End of pre-main logic =========="
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
-        start_time=$(date +%s)
+        local start_time=$(date +%s)
         pause_protections
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        start_time=$(date +%s)
+        local start_time=$(date +%s)
+        is_default_hosts && abort "Hosts has been already reset."
         log_message "Resetting hosts command triggered, resetting..."
         echo "[*] Reverting the changes..."
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -839,13 +907,13 @@ case "$(tolower "$1")" in
         log_duration "reset" "$start_time"
         ;;
     --query-domain|-q)
-        start_time=$(date +%s)
+        local start_time=$(date +%s)
         domain="$2"
         query_domain "$domain"
         log_duration "query-domain" "$start_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
-            start_time=$(date +%s)
+            local start_time=$(date +%s)
             is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     
             case "$1" in
@@ -1331,7 +1399,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        start_time=$(date +%s)
+        local start_time=$(date +%s)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
@@ -1343,34 +1411,41 @@ case "$(tolower "$1")" in
             log_message "Installing protection for the first time"
         fi
         nuke_if_we_dont_have_internet
-
         combined_file="${tmp_hosts}_all"
         > "$combined_file"
 
-        # 1 - Download base hosts from sources.txt
+        # 1 - Download base hosts from sources.txt with limited parallelism to prevent resource exhaustion
         echo "[*] Fetching base hosts..."
+        log_message "Starting download of base hosts"
         hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
         counter=0
+        download_limit=3
+        download_count=0
         for host in $hosts_list; do
             counter=$((counter + 1))
             fetch "${tmp_hosts}${counter}" "$host" &
+            download_count=$((download_count + 1))
+            # Limit concurrent downloads
+            [ "$download_count" -ge "$download_limit" ] && { wait; download_count=0; sleep 0.5; }
         done
         wait
+        log_message SUCCESS "Completed download hosts from $counter source(s)"
 
-        # 1.1 - Process in parallel
-        job_limit=4
+        # 1.1 - Process in parallel with conservative limits
+        job_limit=3
         job_count=0
         for i in $(seq 1 $counter); do
             (
-                host_process "${tmp_hosts}${i}"
-                cat "${tmp_hosts}${i}" >> "$combined_file"
+                [ -f "${tmp_hosts}${i}" ] && host_process "${tmp_hosts}${i}"
+                [ -f "${tmp_hosts}${i}" ] && cat "${tmp_hosts}${i}" >> "$combined_file"
             ) &
             job_count=$((job_count + 1))
-            [ "$job_count" -ge "$job_limit" ] && wait && job_count=0
+            [ "$job_count" -ge "$job_limit" ] && { wait; job_count=0; sleep 0.25; }
         done
         wait
+        log_message "Completed processing of all source files"
 
-        # 2 - Download & process blocklists
+        # 2 - Download & process blocklists with small delays to prevent resource starvation
         for bl in porn gambling fakenews social trackers safebrowsing; do
             block_var="block_${bl}"
             eval enabled=\$$block_var
@@ -1399,6 +1474,7 @@ case "$(tolower "$1")" in
 
         # 3 - Install hosts
         echo "[*] Installing hosts"
+        log_message "Writing new hosts file"
         printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "all"
 
