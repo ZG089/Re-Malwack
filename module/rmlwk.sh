@@ -599,7 +599,7 @@ function fetch() {
     local start_time=$(date +%s)
     local output_file="$1"
     local url="$2"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
     # Curly hairyyy- *ahem*
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
@@ -722,7 +722,7 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
     if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already enabled"
     else
@@ -771,7 +771,7 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
@@ -874,13 +874,13 @@ log_message INFO "========== End of pre-main logic =========="
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         pause_protections
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
+        start_time=$(date +%s)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        local start_time=$(date +%s)
         is_default_hosts && abort "Hosts has been already reset."
         log_message "Resetting hosts command triggered, resetting..."
         echo "[*] Reverting the changes..."
@@ -907,64 +907,62 @@ case "$(tolower "$1")" in
         log_duration "reset" "$start_time"
         ;;
     --query-domain|-q)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         domain="$2"
         query_domain "$domain"
         log_duration "query-domain" "$start_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
-            local start_time=$(date +%s)
-            is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-    
-            case "$1" in
-                --block-porn|-bp) block_type="porn" ;;
-                --block-gambling|-bg) block_type="gambling" ;;
-                --block-fakenews|-bf) block_type="fakenews" ;;
-                --block-social|-bs) block_type="social" ;;
-                --block-trackers|-bt) block_type="trackers" ;;
-                --block-safebrowsing|-bsb) block_type="safebrowsing" ;;
-            esac
-            status="$2"
-            if [ "$block_type" = "trackers" ]; then
-                # Handle trackers with its own function
-                block_trackers "$status"
-            else
-                eval "block_toggle=\"\$block_${block_type}\""
-    
-                if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
-                    if [ "$block_toggle" = 0 ]; then
-                        echo "[i] $block_type block is already disabled"
-                    else
-                        log_message "Disabling ${block_type} blocklist has been initiated."
-                        echo "[*] Disabling ${block_type} blocklist has been initiated."
-                        block_content "$block_type" 0
-                        log_message SUCCESS "Disabled ${block_type} blocklist successfully."
-                        echo "[✓] Disabled ${block_type} blocklist successfully."
-                    fi
+        start_time=$(date +%s)
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
+
+        case "$1" in
+            --block-porn|-bp) block_type="porn" ;;
+            --block-gambling|-bg) block_type="gambling" ;;
+            --block-fakenews|-bf) block_type="fakenews" ;;
+            --block-social|-bs) block_type="social" ;;
+            --block-trackers|-bt) block_type="trackers" ;;
+            --block-safebrowsing|-bsb) block_type="safebrowsing" ;;
+        esac
+        status="$2"
+        if [ "$block_type" = "trackers" ]; then
+            # Handle trackers with its own function
+            block_trackers "$status"
+        else
+            eval "block_toggle=\"\$block_${block_type}\""
+
+            if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
+                if [ "$block_toggle" = 0 ]; then
+                    echo "[i] $block_type block is already disabled"
                 else
-                    if [ "$block_toggle" = 1 ]; then
-                        echo "[!] ${block_type} block is already enabled"
-                    else
-                        log_message "Enabling block entries for $block_type has been initiated."
-                        echo "[*] Enabling block entries for ${block_type} has been initiated."
-                        block_content "$block_type" 1
-                        log_message SUCCESS "Enabled ${block_type} blocklist successfully."
-                        echo "[✓] Enabled ${block_type} blocklist successfully."
-                    fi
+                    log_message "Disabling ${block_type} blocklist has been initiated."
+                    echo "[*] Disabling ${block_type} blocklist has been initiated."
+                    block_content "$block_type" 0
+                    log_message SUCCESS "Disabled ${block_type} blocklist successfully."
+                    echo "[✓] Disabled ${block_type} blocklist successfully."
+                fi
+            else
+                if [ "$block_toggle" = 1 ]; then
+                    echo "[!] ${block_type} block is already enabled"
+                else
+                    log_message "Enabling block entries for $block_type has been initiated."
+                    echo "[*] Enabling block entries for ${block_type} has been initiated."
+                    block_content "$block_type" 1
+                    log_message SUCCESS "Enabled ${block_type} blocklist successfully."
+                    echo "[✓] Enabled ${block_type} blocklist successfully."
                 fi
             fi
-
-            refresh_blocked_counts
-            update_status
-            log_duration "block-$block_type" "$start_time"
-            ;;
+        fi
+        refresh_blocked_counts
+        update_status
+        log_duration "block-$block_type" "$start_time"
+        ;;
 
     --whitelist|-w)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         action="$2"
         raw_input="$3"
-
         if [ -z "$action" ] || [ -z "$raw_input" ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
             echo "[!] Invalid arguments for --whitelist|-w"
             echo "[i] Usage: rmlwk --whitelist|-w <add|remove> [domain2] [domain3] ..."
@@ -1399,7 +1397,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        local start_time=$(date +%s)
+        start_time=$(date +%s)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
