@@ -775,13 +775,13 @@ function disable_cron() {
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
-    pkill crond > /dev/null 2>&1
-    pkill crontab > /dev/null 2>&1
+    busybox pkill crond > /dev/null 2>&1
+    busybox pkill crontab > /dev/null 2>&1
     log_message "Cron processes stopped."
 
     # Kill fallback script if running
     if [ -f "$FALLBACK_SCRIPT" ]; then
-        pkill -f "$FALLBACK_SCRIPT" > /dev/null 2>&1
+        busybox pkill -f "$FALLBACK_SCRIPT" > /dev/null 2>&1
         rm -f "$FALLBACK_SCRIPT"
         log_message "Fallback auto-update script stopped and removed."
     fi
