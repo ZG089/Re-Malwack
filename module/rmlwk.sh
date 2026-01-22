@@ -722,7 +722,7 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:/data/data/com.termux/files/usr/bin:$PATH
     if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already enabled"
     else
@@ -771,7 +771,7 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:/data/data/com.termux/files/usr/bin:$PATH
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
