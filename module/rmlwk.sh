@@ -599,7 +599,7 @@ function fetch() {
     local start_time=$(date +%s)
     local output_file="$1"
     local url="$2"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:/sbin:/system/sbin:/system/bin:/system/xbin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     # Curly hairyyy- *ahem*
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
@@ -722,7 +722,7 @@ function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:/data/data/com.termux/files/usr/bin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
         echo "[i] Auto update is already enabled"
     else
@@ -731,7 +731,7 @@ function enable_cron() {
         mkdir -p "$persist_dir/logs"
         touch "$JOB_FILE"
         echo "$CRON_JOB" >> "$JOB_FILE"
-        if ! crontab "$JOB_FILE" -c "$JOB_DIR"; then
+        if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
             echo "[!] Failed to enable auto update with crond, falling back to loop-based update."
             log_message WARN "Failed to enable auto update with crond, falling back to loop-based update."
             # Create fallback script
@@ -753,12 +753,12 @@ done
 EOF
             chmod +x "$FALLBACK_SCRIPT"
             # Start the fallback script in background
-            nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &
+            busybox nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &
             log_message SUCCESS "Fallback auto-update script started."
             echo "[✓] Auto-update enabled with fallback (24h loop)."
         else
             log_message SUCCESS "Cron job added."
-            crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            busybox crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
             echo "[✓] Auto-update enabled with crond."
         fi
         sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
@@ -771,7 +771,7 @@ function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/sbin:/system/sbin:/system/bin:/system/xbin:/data/data/com.termux/files/usr/bin:$PATH
+    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     log_message "Disabling auto update has been initiated."
     log_message "Killing cron processes"
     # Kill cron lore
