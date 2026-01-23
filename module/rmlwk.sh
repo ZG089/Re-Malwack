@@ -829,17 +829,14 @@ fi
 # 5.1 - Log errors
 exec 2>>"$LOGFILE"
 
-# 5.2 - Trap runtime errors (logs failing command + exit code)
-set -Eeuo pipefail
-
-last_cmd=""
-trap 'last_cmd=$BASH_COMMAND' DEBUG
+# 5.2 - Trap runtime errors (logs failing command line no. + exit code)
+set -e
 
 trap '
 code=$?
-echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] \"$last_cmd\" failed at line $LINENO (exit $code)" >> "$LOGFILE"
+[ "$code" -ne 0 ] && echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] at line $LINENO (exit $code)" >> "$LOGFILE"
 exit $code
-' ERR
+' EXIT
 
 # 5.3 - Trap final script exit
 trap '
