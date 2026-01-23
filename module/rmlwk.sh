@@ -216,9 +216,9 @@ function log_message() {
 }
 
 # Helper to log duration
-function duration_to_hms() {
+function duration_to_mmssms() {
     T=$1
-    printf "%02d:%02d:%02d" $((T/3600)) $((T%3600/60)) $((T%60))
+    printf "%02d:%02d:%03d" $((T/60000)) $((T%60000/1000)) $((T%1000))
 }
 
 # I think this is for logging duration? Who knows ¯\\(ツ)/¯
@@ -227,7 +227,7 @@ function log_duration() {
     start_time="$2"
     end_time=$(date +%s)
     duration=$((end_time - start_time))
-    log_message "$name took $(duration_to_hms $duration) (hh:mm:ss)"
+    log_message "$name took $(duration_to_mmssms $((duration * 1000))) (mm:ss:ms)"
 }
 
 # Function to query domain status in hosts file
@@ -627,8 +627,8 @@ function fetch() {
 function update_status() {
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
-    log_message INFO "loaded config file!"
-    log_message "Updating module status"
+    log_message SUCCESS "loaded config file!"
+    log_message INFO "Updating module status"
     local start_time=$(date +%s)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
@@ -646,8 +646,6 @@ function update_status() {
 
     # Count whitelisted entries (excluding comments and empty lines)
     [ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
-    log_message "System hosts entries count: $blocked_sys"
-    log_message "Module hosts entries count: $blocked_mod"
     log_message "Blacklist entries count: $blacklist_count"
     log_message "Whitelist entries count: $whitelist_count"
 
@@ -832,10 +830,15 @@ fi
 exec 2>>"$LOGFILE"
 
 # 5.2 - Trap runtime errors (logs failing command + exit code)
+set -Eeuo pipefail
+
+last_cmd=""
+trap 'last_cmd=$BASH_COMMAND' DEBUG
+
 trap '
-err_code=$?
-timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
-echo "[$timestamp] - [ERROR] - Command \"$BASH_COMMAND\" failed at line $LINENO (exit code: $err_code)" >> "$LOGFILE"
+code=$?
+echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] \"$last_cmd\" failed at line $LINENO (exit $code)" >> "$LOGFILE"
+exit $code
 ' ERR
 
 # 5.3 - Trap final script exit
