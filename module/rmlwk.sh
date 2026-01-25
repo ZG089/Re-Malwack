@@ -715,31 +715,60 @@ function update_status() {
 
 # Functions for auto-update (cron jobs)
 
-# 1 - Enable cron job
+# 1 - Detect cron provider
+function detect_cron_provider() {
+    if command -v crond >/dev/null 2>&1; then
+        echo native
+    elif command -v busybox >/dev/null 2>&1 && busybox --list | grep -q crond >/dev/null 2>&1; then
+        echo busybox
+    elif command -v toybox >/dev/null 2>&1 && toybox | grep -q crond >/dev/null 2>&1; then
+        echo toybox
+    else
+        return 1
+    fi
+    log_message "Detected cron provider: $CRON_PROVIDER"
+}
+
+# 1.2 - Helper function for applets usage
+function cron_cmd() {
+    CRON_PROVIDER=$(detect_cron_provider) || log_message WARN "No cron implementation found on this device"
+    case "$CRON_PROVIDER" in
+        native)  echo "$1" ;;
+        busybox) echo "busybox $1" ;;
+        toybox)  echo "toybox $1" ;;
+        *)       continue ;;
+    esac
+}
+
+# 2 - Enable cron job
 function enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-    if [ -d "$JOB_DIR" ] || [ -f "$FALLBACK_SCRIPT" ]; then
-        echo "[i] Auto update is already enabled"
+
+    if [ "$auto_update" = "1" ]; then
+        abort "Auto update is already enabled"
     else
+        echo "[*] Enabling auto update via cron." && log_message "Enabling auto update via cron."
         # Create directory and file if they don't exist
-        mkdir -p "$JOB_DIR"
-        mkdir -p "$persist_dir/logs"
+        mkdir -p "$JOB_DIR" "$persist_dir/logs"
         touch "$JOB_FILE"
-        echo "$CRON_JOB" >> "$JOB_FILE"
-        if ! busybox crontab "$JOB_FILE" -c "$JOB_DIR"; then
+        echo "$CRON_JOB" > "$JOB_FILE"
+        if ! $CRONTAB "$JOB_FILE" -c "$JOB_DIR"; then
             echo "[!] Failed to enable auto update with crond, falling back to loop-based update."
             log_message WARN "Failed to enable auto update with crond, falling back to loop-based update."
             # Create fallback script
             cat > "$FALLBACK_SCRIPT" << 'EOF'
 #!/system/bin/sh
 LOGFILE="/data/adb/Re-Malwack/logs/auto_update.log"
+PID=$$
+echo $PID > /data/adb/Re-Malwack/logs/auto_update.pid
 while true; do
     sleep 86400  # Sleep for 24 hours
     {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update check started"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Script PID is $PID"
         sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1
         if [ $? -eq 0 ]; then
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update completed successfully"
@@ -751,12 +780,17 @@ done
 EOF
             chmod +x "$FALLBACK_SCRIPT"
             # Start the fallback script in background
-            busybox nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &
+            nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &
             log_message SUCCESS "Fallback auto-update script started."
             echo "[✓] Auto-update enabled with fallback (24h loop)."
         else
             log_message SUCCESS "Cron job added."
-            busybox crond -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            $CROND -b -c $JOB_DIR -L $persist_dir/logs/auto_update.log
+            if $PGREP crond >/dev/null 2>&1; then
+                log_message SUCCESS "crond is running (PID: $($PGREP crond))"
+            else
+                abort "Crond exited immediately after starting, Please try again."
+            fi    
             echo "[✓] Auto-update enabled with crond."
         fi
         sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
@@ -764,37 +798,38 @@ EOF
     fi
 }
 
-# 2 - Disable cron
+# 3 - Disable cron
 function disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     log_message "Disabling auto update has been initiated."
-    log_message "Killing cron processes"
-    # Kill cron lore
-    busybox pkill crond > /dev/null 2>&1
-    busybox pkill crontab > /dev/null 2>&1
-    log_message "Cron processes stopped."
 
-    # Kill fallback script if running
-    if [ -f "$FALLBACK_SCRIPT" ]; then
-        busybox pkill -f "$FALLBACK_SCRIPT" > /dev/null 2>&1
-        rm -f "$FALLBACK_SCRIPT"
-        log_message "Fallback auto-update script stopped and removed."
-    fi
-
-    # Check if cron job exists
-    if [ ! -d "$JOB_DIR" ] && [ ! -f "$FALLBACK_SCRIPT" ]; then
-        echo "[i] Auto update is already disabled"
-    else    
+    if [ "$auto_update" = "0" ]; then
+        abort "Auto update is already disabled"
+    else
+        echo "[*] Disabling auto hosts update"
+        # Kill cron lore
+        log_message "Killing cron processes"
+        for pid in $($PIDOF crond crontab); do
+            $KILL -9 $pid > /dev/null 2>&1
+        done
+        log_message "Cron processes stopped."
         rm -rf "$JOB_DIR"
         log_message "Cron job removed."
 
+        # Kill fallback script if running
+        if [ -f "$FALLBACK_SCRIPT" ]; then
+            PID=$(cat /data/adb/Re-Malwack/logs/auto_update.pid 2>/dev/null)
+            kill -9 "$PID" > /dev/null 2>&1
+            rm -f "$FALLBACK_SCRIPT"
+            log_message "Fallback auto update script stopped and removed."
+        fi
         # Disable auto-update
         sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
-        log_message SUCCESS "Auto-update has been disabled."
-        echo "[✓] Auto-update disabled."
+        log_message SUCCESS "Auto update has been disabled."
+        echo "[✓] Auto update has been disabled."
     fi
 }
 
@@ -831,7 +866,6 @@ exec 2>>"$LOGFILE"
 
 # 5.2 - Trap runtime errors (logs failing command line no. + exit code)
 set -e
-
 trap '
 code=$?
 [ "$code" -ne 0 ] && echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] at line $LINENO (exit $code)" >> "$LOGFILE"
@@ -1382,6 +1416,12 @@ case "$(tolower "$1")" in
         ;;
 
     --auto-update|-a)
+        CROND=$(cron_cmd crond)
+        CRONTAB=$($cron_cmd crontab)
+        PGREP=$($cron_cmd pgrep)
+        KILL=$($cron_cmd kill)
+        PIDOF=$($cron_cmd pidof)
+        NOHUP=$($cron_cmd nohup)
         case "$2" in
             enable)
                 enable_cron

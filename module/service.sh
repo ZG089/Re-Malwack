@@ -9,6 +9,7 @@ zn_module_dir="/data/adb/modules/hostsredirect"
 system_hosts="/system/etc/hosts"
 is_zn_detected=0
 FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
+PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
 
 # =========== Functions ===========
 
@@ -47,11 +48,37 @@ function remount_hosts() {
     log_message "Hosts remounted successfully."
 }
 
+# Function to refresh blocked counts
 function refresh_blocked_counts() {
     blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+}
+
+# Detect cron provider
+function detect_cron_provider() {
+    if command -v crond >/dev/null 2>&1; then
+        echo native
+    elif command -v busybox >/dev/null 2>&1 && busybox --list | grep -q crond >/dev/null 2>&1; then
+        echo busybox
+    elif command -v toybox >/dev/null 2>&1 && toybox | grep -q crond >/dev/null 2>&1; then
+        echo toybox
+    else
+        return 1
+    fi
+    log_message "Detected cron provider: $CRON_PROVIDER"
+}
+
+# Helper function for applets usage
+function cron_cmd() {
+    CRON_PROVIDER=$(detect_cron_provider) || log_message WARN "No cron implementation found on this device"
+    case "$CRON_PROVIDER" in
+        native)  echo "$1" ;;
+        busybox) echo "busybox $1" ;;
+        toybox)  echo "toybox $1" ;;
+        *)       continue ;;
+    esac
 }
 
 #  =========== Preparation ===========
@@ -103,6 +130,9 @@ log_message "Whitelist entries count: $whitelist_count"
 
 # =========== Main script logic ===========
 
+CROND=$(cron_cmd crond)
+PGREP=$($cron_cmd pgrep)
+
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
     log_message "Root manager: KernelSU"
@@ -146,12 +176,12 @@ if [ "$daily_update" = 1 ]; then
     # Check if crond is running
     if [ -f $FALLBACK_SCRIPT ]; then
         log_message "Auto-update is enabled, executing fallback script..."
-        sh $FALLBACK_SCRIPT &
+        nohup $FALLBACK_SCRIPT /dev/null 2>&1 &
         return 0 # Avoiding running crond in case of fallback script
-    elif ! pgrep -x crond >/dev/null; then
+    elif ! $PGREP -x crond >/dev/null; then
         log_message "Auto-update is enabled, but crond is not running. Starting crond..."
-        busybox crond -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
-        log_message "Crond started."
+        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
+        $PGREP -x crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond."
     fi
 fi
 
