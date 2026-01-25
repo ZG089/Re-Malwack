@@ -719,14 +719,13 @@ function update_status() {
 function detect_cron_provider() {
     if command -v crond >/dev/null 2>&1; then
         echo native
-    elif command -v busybox >/dev/null 2>&1 && busybox --list | grep -q crond >/dev/null 2>&1; then
+    elif command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         echo busybox
-    elif command -v toybox >/dev/null 2>&1 && toybox | grep -q crond >/dev/null 2>&1; then
+    elif command -v toybox >/dev/null 2>&1 && toybox crond --help >/dev/null 2>&1; then
         echo toybox
     else
         return 1
     fi
-    log_message "Detected cron provider: $CRON_PROVIDER"
 }
 
 # 1.2 - Helper function for applets usage
@@ -746,6 +745,7 @@ function enable_cron() {
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
+    CRON_PROVIDER=$(detect_cron_provider) && log_message INFO "Detected cron provider: $CRON_PROVIDER" || log_message WARN "No cron implementation found on this device"
 
     if [ "$auto_update" = "1" ]; then
         abort "Auto update is already enabled"
@@ -1417,11 +1417,11 @@ case "$(tolower "$1")" in
 
     --auto-update|-a)
         CROND=$(cron_cmd crond)
-        CRONTAB=$($cron_cmd crontab)
-        PGREP=$($cron_cmd pgrep)
-        KILL=$($cron_cmd kill)
-        PIDOF=$($cron_cmd pidof)
-        NOHUP=$($cron_cmd nohup)
+        CRONTAB=$(cron_cmd crontab)
+        PGREP=$(cron_cmd pgrep)
+        KILL=$(cron_cmd kill)
+        PIDOF=$(cron_cmd pidof)
+        NOHUP=$(cron_cmd nohup)
         case "$2" in
             enable)
                 enable_cron
