@@ -30,7 +30,7 @@ LOCK_TIMEOUT=300  # 5 minutes timeout
 mkdir -p "$persist_dir/logs"
 
 # ====== Functions ======
-function rmlwk_banner() {
+rmlwk_banner() {
     [ "$quiet_mode" -eq 1 ] && return
     clear
     if command -v shuf >/dev/null 2>&1; then
@@ -67,7 +67,7 @@ function rmlwk_banner() {
 }
 
 # Lock mechanism to prevent concurrent execution
-function acquire_lock() {
+acquire_lock() {
     local timeout=$LOCK_TIMEOUT
     while [ $timeout -gt 0 ]; do
         if mkdir "$LOCK_FILE" 2>/dev/null; then
@@ -89,7 +89,7 @@ function acquire_lock() {
     return 1
 }
 
-function release_lock() {
+release_lock() {
     rm -rf "$LOCK_FILE" 2>/dev/null
 }
 
@@ -103,7 +103,7 @@ is_default_hosts() {
 }
 
 # Function to process hosts, maybe?
-function host_process() {
+host_process() {
     local file="$1"
     # Exclude whitelist files
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
@@ -113,7 +113,7 @@ function host_process() {
 }
 
 # Function to count blocked entries and store them
-function refresh_blocked_counts() {
+refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
 
@@ -140,12 +140,12 @@ function refresh_blocked_counts() {
 # Functions for protection switch
 
 # function to check adblock pause
-function is_protection_paused() {
+is_protection_paused() {
     [ -f "$persist_dir/hosts.bak" ] || return 1
 }
 
 # 1 - Pause adblock
-function pause_protections() {
+pause_protections() {
 
     # Check if protection is paused, enable if it is paused.
     if is_protection_paused; then
@@ -169,7 +169,7 @@ function pause_protections() {
 }
 
 # 2 - Resume adblock
-function resume_protections() {
+resume_protections() {
     log_message "Resuming protection."
     echo "[*] Resuming protection"
     if [ -f "$persist_dir/hosts.bak" ]; then
@@ -194,7 +194,7 @@ function resume_protections() {
 }
 
 # Logging func - Literally helpful for any dev :D
-function log_message() {
+log_message() {
 
     timestamp() {
         date +"%Y-%m-%d %I:%M:%S %p"
@@ -216,13 +216,13 @@ function log_message() {
 }
 
 # Helper to log duration
-function duration_to_mmssms() {
+duration_to_mmssms() {
     T=$1
     printf "%02d:%02d:%03d" $((T/60000)) $((T%60000/1000)) $((T%1000))
 }
 
 # I think this is for logging duration? Who knows ¯\\(ツ)/¯
-function log_duration() {
+log_duration() {
     name="$1"
     start_time="$2"
     end_time=$(date +%s)
@@ -231,7 +231,7 @@ function log_duration() {
 }
 
 # Function to query domain status in hosts file
-function query_domain() {
+query_domain() {
     local domain="$1"
 
     if [ -z "$domain" ]; then
@@ -287,7 +287,7 @@ function query_domain() {
 # Functions to process hosts
 
 # 1. Helper to stage cached blocklist files into tmp
-function stage_blocklist_files() {
+stage_blocklist_files() {
     local block_type="$1"
     local i=1
     for file in "$persist_dir/cache/$block_type/hosts"*; do
@@ -298,7 +298,7 @@ function stage_blocklist_files() {
 }
 
 # 2. Install hosts
-function install_hosts() {
+install_hosts() {
     local start_time=$(date +%s)
     type="$1"
     log_message "Fetching module's repo whitelist files"
@@ -372,7 +372,7 @@ function install_hosts() {
 }
 
 # 3. Remove hosts
-function remove_hosts() {
+remove_hosts() {
     local start_time=$(date +%s)
     log_message "Starting to remove hosts."
     # Prepare original hosts
@@ -400,7 +400,7 @@ function remove_hosts() {
 }
 
 # Function to block conte- bruhhh doesn't that seem to be clear to you already? -_-
-function block_content() {
+block_content() {
     local start_time=$(date +%s)
     block_type=$1
     status=$2
@@ -448,7 +448,7 @@ function block_content() {
 }
 
 # Function to remount hosts
-function remount_hosts() {
+remount_hosts() {
     if [ "$is_zn_detected" -eq 1 ]; then
         log_message "zn-hostsredirect detected, skipping mount operation"
         return 0
@@ -466,7 +466,7 @@ function remount_hosts() {
 }
 
 # Function to block trackers
-function block_trackers() {
+block_trackers() {
     local start_time=$(date +%s)
     status=$1
     cache_dir="$persist_dir/cache/trackers"
@@ -532,7 +532,7 @@ function block_trackers() {
     log_duration "block_trackers ($status)" "$start_time"
 }
 
-function fetch_blocklist() {
+fetch_blocklist() {
     bl="$1"
     cache_hosts="$persist_dir/cache/$bl/hosts"
 
@@ -575,12 +575,12 @@ function fetch_blocklist() {
 }
 
 # shortcase
-function tolower() {
+tolower() {
     echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 # uhhhhh
-function abort() {
+abort() {
     log_message "Aborting: $1"
     echo "[✗] $1"
     sleep 0.5
@@ -588,14 +588,14 @@ function abort() {
 }
 
 # Bruh It's clear already what this function does ._.
-function nuke_if_we_dont_have_internet() {
+nuke_if_we_dont_have_internet() {
     ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
 }
 
 # Fetches hosts from sources.txt
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
-function fetch() {
+fetch() {
     local start_time=$(date +%s)
     local output_file="$1"
     local url="$2"
@@ -624,7 +624,7 @@ function fetch() {
 }
 
 # Updates module status, modifying module description in module.prop
-function update_status() {
+update_status() {
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
@@ -716,7 +716,7 @@ function update_status() {
 # Functions for auto-update (cron jobs)
 
 # 1 - Detect cron provider
-function detect_cron_provider() {
+detect_cron_provider() {
     if command -v crond >/dev/null 2>&1; then
         echo native
     elif command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
@@ -729,7 +729,7 @@ function detect_cron_provider() {
 }
 
 # 1.2 - Helper function for applets usage
-function cron_cmd() {
+cron_cmd() {
     CRON_PROVIDER=$(detect_cron_provider) || log_message WARN "No cron implementation found on this device"
     case "$CRON_PROVIDER" in
         native)  echo "$1" ;;
@@ -740,7 +740,7 @@ function cron_cmd() {
 }
 
 # 2 - Enable cron job
-function enable_cron() {
+enable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
@@ -799,7 +799,7 @@ EOF
 }
 
 # 3 - Disable cron
-function disable_cron() {
+disable_cron() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts && echo \"[$(date '+%Y-%m-%d %H:%M:%S')] - Running auto update.\" >> /data/adb/Re-Malwack/logs/auto_update.log"
