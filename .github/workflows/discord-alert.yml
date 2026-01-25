@@ -1,0 +1,9 @@
+name: Notify Discord
+
+on: [push]
+
+jobs:
+  notify:
+    uses: bocchi-the-dev/workflow-templates/.github/workflows/discord-alert.yml@main
+    secrets:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
