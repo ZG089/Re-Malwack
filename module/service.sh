@@ -17,25 +17,25 @@ PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/f
 # Becomes true in case of both hosts counts = 0
 # And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
 # AKA only blacklisted entries are active
-function is_default_hosts() {
+is_default_hosts() {
     [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] \
     || { [ "$blocked_mod" -eq "$blacklist_count" ] && [ "$blocked_sys" -eq "$blacklist_count" ]; }
 }
 
 # Logging function
-function log_message() {
+log_message() {
     local message="$1"
     touch "$persist_dir/logs/service.log"
     echo "[$(date +"%Y-%m-%d %I:%M:%S %p")] - $message" >> "$persist_dir/logs/service.log"   
 }
 
 # function to check adblock pause
-function is_protection_paused() {
+is_protection_paused() {
     [ -f "$persist_dir/hosts.bak" ] && [ "$adblock_switch" -eq 1 ]
 }
 
 # Function to remount hosts
-function remount_hosts() {
+remount_hosts() {
     if [ "$is_zn_detected" -eq 1 ]; then
         log_message "zn-hostsredirect detected, skipping mount operation"
         return 0
@@ -49,7 +49,7 @@ function remount_hosts() {
 }
 
 # Function to refresh blocked counts
-function refresh_blocked_counts() {
+refresh_blocked_counts() {
     blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
@@ -57,21 +57,20 @@ function refresh_blocked_counts() {
 }
 
 # Detect cron provider
-function detect_cron_provider() {
+detect_cron_provider() {
     if command -v crond >/dev/null 2>&1; then
         echo native
-    elif command -v busybox >/dev/null 2>&1 && busybox --list | grep -q crond >/dev/null 2>&1; then
+    elif command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         echo busybox
-    elif command -v toybox >/dev/null 2>&1 && toybox | grep -q crond >/dev/null 2>&1; then
+    elif command -v toybox >/dev/null 2>&1 && toybox crond --help >/dev/null 2>&1; then
         echo toybox
     else
         return 1
     fi
-    log_message "Detected cron provider: $CRON_PROVIDER"
 }
 
 # Helper function for applets usage
-function cron_cmd() {
+cron_cmd() {
     CRON_PROVIDER=$(detect_cron_provider) || log_message WARN "No cron implementation found on this device"
     case "$CRON_PROVIDER" in
         native)  echo "$1" ;;
@@ -131,7 +130,7 @@ log_message "Whitelist entries count: $whitelist_count"
 # =========== Main script logic ===========
 
 CROND=$(cron_cmd crond)
-PGREP=$($cron_cmd pgrep)
+PGREP=$(cron_cmd pgrep)
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
@@ -179,6 +178,7 @@ if [ "$daily_update" = 1 ]; then
         nohup $FALLBACK_SCRIPT /dev/null 2>&1 &
         return 0 # Avoiding running crond in case of fallback script
     elif ! $PGREP -x crond >/dev/null; then
+        log_message "crond provider: $CRON_PROVIDER"
         log_message "Auto-update is enabled, but crond is not running. Starting crond..."
         $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
         $PGREP -x crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond."
