@@ -58,11 +58,9 @@ refresh_blocked_counts() {
 
 # Detect cron provider
 detect_cron_provider() {
-    if command -v crond >/dev/null 2>&1; then
-        echo native
-    elif command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
+    elif command -v busybox >/dev/null 2>&1; then
         echo busybox
-    elif command -v toybox >/dev/null 2>&1 && toybox crond --help >/dev/null 2>&1; then
+    elif command -v toybox >/dev/null 2>&1; then
         echo toybox
     else
         return 1
@@ -71,12 +69,9 @@ detect_cron_provider() {
 
 # Helper function for applets usage
 cron_cmd() {
-    CRON_PROVIDER=$(detect_cron_provider) || log_message WARN "No cron implementation found on this device"
     case "$CRON_PROVIDER" in
-        native)  echo "$1" ;;
         busybox) echo "busybox $1" ;;
         toybox)  echo "toybox $1" ;;
-        *)       continue ;;
     esac
 }
 
@@ -120,17 +115,12 @@ refresh_blocked_counts
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
 log_message "System hosts entries count: $blocked_sys"
 log_message "Module hosts entries count: $blocked_mod"
-blacklist_count=0
-[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt")
+[ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt") || blacklist_count=0
 log_message "Blacklist entries count: $blacklist_count"
-whitelist_count=0
-[ -f "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt")
+[ -s "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
 log_message "Whitelist entries count: $whitelist_count"
 
 # =========== Main script logic ===========
-
-CROND=$(cron_cmd crond)
-PGREP=$(cron_cmd pgrep)
 
 # symlink rmlwk to manager path
 if [ "$KSU" = "true" ]; then
@@ -172,16 +162,27 @@ fi
 
 # Check if auto-update is enabled
 if [ "$daily_update" = 1 ]; then
-    # Check if crond is running
+    # Check if fallback script exists
     if [ -f $FALLBACK_SCRIPT ]; then
         log_message "Auto-update is enabled, executing fallback script..."
-        nohup $FALLBACK_SCRIPT /dev/null 2>&1 &
+        if ! nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &; then 
+            # This action was taken in case a user reboot the device after installing an update and SOME HOW
+            # the fallback script failed to start again, so we just disable auto update to prevent further issues.
+            log_message "Failed to start fallback auto update script, disabling auto update completely..."
+            rm -f "$FALLBACK_SCRIPT"
+            sed -i 's/^daily_update=.*/daily_update=0/' "$persist_dir/config.sh"
+        fi
         return 0 # Avoiding running crond in case of fallback script
-    elif ! $PGREP -x crond >/dev/null; then
-        log_message "crond provider: $CRON_PROVIDER"
-        log_message "Auto-update is enabled, but crond is not running. Starting crond..."
-        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
-        $PGREP -x crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond."
+    elif CRON_PROVIDER=$(detect_cron_provider); then
+        log_message "crond provider detected: $CRON_PROVIDER"
+        CROND=$(cron_cmd crond)
+        PGREP=$(cron_cmd pgrep)
+        if ! $PGREP -x crond >/dev/null; then
+            log_message "crond provider: $CRON_PROVIDER"
+            log_message "Auto-update is enabled, but crond is not running. Starting crond..."
+            $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
+            $PGREP -x crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
+        fi
     fi
 fi
 
