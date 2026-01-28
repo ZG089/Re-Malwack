@@ -10,7 +10,8 @@ system_hosts="/system/etc/hosts"
 is_zn_detected=0
 FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-
+JOB_DIR="/data/adb/Re-Malwack/auto_update"
+JOB_FILE="$JOB_DIR/root"
 # =========== Functions ===========
 
 # Function to check hosts file reset state
@@ -162,9 +163,11 @@ fi
 
 # Check if auto-update is enabled
 if [ "$daily_update" = 1 ]; then
+    # Only one of the if statements will run.
+
     # Check if fallback script exists
     if [ -f $FALLBACK_SCRIPT ]; then
-        log_message "Auto-update is enabled, executing fallback script..."
+        log_message "Auto update is enabled, executing fallback script..."
         if ! nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &; then 
             # This action was taken in case a user reboot the device after installing an update and SOME HOW
             # the fallback script failed to start again, so we just disable auto update to prevent further issues.
@@ -172,17 +175,17 @@ if [ "$daily_update" = 1 ]; then
             rm -f "$FALLBACK_SCRIPT"
             sed -i 's/^daily_update=.*/daily_update=0/' "$persist_dir/config.sh"
         fi
-        return 0 # Avoiding running crond in case of fallback script
-    elif CRON_PROVIDER=$(detect_cron_provider); then
-        log_message "crond provider detected: $CRON_PROVIDER"
+    fi
+
+    # Check and start cron job if exists
+    # it won't even exist if fallback script is present
+    if [ -f "$JOB_FILE" ]; then
         CROND=$(cron_cmd crond)
         PGREP=$(cron_cmd pgrep)
-        if ! $PGREP -x crond >/dev/null; then
-            log_message "crond provider: $CRON_PROVIDER"
-            log_message "Auto-update is enabled, but crond is not running. Starting crond..."
-            $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
-            $PGREP -x crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
-        fi
+        log_message "Auto update is enabled, starting crond..."
+        log_message "Using $CRON_PROVIDER applets for cron management."
+        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
+        $PGREP crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
     fi
 fi
 
