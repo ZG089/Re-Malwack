@@ -181,9 +181,9 @@ duration_to_mmssms() {
 log_duration() {
     name="$1"
     start_time="$2"
-    end_time=$(date +%s)
+    end_time=$(date +%s%3N)
     duration=$((end_time - start_time))
-    log_message "$name took $(duration_to_mmssms $((duration * 1000))) (mm:ss:ms)"
+    log_message "$name took $(duration_to_mmssms $duration) (mm:ss:ms)"
 }
 
 # Function to query domain status in hosts file
