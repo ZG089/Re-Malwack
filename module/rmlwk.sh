@@ -86,24 +86,10 @@ host_process() {
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-
-    # Count entries with validation
-    if [ -f "$hosts_file" ]; then
-        blocked_mod=$(grep -c "0.0.0.0" "$hosts_file" 2>/dev/null)
-    else
-        blocked_mod=0
-    fi
-
-    echo $blocked_mod > "$persist_dir/counts/blocked_mod.count"
-
-    if [ -f "$system_hosts" ]; then
-        blocked_sys=$(grep -c "0.0.0.0" "$system_hosts" 2>/dev/null)
-    else
-        blocked_sys=0
-    fi
-
-    echo $blocked_sys > "$persist_dir/counts/blocked_sys.count"
-
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
+    echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
+    echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
     log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries"
 }
 
@@ -852,7 +838,7 @@ fi
 exec 2>>"$LOGFILE"
 
 # 4.2 - Trap runtime errors (logs failing command line no. + exit code)
-set -e
+set -eE
 trap '
 code=$?
 [ "$code" -ne 0 ] && echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] at line $LINENO (exit $code)" >> "$LOGFILE"
@@ -865,18 +851,16 @@ exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 
 case $exit_code in
-    0)
-        echo "[$timestamp] - [SUCCESS] - Script ran successfully ✅ - No errors" >> "$LOGFILE"
-        ;;
+    0)   msg="Script ran successfully ✅ - No errors" ;;
     1)   msg="General error ❌" ;;
     126) msg="Command invoked cannot execute ❌" ;;
     127) msg="Command not found ❌" ;;
     130) msg="Terminated by Ctrl+C (SIGINT) ❌" ;;
-    137) msg="Killed (possibly OOM or SIGKILL) ❌" ;;
+    137) msg="Killed (SIGKILL / OOM) ❌" ;;
     *)   msg="Unknown error ❌ (code $exit_code)" ;;
 esac
 
-[ $exit_code -ne 0 ] && echo "[$timestamp] - [ERROR] - $msg at line $LINENO (exit code: $exit_code)" >> "$LOGFILE"
+echo "[$timestamp] - [$msg]" >> "$LOGFILE"
 ' EXIT
 
 # 5 - Check for --quiet argument
