@@ -88,7 +88,7 @@ jobs:
               -F message_thread_id="1314" \
               -F document=@"${{ env.ZIP_NAME }}.zip" \
               -F thumb=@"${{ env.THUMB }}" \
-              -F caption="⚙️ *New test release!*
+              -F caption='⚙️ *New test release!*
           \`\`\`
           $COMMIT_MSG
           \`\`\`
@@ -96,7 +96,7 @@ jobs:
           Test Build ID: \`#${TEST_BUILD_ID}\`
           =================================
           [- View Commit -]($COMMIT_URL)
-          [- Workflow Run -]($RUN_URL)" \
+          [- Workflow Run -]($RUN_URL)' \
               -F parse_mode="Markdown"
           curl -X POST -H "Content-Type: multipart/form-data" -F \
             "payload_json={\"content\": \"$CONTENT\"}" -F "file=@${{ env.ZIP_NAME }}.zip" "${DISCORD_RELEASES}"
