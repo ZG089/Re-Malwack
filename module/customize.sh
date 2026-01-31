@@ -65,11 +65,78 @@ for type in block_porn block_gambling block_fakenews block_social block_trackers
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
 done
 
-# Import from other ad-block modules (All respect to other ad-block modules developers)
-. $MODPATH/import.sh
+detect_key_press() {
+    timeout_seconds=10
+    total_options=$1
+    recommended_option=$2
+    [ -z "$total_options" ] && total_options=2
+    [ -z "$recommended_option" ] && recommended_option=2
+
+    current=1
+    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: option $recommended_option)."
+    ui_print "Current choice: $current"
+
+    while :; do
+        # Wait for a single input event with timeout
+        ev="$(timeout "$timeout_seconds" getevent -qlc 1 2>/dev/null)"
+        rc=$?
+
+        # Timeout -> auto-select recommended option
+        if [ "$rc" -ne 0 ] || [ -z "$ev" ]; then
+            ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
+            return "$recommended_option"
+        fi
+
+        case "$ev" in
+            # Volume Up PRESSED -> move selection (wrap), then wait for release
+            *KEY_VOLUMEUP*1*|*KEY_VOLUMEUP*DOWN*)
+                current=$(( current + 1 ))
+                [ "$current" -gt "$total_options" ] && current=1
+                ui_print "- Current choice: $current"
+                # Flush until release
+                while :; do
+                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
+                    case "$ev2" in *KEY_VOLUMEUP*0*|*KEY_VOLUMEUP*UP*) break ;; esac
+                done
+                ;;
+
+            # Volume Down PRESSED -> select current, then wait for release
+            *KEY_VOLUMEDOWN*1*|*KEY_VOLUMEDOWN*DOWN*)
+                ui_print "- Selected option: $current"
+                # Flush until release
+                while :; do
+                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
+                    case "$ev2" in *KEY_VOLUMEDOWN*0*|*KEY_VOLUMEDOWN*UP*) break ;; esac
+                done
+                return "$current"
+                ;;
+
+            # Ignore other noise
+            *) : ;;
+        esac
+    done
+}
 
 # set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh $MODPATH/service.sh $MODPATH/rmlwk-app.sh $MODPATH/import.sh
+
+if ! pm path me.itejo443.remalwack.App > /dev/null 2>&1 ; then
+    ui_print "[*] Re-Malwack Quick-Tile Add-on app is not installed, Would you like to install it?"
+    ui_print "  1. Yes, install the app now"
+    ui_print "  2. No, skip app installation"
+    detect_key_press 2 1
+    choice=$?
+    if [ "$choice" -eq 1 ]; then
+        sh $MODPATH/rmlwk-app.sh
+        ui_print ""
+    else
+        ui_print "[i] Skipping app installation as per user choice."
+        ui_print ""
+    fi
+fi
+
+# Import from other ad-block modules (All respect to other ad-block modules developers)
+. $MODPATH/import.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
