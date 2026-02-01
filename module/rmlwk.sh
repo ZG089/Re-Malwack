@@ -174,7 +174,7 @@ log_message() {
 # Helper to log duration
 duration_to_mmssms() {
     T=$1
-    printf "%02d:%02d:%03d" $((T/60000)) $((T%60000/1000)) $((T%1000))
+    printf "%02d:%02d:%03d" $((T/60000%60)) $((T%60000/1000)) $((T%1000))
 }
 
 # I think this is for logging duration? Who knows ¯\\(ツ)/¯
