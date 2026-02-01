@@ -818,7 +818,7 @@ disable_auto_update() {
 log_message "Running Re-Malwack version $version"
 
 # 2 - Check if zygisk host redirect module is enabled
-if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
+if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ] && [ ! -f "$zn_module_dir/remove" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
     log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"

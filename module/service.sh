@@ -95,7 +95,7 @@ log_message "service.sh Started"
 log_message "Re-Malwack Version: $version"
 
 # 5 - Check if zygisk host redirect module is enabled
-if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ]; then
+if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ] && [ ! -f "$zn_module_dir/remove" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
     log_message "Zygisk host redirect module detected, using /data/adb/hostsredirect/hosts as target hosts file"
