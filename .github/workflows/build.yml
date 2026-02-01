@@ -83,10 +83,6 @@ jobs:
         run: |
           COMMIT_MSG=$(echo "$COMMIT_MSG_RAW")
           CONTENT="⚙️ **New test release**\n\n$COMMIT_MSG\n\n\`Base Version: $VERSION\`\n\`Test Build ID: $TEST_BUILD_ID\`\n\n[View Commit]($COMMIT_URL)\n[Workflow Run]($RUN_URL)"
-          curl -X POST \
-              -F "payload_json={\"content\":\"$CONTENT\"}" \
-              -F "file=@${{ env.ZIP_NAME }}.zip" \
-              "$DISCORD_RELEASES"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
@@ -102,3 +98,5 @@ jobs:
           [- View Commit -]($COMMIT_URL)
           [- Workflow Run -]($RUN_URL)" \
               -F parse_mode="Markdown"
+          curl -X POST -H "Content-Type: multipart/form-data" -F \
+            "payload_json={\"content\": \"$CONTENT\"}" -F "file=@${{ env.ZIP_NAME }}.zip" "${DISCORD_RELEASES}"
