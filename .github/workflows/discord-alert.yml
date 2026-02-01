@@ -6,4 +6,4 @@ jobs:
   notify:
     uses: bocchi-the-dev/workflow-templates/.github/workflows/discord-alert.yml@main
     secrets:
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_COMMIT_NOTIFICATION }}
