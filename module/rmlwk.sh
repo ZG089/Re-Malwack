@@ -86,8 +86,8 @@ host_process() {
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
-    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
     log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries"
@@ -838,7 +838,7 @@ fi
 exec 2>>"$LOGFILE"
 
 # 4.2 - Trap runtime errors (logs failing command line no. + exit code)
-set -eE
+set -e
 trap '
 code=$?
 [ "$code" -ne 0 ] && echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] at line $LINENO (exit $code)" >> "$LOGFILE"
