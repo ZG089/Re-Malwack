@@ -80,6 +80,7 @@ jobs:
           COMMIT_HASH: "${{ github.sha }}"
           COMMIT_MSG_RAW: "${{ github.event.head_commit.message }}"
           COMMIT_URL: "${{ github.event.head_commit.url }}"
+          DISCORD_RELEASES: "${{ secrets.DISCORD_RELEASES }}"
         run: |
           COMMIT_MSG=$(echo "$COMMIT_MSG_RAW")
           CONTENT="⚙️ **New test release**\n\n$COMMIT_MSG\n\n\`Base Version: $VERSION\`\n\`Test Build ID: $TEST_BUILD_ID\`\n\n[View Commit]($COMMIT_URL)\n[Workflow Run]($RUN_URL)"
