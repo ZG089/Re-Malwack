@@ -59,9 +59,9 @@ refresh_blocked_counts() {
 
 # Detect cron provider
 detect_cron_provider() {
-    elif command -v busybox >/dev/null 2>&1; then
+    if command -v busybox >/dev/null 2>&1 && busybox crond --help >/dev/null 2>&1; then
         echo busybox
-    elif command -v toybox >/dev/null 2>&1; then
+    elif command -v toybox >/dev/null 2>&1 && toybox crond --help >/dev/null 2>&1; then
         echo toybox
     else
         return 1
@@ -168,7 +168,7 @@ if [ "$daily_update" = 1 ]; then
     # Check if fallback script exists
     if [ -f $FALLBACK_SCRIPT ]; then
         log_message "Auto update is enabled, executing fallback script..."
-        if ! nohup "$FALLBACK_SCRIPT" > /dev/null 2>&1 &; then 
+        if ! nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 & then
             # This action was taken in case a user reboot the device after installing an update and SOME HOW
             # the fallback script failed to start again, so we just disable auto update to prevent further issues.
             log_message "Failed to start fallback auto update script, disabling auto update completely..."
