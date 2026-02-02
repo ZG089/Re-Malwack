@@ -41,6 +41,9 @@ download "$latest_release_url" > "$APK_PATH" || echo "[✗] Failed to download t
 # Install the APK as a user app
 pm install -r "$APK_PATH" 2>&1 </dev/null | cat
 
+# Cooldown to ensure installation completes
+sleep 3
+
 # Check if the installation was successful by verifying the app's presence
 if pm list packages | grep "$APP_PACKAGE" > /dev/null 2>&1 ; then
 	echo "[✓] Re-Malwack QuickTile Add-on has been Installed Successfully!"
