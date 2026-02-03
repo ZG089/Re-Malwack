@@ -171,19 +171,35 @@ log_message() {
     echo "$line" >> "$LOGFILE"
 }
 
-# Helper to log duration
+now_ms() {
+    # If %N is unsupported, we fall back to seconds * 1000
+    local ns
+    ns=$(date +%s%N 2>/dev/null)
+    case "$ns" in
+        *N) echo $(( $(date +%s) * 1000 )) ;; # %N unsupported
+        *)  echo $(( ns / 1000000 )) ;;
+    esac
+}
+
 duration_to_mmssms() {
-    T=$1
-    printf "%02d:%02d:%03d" $((T/60000%60)) $((T%60000/1000)) $((T%1000))
+    local T="$1"
+    printf "%02d:%02d:%03d" \
+        $(( T / 60000 )) \
+        $(( (T % 60000) / 1000 )) \
+        $(( T % 1000 ))
 }
 
 # I think this is for logging duration? Who knows ¯\\(ツ)/¯
 log_duration() {
-    name="$1"
-    start_time="$2"
-    end_time=$(date +%s%3N)
-    duration=$((end_time - start_time))
-    log_message "$name took $(duration_to_mmssms $duration) (mm:ss:ms)"
+    local name="$1"
+    local start_ms="$2"
+    local end_ms
+    end_ms=$(now_ms)
+
+    local duration=$(( end_ms - start_ms ))
+    [ "$duration" -lt 0 ] && duration=0
+
+    log_message INFO "$name took $(duration_to_mmssms "$duration") (mm:ss:ms)"
 }
 
 # Function to query domain status in hosts file
@@ -255,7 +271,7 @@ stage_blocklist_files() {
 
 # 2. Install hosts
 install_hosts() {
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     type="$1"
     log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
@@ -329,7 +345,7 @@ install_hosts() {
 
 # 3. Remove hosts
 remove_hosts() {
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -357,7 +373,7 @@ remove_hosts() {
 
 # Function to block conte- bruhhh doesn't that seem to be clear to you already? -_-
 block_content() {
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
@@ -423,7 +439,7 @@ remount_hosts() {
 
 # Function to block trackers
 block_trackers() {
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     status=$1
     cache_dir="$persist_dir/cache/trackers"
     cache_hosts="$cache_dir/hosts"
@@ -552,7 +568,7 @@ nuke_if_we_dont_have_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 fetch() {
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     local output_file="$1"
     local url="$2"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
@@ -585,7 +601,7 @@ update_status() {
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
     log_message INFO "Updating module status"
-    local start_time=$(date +%s)
+    local start_time=$(now_ms)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
     log_message "Last hosts file update was in: $last_mod"
@@ -879,12 +895,12 @@ log_message INFO "========== End of pre-main logic =========="
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
-        start_time=$(date +%s)
+        start_time=$(now_ms)
         pause_protections
         log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
-        start_time=$(date +%s)
+        start_time=$(now_ms)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "Hosts has been already reset."
         log_message "Resetting hosts command triggered, resetting..."
@@ -912,13 +928,13 @@ case "$(tolower "$1")" in
         log_duration "reset" "$start_time"
         ;;
     --query-domain|-q)
-        start_time=$(date +%s)
+        start_time=$(now_ms)
         domain="$2"
         query_domain "$domain"
         log_duration "query-domain" "$start_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
-        start_time=$(date +%s)
+        start_time=$(now_ms)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
         case "$1" in
@@ -1402,7 +1418,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        start_time=$(date +%s)
+        start_time=$(now_ms)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
