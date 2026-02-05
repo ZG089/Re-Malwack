@@ -167,7 +167,20 @@ fi
 # Initialize
 if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
     ui_print "[✗] Failed to initialize script"
-    tarFileName="/sdcard/Download/Re-Malwack_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+    # Extract version from module.prop
+    module_version=$(grep_prop version $MODPATH/module.prop)
+
+    # Check if it's a test release and extract PR/commit info
+    if echo "$module_version" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
+        # Extract base version commit hash (ex: 1995-5ex77xx) from version string
+        base_version=$(echo "$module_version" | sed 's/-test.*//')
+        build_id=$(echo "$module_version" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
+        tarFileName="/sdcard/Download/Re-Malwack_${base_version}_${build_id}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+    else
+        # Regular release version
+        tarFileName="/sdcard/Download/Re-Malwack_${module_version}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+    fi
+
     tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
     # cleanup in case of failure (in worst cases on first install)
     [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
