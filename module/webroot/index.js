@@ -361,7 +361,7 @@ async function exportLogs() {
 function setupRemalwackApp() {
     const installBtn = document.getElementById('remalwack-app');
 
-    exec('pm path me.itejo443.remalwack.App >/dev/null 2>&1').then((result) => {
+    exec('pm path me.itejo443.remalwack >/dev/null 2>&1').then((result) => {
         if (result.errno === 0) {
             installBtn.style.display = 'none';
             return;

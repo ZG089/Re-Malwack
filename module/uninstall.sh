@@ -1,4 +1,4 @@
-APP_PACKAGE="me.itejo443.remalwack.App"
+APP_PACKAGE="me.itejo443.remalwack"
 rm -rf /data/adb/Re-Malwack /data/adb/*/bin/rmlwk
 pm path "$APP_PACKAGE" > /dev/null 2>&1 && pm uninstall $APP_PACKAGE
 if [ -f $INFO ]; then

@@ -5,7 +5,7 @@ REPO_OWNER="itejo443"
 REPO_NAME="ReMalwack-app"
 
 # App package name
-APP_PACKAGE="me.itejo443.remalwack.App"
+APP_PACKAGE="me.itejo443.remalwack"
 
 # Temporary directory to store the APK
 TEMP_DIR="/data/local/tmp/rmlwk-app"
