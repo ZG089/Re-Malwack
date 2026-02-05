@@ -11,6 +11,10 @@ APP_PACKAGE="me.itejo443.remalwack"
 TEMP_DIR="/data/local/tmp/rmlwk-app"
 APK_PATH="$TEMP_DIR/app.apk"
 
+# Define service directory and self-delete script path
+SERVICE_DIR="/data/adb/service.d"
+SELF_DELETE="$SERVICE_DIR/rmlwk-auto_app_rm.sh"
+
 # Create necessary directories
 mkdir -p "$TEMP_DIR"
 
@@ -45,8 +49,23 @@ pm install -r "$APK_PATH" 2>&1 </dev/null | cat
 sleep 3
 
 # Check if the installation was successful by verifying the app's presence
-if pm list packages | grep "$APP_PACKAGE" > /dev/null 2>&1 ; then
+if ! pm path me.itejo443.remalwack > /dev/null 2>&1 ; then
 	echo "[✓] Re-Malwack QuickTile Add-on has been Installed Successfully!"
+	mkdir -p "$SERVICE_DIR"
+	cat > "$SELF_DELETE" << 'EOF'
+#!/system/bin/sh
+sleep 10
+MODULE_DIR="/data/adb/modules/Re-Malwack"
+APP_PKG="me.itejo443.remalwack"
+SELF="$0"
+
+if [ ! -d "$MODULE_DIR" ] && pm path $APP_PKG; then
+    pm uninstall "$APP_PKG"
+    rm -f "$SELF"
+fi
+exit 0
+EOF
+	chmod 755 "$SELF_DELETE"
 else
 	echo "[✗] Failed to install apk!"
 	# Save the APK to the failsafe directory if devpts hooks fail

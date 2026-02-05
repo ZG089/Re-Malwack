@@ -12,6 +12,8 @@ FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
 JOB_DIR="/data/adb/Re-Malwack/auto_update"
 JOB_FILE="$JOB_DIR/root"
+SERVICE_DIR="/data/adb/service.d"
+SELF_DELETE="$SERVICE_DIR/rmlwk-auto_app_rm.sh"
 # =========== Functions ===========
 
 # Function to check hosts file reset state
@@ -51,8 +53,8 @@ remount_hosts() {
 
 # Function to refresh blocked counts
 refresh_blocked_counts() {
-    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
-    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
 }
@@ -189,6 +191,26 @@ if [ "$daily_update" = 1 ]; then
     fi
 fi
 
+if pm path "me.itejo443.remalwack" > /dev/null 2>&1 && [ ! -f $SELF_DELETE ]; then
+    log_message "Re-Malwack QuickTile Add-on is installed, setting up self-delete service script."
+    mkdir -p "$SERVICE_DIR"
+	cat > "$SELF_DELETE" << 'EOF'
+#!/system/bin/sh
+sleep 10
+MODULE_DIR="/data/adb/modules/Re-Malwack"
+APP_PKG="me.itejo443.remalwack"
+SELF="$0"
+
+if [ ! -d "$MODULE_DIR" ] && pm path me.itejo443.remalwack; then
+    pm uninstall "$APP_PKG"
+    rm -f "$SELF"
+fi
+exit 0
+EOF
+	chmod 755 "$SELF_DELETE"
+fi
+
 # Apply module status into module description
 sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 log_message "$status_msg"
+log_message "service.sh Finished."
