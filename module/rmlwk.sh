@@ -975,7 +975,7 @@ case "$(tolower "$1")" in
         pause_protections
         ;;
     --reset|-r)
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "Hosts has been already reset."
         log_message "Resetting hosts command triggered, resetting..."
@@ -999,20 +999,20 @@ case "$(tolower "$1")" in
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully reset hosts."
-        local end_time=$(get_current_time)
+        end_time=$(get_current_time)
         log_duration "Resetting hosts" "$start_time" "$end_time"
 	    echo "[✓] Successfully reverted hosts."
         ;;
     --query-domain|-q)
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         domain="$2"
         query_domain "$domain"
-        local end_time=$(get_current_time)
+        end_time=$(get_current_time)
         log_duration "Querying domain: $domain" "$start_time" "$end_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -1054,12 +1054,12 @@ case "$(tolower "$1")" in
         fi
         refresh_blocked_counts
         update_status
-        local end_time=$(get_current_time)
+        end_time=$(get_current_time)
         log_duration "Toggling ${block_type} blocklist" "$start_time" "$end_time"
         ;;
 
     --whitelist|-w)
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         action="$2"
@@ -1220,7 +1220,7 @@ case "$(tolower "$1")" in
             log_message SUCCESS "Whitelisted $raw_input ($match_type)."
             refresh_blocked_counts
             update_status
-            local end_time=$(get_current_time)
+            end_time=$(get_current_time)
             log_duration "Adding to whitelist: $raw_input (type: $match_type)" "$start_time" "$end_time"
         else  # remove
             shift 2  # move past: --whitelist remove
@@ -1298,13 +1298,13 @@ case "$(tolower "$1")" in
             echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
             refresh_blocked_counts
             update_status
-            local end_time=$(get_current_time)
+            end_time=$(get_current_time)
             log_duration "Removing from whitelist: $raw_input" "$start_time" "$end_time"
         fi
         ;;
 
     --blacklist|-b)
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         option="$2"
         shift 2 # Remove script name and option from arguments
@@ -1356,7 +1356,7 @@ case "$(tolower "$1")" in
             fi
             refresh_blocked_counts
             update_status
-            local end_time=$(get_current_time)
+            end_time=$(get_current_time)
             log_duration "Adding to blacklist: $domain" "$start_time" "$end_time"
         else
             # Remove multiple domains from blacklist
@@ -1397,7 +1397,7 @@ case "$(tolower "$1")" in
                 log_message SUCCESS "Successfully removed $total_removed domains from blacklist"
                 refresh_blocked_counts
                 update_status
-                local end_time=$(get_current_time)
+                end_time=$(get_current_time)
                 log_duration "Removing from blacklist: $*" "$start_time" "$end_time"
             fi
             
@@ -1507,7 +1507,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        local start_time=$(get_current_time)
+        start_time=$(get_current_time)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
@@ -1591,7 +1591,7 @@ case "$(tolower "$1")" in
         update_status
         log_message SUCCESS "Successfully updated all hosts."
         [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
-        local end_time=$(get_current_time)
+        end_time=$(get_current_time)
         log_duration "Updating hosts" "$start_time" "$end_time"
         ;;
 
