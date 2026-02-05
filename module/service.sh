@@ -201,7 +201,7 @@ MODULE_DIR="/data/adb/modules/Re-Malwack"
 APP_PKG="me.itejo443.remalwack"
 SELF="$0"
 
-if [ ! -d "$MODULE_DIR" ] && pm path me.itejo443.remalwack; then
+if [ ! -d "$MODULE_DIR" ] && pm path "$APP_PKG"; then
     pm uninstall "$APP_PKG"
     rm -f "$SELF"
 fi
