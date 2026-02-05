@@ -102,7 +102,6 @@ is_protection_paused() {
 
 # 1 - Pause adblock
 pause_protections() {
-
     # Check if protection is paused, enable if it is paused.
     if is_protection_paused; then
         resume_protections
@@ -113,6 +112,7 @@ pause_protections() {
     if is_default_hosts && ! is_protection_paused; then
         abort "You cannot pause protections while hosts is reset."
     fi
+    local start_time=$(get_current_time)
     log_message "Pausing Protections"
     echo "[*] Pausing Protections"
     cp "$hosts_file" "$persist_dir/hosts.bak"
@@ -121,11 +121,14 @@ pause_protections() {
     refresh_blocked_counts
     update_status
     log_message SUCCESS "Protection has been paused."
+    local end_time=$(get_current_time)
+    log_duration "Pausing protections" "$start_time" "$end_time"
     echo "[✓] Protection has been paused."
 }
 
 # 2 - Resume adblock
 resume_protections() {
+    local start_time=$(get_current_time)
     log_message "Resuming protection."
     echo "[*] Resuming protection"
     if [ -f "$persist_dir/hosts.bak" ]; then
@@ -135,6 +138,8 @@ resume_protections() {
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Protection has been resumed."
+        local end_time=$(get_current_time)
+        log_duration "Resuming protections" "$start_time" "$end_time"
         echo "[✓] Protection has been resumed."
     else
         log_message WARN "No backup hosts file found to resume"
@@ -171,35 +176,101 @@ log_message() {
     echo "$line" >> "$LOGFILE"
 }
 
-now_ms() {
-    # If %N is unsupported, we fall back to seconds * 1000
-    local ns
-    ns=$(date +%s%N 2>/dev/null)
-    case "$ns" in
-        *N) echo $(( $(date +%s) * 1000 )) ;; # %N unsupported
-        *)  echo $(( ns / 1000000 )) ;;
-    esac
+# Function to get current time in milliseconds
+get_current_time() {
+    # Using date +%s%N for nanoseconds
+    # Fallback to %s if %N is not supported
+    time_ns=$(date +%s%N 2>/dev/null)
+    if [ $? -ne 0 ] || [ "$time_ns" = "%s%N" ]; then
+        # Fallback: use seconds only, return as milliseconds
+        time_ns=$(($(date +%s) * 1000))
+    else
+        # Convert nanoseconds to milliseconds by dividing by 1,000,000
+        time_ms=$((time_ns / 1000000))
+    fi
+    echo "$time_ms"
 }
 
-duration_to_mmssms() {
-    local T="$1"
-    printf "%02d:%02d:%03d" \
-        $(( T / 60000 )) \
-        $(( (T % 60000) / 1000 )) \
-        $(( T % 1000 ))
+# Function to format duration from milliseconds to human-readable format
+# Smart format: only shows non-zero units (e.g., "1m, 42s and 433ms" or "5s and 234ms")
+format_duration() {
+    local duration_ms=$1
+    local minutes=$(( duration_ms / 60000 ))
+    local remainder=$(( duration_ms % 60000 ))
+    local seconds=$(( remainder / 1000 ))
+    local milliseconds=$(( remainder % 1000 ))
+    local parts=""
+
+    # Add minutes if non-zero
+    if [ "$minutes" -gt 0 ]; then
+        if [ "$minutes" -eq 1 ]; then
+            parts="1m"
+        else
+            parts="${minutes}m"
+        fi
+    fi
+
+    # Add seconds if non-zero
+    if [ "$seconds" -gt 0 ]; then
+        if [ -z "$parts" ]; then
+            if [ "$seconds" -eq 1 ]; then
+                parts="1s"
+            else
+                parts="${seconds}s"
+            fi
+        else
+            if [ "$seconds" -eq 1 ]; then
+                parts="$parts, 1s"
+            else
+                parts="$parts, ${seconds}s"
+            fi
+        fi
+    fi
+
+    # Add milliseconds if non-zero or if both minutes and seconds are zero
+    if [ "$milliseconds" -gt 0 ] || [ -z "$parts" ]; then
+        if [ -z "$parts" ]; then
+            if [ "$milliseconds" -eq 1 ]; then
+                parts="1ms"
+            else
+                parts="${milliseconds}ms"
+            fi
+        else
+            if [ "$milliseconds" -eq 1 ]; then
+                parts="$parts and 1ms"
+            else
+                parts="$parts and ${milliseconds}ms"
+            fi
+        fi
+    fi
+
+    # Ensure at least milliseconds are shown
+    if [ -z "$parts" ]; then
+        parts="0ms"
+    fi
+
+    echo "$parts"
 }
 
-# I think this is for logging duration? Who knows ¯\\(ツ)/¯
+# Function to log job duration
 log_duration() {
-    local name="$1"
-    local start_ms="$2"
-    local end_ms
-    end_ms=$(now_ms)
+    local job_name="$1"
+    local start_time="$2"
+    local end_time="$3"
 
-    local duration=$(( end_ms - start_ms ))
-    [ "$duration" -lt 0 ] && duration=0
+    # Calculate duration in milliseconds
+    local duration_ms=$(( end_time - start_time ))
 
-    log_message INFO "$name took $(duration_to_mmssms "$duration") (mm:ss:ms)"
+    # Handle negative duration (clock adjustment)
+    if [ "$duration_ms" -lt 0 ]; then
+        duration_ms=$(( -duration_ms ))
+    fi
+
+    # Format duration
+    local formatted_time=$(format_duration "$duration_ms")
+
+    # Log the result
+    log_message SUCCESS "[$job_name] took $formatted_time"
 }
 
 # Function to query domain status in hosts file
@@ -271,8 +342,8 @@ stage_blocklist_files() {
 
 # 2. Install hosts
 install_hosts() {
-    local start_time=$(now_ms)
     type="$1"
+    local start_time=$(get_current_time)
     log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
     mkdir -p "$persist_dir/cache/whitelist"
@@ -340,12 +411,13 @@ install_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully installed $type hosts."
-    log_duration "install_hosts ($type)" "$start_time"
+    local end_time=$(get_current_time)
+    log_duration "Installing hosts (Type: $type)" "$start_time" "$end_time"
 }
 
 # 3. Remove hosts
 remove_hosts() {
-    local start_time=$(now_ms)
+    local start_time=$(get_current_time)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -368,12 +440,12 @@ remove_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully removed hosts."
-    log_duration "remove_hosts" "$start_time"
+    local end_time=$(get_current_time)
+    log_duration "Removing hosts" "$start_time" "$end_time"
 }
 
 # Function to block conte- bruhhh doesn't that seem to be clear to you already? -_-
 block_content() {
-    local start_time=$(now_ms)
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
@@ -416,7 +488,6 @@ block_content() {
             log_message SUCCESS "Enabled $block_type blocklist."
         fi
     fi
-    log_duration "block_content ($block_type, $status)" "$start_time"
 }
 
 # Function to remount hosts
@@ -439,7 +510,7 @@ remount_hosts() {
 
 # Function to block trackers
 block_trackers() {
-    local start_time=$(now_ms)
+    local start_time=$(get_current_time)
     status=$1
     cache_dir="$persist_dir/cache/trackers"
     cache_hosts="$cache_dir/hosts"
@@ -466,8 +537,10 @@ block_trackers() {
         echo "[*] Disabling trackers block for $brand device"
         remove_hosts
         sed -i "s/^block_trackers=.*/block_trackers=0/" "$persist_dir/config.sh"
-        echo "[✓] Trackers block has been disabled"
         log_message SUCCESS "Trackers blocklist disabled."
+        local end_time=$(get_current_time)
+        log_duration "Disabling trackers block" "$start_time" "$end_time"
+        echo "[✓] Trackers block has been disabled"
     else
         if [ "$block_trackers" = 1 ]; then
             echo "[!] Trackers block is already enabled"
@@ -478,16 +551,7 @@ block_trackers() {
             nuke_if_we_dont_have_internet
             log_message "Fetching trackers block hosts for $brand"
             echo "[*] Fetching trackers block files for $brand"
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardTracking.txt"
-            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/tracking.txt"
-            case "$brand" in
-                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
-                samsung) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
-                oppo|realme) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
-                vivo) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
-                huawei) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
-                *) url="" ;;
-            esac
+            fetch_blocklist "trackers"
             host_process "${cache_hosts}1"
             host_process "${cache_hosts}2"
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url" && host_process "${cache_hosts}3"
@@ -497,11 +561,11 @@ block_trackers() {
         stage_blocklist_files "trackers"
         install_hosts "trackers"
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
-        echo "[✓] Trackers block has been enabled"
         log_message SUCCESS "Trackers blocklist enabled."
+        local end_time=$(get_current_time)
+        log_duration "Enabling trackers block" "$start_time" "$end_time"
+        echo "[✓] Trackers block has been enabled"
     fi
-
-    log_duration "block_trackers ($status)" "$start_time"
 }
 
 fetch_blocklist() {
@@ -568,7 +632,7 @@ nuke_if_we_dont_have_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 fetch() {
-    local start_time=$(now_ms)
+    local start_time=$(get_current_time)
     local output_file="$1"
     local url="$2"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
@@ -592,16 +656,17 @@ fetch() {
         fi
     fi
     log_message SUCCESS "Downloaded from $url using $dl_tool, stored in $output_file"
-    log_duration "fetch file from url: $url" "$start_time"
+    local end_time=$(get_current_time)
+    log_duration "Fetching process" "$start_time" "$end_time"
 }
 
 # Updates module status, modifying module description in module.prop
 update_status() {
+    local start_time=$(get_current_time)
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
     log_message INFO "Updating module status"
-    local start_time=$(now_ms)
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
     log_message "Last hosts file update was in: $last_mod"
@@ -682,7 +747,8 @@ update_status() {
     # Update module description
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
-    log_duration "update_status" "$start_time"
+    local end_time=$(get_current_time)
+    log_duration "Updating module status" "$start_time" "$end_time"
 }
 
 # Functions for auto-update (cron jobs)
@@ -746,6 +812,7 @@ enable_auto_update() {
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
+    local start_time=$(get_current_time)
 
     log_message "Enabling auto update has been initiated."
 
@@ -764,19 +831,24 @@ enable_auto_update() {
 
         mkdir -p "$JOB_DIR" "$persist_dir/logs"
         echo "$CRON_JOB" > "$JOB_FILE"
-
         $CRONTAB "$JOB_FILE" -c "$JOB_DIR"
-
         log_message SUCCESS "Cron job added, running crond..."
 
         if ! $PGREP crond >/dev/null 2>&1; then
-            $CROND -b -c "$JOB_DIR" -L "$persist_dir/logs/auto_update.log"
+            $CROND -bc "$JOB_DIR" -L "$persist_dir/logs/auto_update.log"
+            log_message SUCCESS "Started crond successfully."
         fi
+
+        sleep 1.5 # Give crond some time to start and register the job
 
         if $PGREP crond >/dev/null 2>&1; then
             log_message SUCCESS "crond is running (PID:$($PGREP crond))"
         else
-            abort "Crond exited immediately after starting, Please try again."
+            log_message ERROR "Failed to start crond, falling back to script loop method."
+            echo "[!] Crond failed to run in the background, falling back to script loop method."
+            rm -rf "$JOB_DIR"
+            auto_update_fallback
+            log_message SUCCESS "Fallback auto update script started."
         fi
     else
         echo "[i] No cron provider detected, falling back to script loop method."
@@ -786,8 +858,10 @@ enable_auto_update() {
     fi
 
     sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
-    echo "[✓] Auto update has been enabled."
     log_message SUCCESS "Auto update has been enabled."
+    local end_time=$(get_current_time)
+    log_duration "Enabling auto update" "$start_time" "$end_time"
+    echo "[✓] Auto update has been enabled."
 }
 
 # 4 - Disable auto update
@@ -795,6 +869,7 @@ disable_auto_update() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
+    local start_time=$(get_current_time)
 
     if [ "$auto_update" = "0" ]; then
         abort "Auto update is already disabled"
@@ -824,7 +899,9 @@ disable_auto_update() {
     fi
 
     sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
+    local end_time=$(get_current_time)
     log_message SUCCESS "Auto update has been disabled."
+    log_duration "Disabling auto update" "$start_time" "$end_time"
     echo "[✓] Auto update has been disabled."
 }
 
@@ -895,12 +972,10 @@ log_message INFO "========== End of pre-main logic =========="
 # ====== Main Logic ======
 case "$(tolower "$1")" in
     --adblock-switch|-as)
-        start_time=$(now_ms)
         pause_protections
-        log_duration "pause_or_resume_adblock" "$start_time"
         ;;
     --reset|-r)
-        start_time=$(now_ms)
+        local start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "Hosts has been already reset."
         log_message "Resetting hosts command triggered, resetting..."
@@ -924,19 +999,20 @@ case "$(tolower "$1")" in
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully reset hosts."
+        local end_time=$(get_current_time)
+        log_duration "Resetting hosts" "$start_time" "$end_time"
 	    echo "[✓] Successfully reverted hosts."
-        log_duration "reset" "$start_time"
         ;;
     --query-domain|-q)
-        start_time=$(now_ms)
+        local start_time=$(get_current_time)
         domain="$2"
         query_domain "$domain"
-        log_duration "query-domain" "$start_time"
+        local end_time=$(get_current_time)
+        log_duration "Querying domain: $domain" "$start_time" "$end_time"
         ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
-        start_time=$(now_ms)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
-
+        local start_time=$(get_current_time)
         case "$1" in
             --block-porn|-bp) block_type="porn" ;;
             --block-gambling|-bg) block_type="gambling" ;;
@@ -955,6 +1031,7 @@ case "$(tolower "$1")" in
             if [ "$status" = "disable" ] || [ "$status" = 0 ]; then
                 if [ "$block_toggle" = 0 ]; then
                     echo "[i] $block_type block is already disabled"
+                    exit 0
                 else
                     log_message "Disabling ${block_type} blocklist has been initiated."
                     echo "[*] Disabling ${block_type} blocklist has been initiated."
@@ -965,6 +1042,7 @@ case "$(tolower "$1")" in
             else
                 if [ "$block_toggle" = 1 ]; then
                     echo "[!] ${block_type} block is already enabled"
+                    exit 0
                 else
                     log_message "Enabling block entries for $block_type has been initiated."
                     echo "[*] Enabling block entries for ${block_type} has been initiated."
@@ -976,10 +1054,12 @@ case "$(tolower "$1")" in
         fi
         refresh_blocked_counts
         update_status
-        log_duration "block-$block_type" "$start_time"
+        local end_time=$(get_current_time)
+        log_duration "Toggling ${block_type} blocklist" "$start_time" "$end_time"
         ;;
 
     --whitelist|-w)
+        local start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         action="$2"
@@ -1140,6 +1220,8 @@ case "$(tolower "$1")" in
             log_message SUCCESS "Whitelisted $raw_input ($match_type)."
             refresh_blocked_counts
             update_status
+            local end_time=$(get_current_time)
+            log_duration "Adding to whitelist: $raw_input (type: $match_type)" "$start_time" "$end_time"
         else  # remove
             shift 2  # move past: --whitelist remove
             if [ $# -lt 1 ]; then
@@ -1216,10 +1298,13 @@ case "$(tolower "$1")" in
             echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
             refresh_blocked_counts
             update_status
+            local end_time=$(get_current_time)
+            log_duration "Removing from whitelist: $raw_input" "$start_time" "$end_time"
         fi
         ;;
 
     --blacklist|-b)
+        local start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         option="$2"
         shift 2 # Remove script name and option from arguments
@@ -1271,6 +1356,8 @@ case "$(tolower "$1")" in
             fi
             refresh_blocked_counts
             update_status
+            local end_time=$(get_current_time)
+            log_duration "Adding to blacklist: $domain" "$start_time" "$end_time"
         else
             # Remove multiple domains from blacklist
             log_message "Removing multiple domains from blacklist: $*"
@@ -1310,6 +1397,8 @@ case "$(tolower "$1")" in
                 log_message SUCCESS "Successfully removed $total_removed domains from blacklist"
                 refresh_blocked_counts
                 update_status
+                local end_time=$(get_current_time)
+                log_duration "Removing from blacklist: $*" "$start_time" "$end_time"
             fi
             
             if [ -n "$failed_removals" ]; then
@@ -1418,7 +1507,7 @@ case "$(tolower "$1")" in
         ;;
 
     --update-hosts|-u)
-        start_time=$(now_ms)
+        local start_time=$(get_current_time)
         sed '/#/d' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
@@ -1502,7 +1591,8 @@ case "$(tolower "$1")" in
         update_status
         log_message SUCCESS "Successfully updated all hosts."
         [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
-        log_duration "update-hosts" "$start_time"
+        local end_time=$(get_current_time)
+        log_duration "Updating hosts" "$start_time" "$end_time"
         ;;
 
     --help|-h|*)

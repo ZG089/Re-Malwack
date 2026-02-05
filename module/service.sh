@@ -186,7 +186,7 @@ if [ "$daily_update" = 1 ]; then
         PGREP=$(cron_cmd pgrep)
         log_message "Auto update is enabled, starting crond..."
         log_message "Using $CRON_PROVIDER applets for cron management."
-        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
+        $CROND -bc "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
         $PGREP crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
     fi
 fi
