@@ -270,7 +270,7 @@ log_duration() {
     local formatted_time=$(format_duration "$duration_ms")
 
     # Log the result
-    log_message SUCCESS "[$job_name] took $formatted_time"
+    log_message SUCCESS "Task [$job_name] took $formatted_time"
 }
 
 # Function to query domain status in hosts file
@@ -775,20 +775,17 @@ cron_cmd() {
 # 2 - Fallback auto update script
 auto_update_fallback() {
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
-
     cat > "$FALLBACK_SCRIPT" << 'EOF'
 #!/system/bin/sh
-LOGFILE="/data/adb/Re-Malwack/logs/auto_update.log"
+LOGFILE="/data/adb/Re-Malwack/logs/auto_update-fallback.log"
 PID=$$
 echo $PID > /data/adb/Re-Malwack/logs/auto_update.pid
-
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Fallback auto update script started with PID $PID" >> "$LOGFILE" 2>&1
 while true; do
     sleep 86400 # Sleep for 24 hours
     {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto-update check started"
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Script PID is $PID"
-        sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1
-        if [ $? -eq 0 ]; then
+        if sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1; then
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto update completed successfully"
         else
             echo "[$(date '+%Y-%m-%d %H:%M:%S')] - Auto update failed"
@@ -796,21 +793,26 @@ while true; do
     } >> "$LOGFILE" 2>&1
 done
 EOF
-
+    # Make the fallback script executable and run it in the background
     chmod +x "$FALLBACK_SCRIPT"
-    if ! nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 & then
+    nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 &
+    sleep 1
+
+    # Verify if the fallback script is running
+    if ! kill -0 "$(cat $persist_dir/logs/auto_update.pid 2>/dev/null)" 2>/dev/null; then
         echo "[!] Failed to start fallback auto update script, We're officially cooked twin 🥀"
-        log_message ERROR "Failed to start fallback auto update script, our last hope is now gone..."
+        log_message ERROR "Fallback auto update script failed to stay alive"
         rm -f "$FALLBACK_SCRIPT"
         exit 1
     fi
+
 }
 
 # 3 - Enable auto update
 enable_auto_update() {
     JOB_DIR="/data/adb/Re-Malwack/auto_update"
     JOB_FILE="$JOB_DIR/root"
-    CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update.log"
+    CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update-cron.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local start_time=$(get_current_time)
 
@@ -833,18 +835,14 @@ enable_auto_update() {
         echo "$CRON_JOB" > "$JOB_FILE"
         $CRONTAB "$JOB_FILE" -c "$JOB_DIR"
         log_message SUCCESS "Cron job added, running crond..."
-
-        if ! $PGREP crond >/dev/null 2>&1; then
-            $CROND -bc "$JOB_DIR" -L "$persist_dir/logs/auto_update.log"
-            log_message SUCCESS "Started crond successfully."
-        fi
-
+        $CROND -b -c "$JOB_DIR" -L "$persist_dir/logs/auto_update-cron.log"
+        log_message SUCCESS "Started crond successfully."
         sleep 1.5 # Give crond some time to start and register the job
 
         if $PGREP crond >/dev/null 2>&1; then
             log_message SUCCESS "crond is running (PID:$($PGREP crond))"
         else
-            log_message ERROR "Failed to start crond, falling back to script loop method."
+            log_message WARN "crond process was not found, falling back to script loop method."
             echo "[!] Crond failed to run in the background, falling back to script loop method."
             rm -rf "$JOB_DIR"
             auto_update_fallback
@@ -866,7 +864,7 @@ enable_auto_update() {
 
 # 4 - Disable auto update
 disable_auto_update() {
-    JOB_DIR="/data/adb/Re-Malwack/auto_update"
+    JOB_DIR="$persist_dir/auto_update"
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
     local start_time=$(get_current_time)
@@ -892,7 +890,7 @@ disable_auto_update() {
         rm -rf "$JOB_DIR"
         log_message "Cron job removed."
     else
-        PID=$(cat /data/adb/Re-Malwack/logs/auto_update.pid 2>/dev/null)
+        PID=$(cat $persist_dir/logs/auto_update.pid 2>/dev/null)
         [ -n "$PID" ] && kill -9 "$PID" >/dev/null 2>&1
         rm -f "$FALLBACK_SCRIPT"
         log_message "Fallback auto update script stopped and removed."
