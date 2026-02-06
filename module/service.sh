@@ -170,7 +170,9 @@ if [ "$daily_update" = 1 ]; then
     # Check if fallback script exists
     if [ -f $FALLBACK_SCRIPT ]; then
         log_message "Auto update is enabled, executing fallback script..."
-        if ! nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 & then
+        nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 &
+        sleep 1
+        if ! kill -0 "$(cat $persist_dir/logs/auto_update.pid 2>/dev/null)" 2>/dev/null; then
             # This action was taken in case a user reboot the device after installing an update and SOME HOW
             # the fallback script failed to start again, so we just disable auto update to prevent further issues.
             log_message "Failed to start fallback auto update script, disabling auto update completely..."
@@ -186,7 +188,7 @@ if [ "$daily_update" = 1 ]; then
         PGREP=$(cron_cmd pgrep)
         log_message "Auto update is enabled, starting crond..."
         log_message "Using $CRON_PROVIDER applets for cron management."
-        $CROND -bc "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
+        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
         $PGREP crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
     fi
 fi
