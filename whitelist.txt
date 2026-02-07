@@ -51,7 +51,9 @@ microsoftonline.com
 # Other "APIs"
 codepush.appcenter.ms
 dpm.demdex.net
+cdnjs.cloudflare.com
 sentry.io
+ly.my.sentry.io
 mobile.launchdarkly.com
 clientstream.launchdarkly.com
 api.apptentive.com
@@ -125,12 +127,16 @@ supercell.com
 tidal.com
 spotify.app.link
 api.spotify.com
+streamable.com
+socket.streamable.com
+cdn-cf-east.streamable.com
 prod.spotify.map.fastly.net
 
 # Sites
 html-load.com
+addtoany.com
 
-# Subway
+  # Subway
 www.subway.com
 api.subway.com
 media.subway.com
@@ -146,3 +152,13 @@ subwayfranchiseeadvertising.122.2o7.net
 subwayfranchiseeadvertising.d2.sc.omtrdc.net
 subwayfranchiseeadvertising.data.adobedc.net
 subwayfranchiseeadvertising.sc.omtrdc.net
+
+# LINE
+a.line.me
+cix.line-apps.com
+vos.line-scdn.net
+static.line-scdn.net
+api.line.me
+d.line-scdn.net
+obs.line-scdn.net
+static.addtoany.com
