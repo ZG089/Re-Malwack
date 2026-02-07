@@ -10,7 +10,7 @@ system_hosts="/system/etc/hosts"
 is_zn_detected=0
 FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-JOB_DIR="/data/adb/Re-Malwack/auto_update"
+JOB_DIR="$persist_dir/auto_update"
 JOB_FILE="$JOB_DIR/root"
 SERVICE_DIR="/data/adb/service.d"
 SELF_DELETE="$SERVICE_DIR/rmlwk-auto_app_rm.sh"
@@ -165,11 +165,9 @@ fi
 
 # Check if auto-update is enabled
 if [ "$daily_update" = 1 ]; then
-    # Only one of the if statements will run.
-
-    # Check if fallback script exists
-    if [ -f $FALLBACK_SCRIPT ]; then
-        log_message "Auto update is enabled, executing fallback script..."
+    # Checking fallback script existance 
+    if [ -f "$FALLBACK_SCRIPT" ]; then
+        log_message "Auto update enabled (fallback mode), ensuring fallback script is running."
         nohup "$FALLBACK_SCRIPT" >/dev/null 2>&1 &
         sleep 1
         if ! kill -0 "$(cat $persist_dir/logs/auto_update.pid 2>/dev/null)" 2>/dev/null; then
@@ -179,17 +177,21 @@ if [ "$daily_update" = 1 ]; then
             rm -f "$FALLBACK_SCRIPT"
             sed -i 's/^daily_update=.*/daily_update=0/' "$persist_dir/config.sh"
         fi
-    fi
 
-    # Check and start cron job if exists
-    # it won't even exist if fallback script is present
-    if [ -f "$JOB_FILE" ]; then
+    # Checking crond existance
+    elif [ -f "$JOB_FILE" ]; then
+        log_message "Auto update enabled (cron mode), verifying crond."
+        CRON_PROVIDER=$(detect_cron_provider) || {
+        log_message "No cron provider detected at boot."
+        return
+        }
         CROND=$(cron_cmd crond)
-        PGREP=$(cron_cmd pgrep)
         log_message "Auto update is enabled, starting crond..."
         log_message "Using $CRON_PROVIDER applets for cron management."
-        $CROND -b -c "/data/adb/Re-Malwack/auto_update" -L "/data/adb/Re-Malwack/logs/auto_update.log"
-        $PGREP crond >/dev/null && log_message "Crond started." || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
+        $CROND -b -c "$JOB_DIR" -L "$persist_dir/logs/auto_update-cron.log"
+        sleep 1.5
+        CROND_PID="$(busybox pgrep -f "crond.*$JOB_DIR" | head -n 1 || true)"
+        [ -n "$CROND_PID" ] && log_message "Crond started! PID: $CROND_PID" || log_message "Failed to start crond." # No fallbacks here because this SHOULD work else imma-
     fi
 fi
 

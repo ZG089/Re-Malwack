@@ -317,28 +317,35 @@ async function resetHostsFile() {
 
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
+    const toggle = document.getElementById('daily-update-toggle');
     const loadingOverlay = document.getElementById('loading-overlay');
+
+    // Prevent UI from changing state directly
+    const currentState = toggle.checked;
+    toggle.checked = !currentState;
+
     loadingOverlay.style.display = 'flex';
-    setTimeout(() => loadingOverlay.style.opacity = '1', 10);
 
     try {
-        const isEnabled = document.getElementById('daily-update-toggle').checked;
-        const result = await exec(`sh ${modulePath}/rmlwk.sh --auto-update ${isEnabled ? "disable" : "enable"}`, { env: { WEBUI: 'true' } });
-        if (result.errno !== 0) {
-            showPrompt("Failed to toggle daily update", false);
-            console.error("Error toggling daily update:", result.stderr);
-        } else {
-            showPrompt(`Daily update ${isEnabled ? "disabled" : "enabled"}`, true);
-            await checkBlockStatus();
-        }
-    } catch (error) {
-        console.error("Error in toggleDailyUpdate:", error);
-        showPrompt("An error occurred", false);
+        const action = currentState ? "disable" : "enable";
+
+        exec(
+            `nohup sh ${modulePath}/rmlwk.sh --auto-update ${action} >/dev/null 2>&1 &`,
+            { env: { WEBUI: 'true' } }
+        );
+
+        showPrompt(`Daily update ${action}d`, true);
+
+        // Check status after 7 seconds to reset the toggle
+        setTimeout(checkBlockStatus, 7000);
+
+    } catch (err) {
+        console.error(err);
+        showPrompt("Failed to toggle daily update", false);
     } finally {
-        loadingOverlay.style.opacity = '0';
         setTimeout(() => {
             loadingOverlay.style.display = 'none';
-        }, 200);
+        }, 300);
     }
 }
 

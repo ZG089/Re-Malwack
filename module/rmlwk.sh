@@ -554,7 +554,11 @@ block_trackers() {
             fetch_blocklist "trackers"
             host_process "${cache_hosts}1"
             host_process "${cache_hosts}2"
-            [ -n "$url" ] && fetch "${cache_hosts}3" "$url" && host_process "${cache_hosts}3"
+            # note to self
+            # If we add a third general source for trackers
+            # move cache_hosts3 to the general trackers blocklist fetching section
+            # and change 3 to 4 below
+            [ -f "${cache_hosts}3" ] && host_process "${cache_hosts}3"
         fi
         log_message "Enabling trackers block"
         echo "[*] Enabling trackers block for $brand"
@@ -600,7 +604,6 @@ fetch_blocklist() {
                 huawei)            url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
                 *) url="" ;;
             esac
-
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"
             ;;
         safebrowsing)
@@ -810,7 +813,7 @@ EOF
 
 # 3 - Enable auto update
 enable_auto_update() {
-    JOB_DIR="/data/adb/Re-Malwack/auto_update"
+    JOB_DIR="$persist_dir/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update-cron.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
@@ -826,7 +829,6 @@ enable_auto_update() {
     if CRON_PROVIDER=$(detect_cron_provider); then
         CROND=$(cron_cmd crond)
         CRONTAB=$(cron_cmd crontab)
-        PGREP=$(cron_cmd pgrep)
 
         echo "[*] Enabling auto update via cron."
         log_message "Enabling auto update via cron, Using $CRON_PROVIDER as cron provider."
@@ -838,9 +840,10 @@ enable_auto_update() {
         $CROND -b -c "$JOB_DIR" -L "$persist_dir/logs/auto_update-cron.log"
         log_message SUCCESS "Started crond successfully."
         sleep 1.5 # Give crond some time to start and register the job
+        CROND_PID="$(busybox pgrep -f "crond.*$JOB_DIR" | head -n 1 || true)"
 
-        if $PGREP crond >/dev/null 2>&1; then
-            log_message SUCCESS "crond is running (PID:$($PGREP crond))"
+        if [ -n "$CROND_PID" ]; then
+            log_message SUCCESS "crond started! (PID:$CROND_PID)"
         else
             log_message WARN "crond process was not found, falling back to script loop method."
             echo "[!] Crond failed to run in the background, falling back to script loop method."
@@ -890,8 +893,13 @@ disable_auto_update() {
         rm -rf "$JOB_DIR"
         log_message "Cron job removed."
     else
-        PID=$(cat $persist_dir/logs/auto_update.pid 2>/dev/null)
-        [ -n "$PID" ] && kill -9 "$PID" >/dev/null 2>&1
+        # Stop fallback loop if cron was never used
+        log_message "Killing fallback auto update script."
+        PID="$(cat "$persist_dir/logs/auto_update.pid" 2>/dev/null)"
+        if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+            kill -9 "$PID" >/dev/null 2>&1
+            log_message SUCCESS "Fallback auto update script stopped (PID:$PID)"
+        fi
         rm -f "$FALLBACK_SCRIPT"
         log_message "Fallback auto update script stopped and removed."
     fi
