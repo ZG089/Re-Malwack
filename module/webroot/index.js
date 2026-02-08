@@ -134,10 +134,10 @@ async function getStatus() {
             statusElement.textContent = '-';
             getlastUpdated(false);
             return;
-        // Convert 1 000 000 to 1M
+            // Convert 1 000 000 to 1M
         } else if (parseInt(status) > 999999) {
             status = (parseInt(status) / 1000000).toFixed(1) + 'M';
-        // Convert 1 000 to 1k
+            // Convert 1 000 to 1k
         } else if (parseInt(status) > 9999) {
             status = (parseInt(status) / 1000).toFixed(1) + 'k';
         }
@@ -352,12 +352,24 @@ async function toggleDailyUpdate() {
 // Function to export logs
 async function exportLogs() {
     const result = await exec(`
-        LOG_DATE="$(date +%Y-%m-%d_%H%M%S)"
-        tar -czvf /sdcard/Download/Re-Malwack_logs_$LOG_DATE.tar.gz --exclude='${basePath}' -C ${basePath} logs &>/dev/null
-        echo "$LOG_DATE"
+        VERSION=$(grep '^version=' ${modulePath}/module.prop | cut -d= -f2)
+        LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
+
+        if echo "$VERSION" | grep -q "\\-test.*#[0-9]*-[a-f0-9]*"; then
+            base_version=$(echo "$VERSION" | sed 's/-test.*//')
+            build_id=$(echo "$VERSION" | sed 's/.*#\\([0-9]*-[a-f0-9]*\\).*/\\1/')
+            tarFileName="Re-Malwack_${base_version}_${build_id}_logs_$LOG_DATE.tar.gz"
+        else
+            tarFileName="Re-Malwack_${VERSION}_logs_$LOG_DATE.tar.gz"
+        fi
+
+        echo "Re-Malwack Version: $VERSION" > ${basePath}/logs/version
+        tar -czvf "/sdcard/Download/$tarFileName" --exclude='${basePath}' -C ${basePath} logs &>/dev/null
+        rm ${basePath}/logs/version
+        echo "/sdcard/Download/$tarFileName"
     `);
     if (result.errno === 0) {
-        showPrompt(`Logs saved to /sdcard/Download/Re-Malwack_logs_${result.stdout.trim()}.tar.gz`, true, 3000);
+        showPrompt(`Logs saved to ${result.stdout.trim()}`, true, 3000);
     } else {
         console.error("Error exporting logs:", result.stderr);
         showPrompt("Failed to export logs", false);
