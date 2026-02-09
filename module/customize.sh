@@ -67,47 +67,34 @@ done
 
 detect_key_press() {
     timeout_seconds=10
-    total_options=$1
-    recommended_option=$2
-    [ -z "$total_options" ] && total_options=2
-    [ -z "$recommended_option" ] && recommended_option=2
+    total_options=${1:-2}
+    recommended_option=${2:-1}
 
     current=1
-    ui_print "[i] Use Vol+ to switch, Vol- to select. Timeout: $timeout_seconds sec (default: option $recommended_option)."
+    start_time=$(date +%s)
+
+    ui_print "[i] Vol+ = switch, Vol- = select (timeout ${timeout_seconds}s, default: $recommended_option)"
     ui_print "Current choice: $current"
 
     while :; do
-        # Wait for a single input event with timeout
-        ev="$(timeout "$timeout_seconds" getevent -qlc 1 2>/dev/null)"
-        rc=$?
-
-        # Timeout -> auto-select recommended option
-        if [ "$rc" -ne 0 ] || [ -z "$ev" ]; then
+        now=$(date +%s)
+        if [ $((now - start_time)) -ge "$timeout_seconds" ]; then
             ui_print "[!] Timeout. Auto-selecting option: $recommended_option"
             return "$recommended_option"
         fi
 
+        # Block until we get any input
+        ev="$(getevent -qlc 1 2>/dev/null)" || continue
+
         case "$ev" in
-            # Volume Up PRESSED -> move selection (wrap), then wait for release
-            *KEY_VOLUMEUP*1*|*KEY_VOLUMEUP*DOWN*)
-                current=$(( current + 1 ))
+            *KEY_VOLUMEUP*DOWN*)
+                current=$((current + 1))
                 [ "$current" -gt "$total_options" ] && current=1
                 ui_print "- Current choice: $current"
-                # Flush until release
-                while :; do
-                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
-                    case "$ev2" in *KEY_VOLUMEUP*0*|*KEY_VOLUMEUP*UP*) break ;; esac
-                done
                 ;;
 
-            # Volume Down PRESSED -> select current, then wait for release
-            *KEY_VOLUMEDOWN*1*|*KEY_VOLUMEDOWN*DOWN*)
+            *KEY_VOLUMEDOWN*DOWN*)
                 ui_print "- Selected option: $current"
-                # Flush until release
-                while :; do
-                    ev2="$(getevent -qlc 1 2>/dev/null)" || break
-                    case "$ev2" in *KEY_VOLUMEDOWN*0*|*KEY_VOLUMEDOWN*UP*) break ;; esac
-                done
                 return "$current"
                 ;;
 
