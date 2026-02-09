@@ -362,10 +362,7 @@ async function exportLogs() {
         else
             tarFileName="Re-Malwack_${VERSION}_logs_$LOG_DATE.tar.gz"
         fi
-
-        echo "Re-Malwack Version: $VERSION" > ${basePath}/logs/version
-        tar -czvf "/sdcard/Download/$tarFileName" --exclude='${basePath}' -C ${basePath} logs &>/dev/null
-        rm ${basePath}/logs/version
+        tar -czvf "/sdcard/Download/$tarFileName" --exclude=${basePath} -C ${basePath} logs &>/dev/null
         echo "/sdcard/Download/$tarFileName"
     `);
     if (result.errno === 0) {
