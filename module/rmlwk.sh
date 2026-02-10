@@ -327,6 +327,27 @@ query_domain() {
     esac
 }
 
+# Function to export logs
+export_logs() {
+    start_time=$(get_current_time)
+    log_message "Exporting logs..."
+    VERSION=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2)
+    LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
+
+    if echo "$VERSION" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
+        base_version=$(echo "$VERSION" | sed 's/-test.*//')
+        build_id=$(echo "$VERSION" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
+        tarFileName="Re-Malwack_${base_version}_${build_id}_logs_${LOG_DATE}.tar.gz"
+    else
+        tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
+    fi
+    tar -czf "/sdcard/Download/$tarFileName" -C "$persist_dir" logs
+    echo "Log saved to: /sdcard/Download/$tarFileName"
+    log_message SUCCESS "Log saved to: /sdcard/Download/$tarFileName"
+    end_time=$(get_current_time)
+    log_duration "Exporting logs" "$start_time" "$end_time"
+}
+
 # Functions to process hosts
 
 # 1. Helper to stage cached blocklist files into tmp
@@ -1009,6 +1030,9 @@ case "$(tolower "$1")" in
         log_duration "Resetting hosts" "$start_time" "$end_time"
 	    echo "[✓] Successfully reverted hosts."
         ;;
+    --export-logs|-e)
+        export_logs
+        ;;
     --query-domain|-q)
         start_time=$(get_current_time)
         domain="$2"
@@ -1617,6 +1641,7 @@ case "$(tolower "$1")" in
         echo "--block-social, -bs <disable>: Block social media sites, use disable to unblock."
         echo "--whitelist, -w <add|remove> <domain|pattern> <domain2> ...: Whitelist domain(s), only whitelist one domain at a time, otherwise use wildcard or use multiple domains in case of unwhitelisting."
         echo "--blacklist, -b <add|remove> <domain1> <domain2> ...: Blacklist domain(s)."
+        echo "--export-logs, -e: Export logs to a tarball in Download directory."
         echo "--help, -h: Display help."
         echo -e "\033[0;31m Example command: su -c rmlwk --update-hosts\033[0m"
         ;;
