@@ -360,9 +360,9 @@ async function exportLogs() {
             build_id=$(echo "$VERSION" | sed 's/.*#\\([0-9]*-[a-f0-9]*\\).*/\\1/')
             tarFileName="Re-Malwack_${base_version}_${build_id}_logs_$LOG_DATE.tar.gz"
         else
-            tarFileName="Re-Malwack_${VERSION}_logs_$LOG_DATE.tar.gz"
+            tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
         fi
-        tar -czvf "/sdcard/Download/$tarFileName" --exclude=${basePath} -C ${basePath} logs &>/dev/null
+        tar -czf "/sdcard/Download/$tarFileName" -C ${basePath} logs
         echo "/sdcard/Download/$tarFileName"
     `);
     if (result.errno === 0) {
