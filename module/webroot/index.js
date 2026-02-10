@@ -351,22 +351,9 @@ async function toggleDailyUpdate() {
 
 // Function to export logs
 async function exportLogs() {
-    const result = await exec(`
-        VERSION=$(grep '^version=' ${modulePath}/module.prop | cut -d= -f2)
-        LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
-
-        if echo "$VERSION" | grep -q "\\-test.*#[0-9]*-[a-f0-9]*"; then
-            base_version=$(echo "$VERSION" | sed 's/-test.*//')
-            build_id=$(echo "$VERSION" | sed 's/.*#\\([0-9]*-[a-f0-9]*\\).*/\\1/')
-            tarFileName="Re-Malwack_${base_version}_${build_id}_logs_$LOG_DATE.tar.gz"
-        else
-            tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
-        fi
-        tar -czf "/sdcard/Download/$tarFileName" -C ${basePath} logs
-        echo "/sdcard/Download/$tarFileName"
-    `);
+    const result = await exec(`sh ${modulePath}/rmlwk.sh --export-logs --quiet`);
     if (result.errno === 0) {
-        showPrompt(`Logs saved to ${result.stdout.trim()}`, true, 3000);
+        showPrompt(result.stdout.trim(), true, 3000);
     } else {
         console.error("Error exporting logs:", result.stderr);
         showPrompt("Failed to export logs", false);
