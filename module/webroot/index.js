@@ -40,28 +40,18 @@ function aboutMenu() {
     const aboutOverlay = document.getElementById('about-overlay');
     const aboutMenu = document.getElementById('about-menu');
     const closeAbout = document.getElementById('close-about');
-    const showMenu = () => {
-        aboutOverlay.style.display = 'flex';
-        setTimeout(() => {
-            aboutOverlay.style.opacity = '1';
-        }, 10);
-        document.body.style.overflow = 'hidden';
+    const toggleMenu = (show) => {
+        aboutOverlay.classList.toggle('show', show);
+        document.body.style.overflow = show ? 'hidden' : 'auto';
     };
-    const hideMenu = () => {
-        aboutOverlay.style.opacity = '0';
-        setTimeout(() => {
-            aboutOverlay.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }, 300);
-    };
-    showMenu();
+    toggleMenu(true);
     closeAbout.addEventListener('click', (event) => {
         event.stopPropagation();
-        hideMenu();
+        toggleMenu(false);
     });
     aboutOverlay.addEventListener('click', (event) => {
         if (!aboutMenu.contains(event.target)) {
-            hideMenu();
+            toggleMenu(false);
         }
     });
     menu.addEventListener('click', (event) => event.stopPropagation());
@@ -85,22 +75,26 @@ async function getVersion() {
 }
 
 async function isZnhr() {
-    await exec(`
-        znhr="/data/adb/modules/hostsredirect"
-        [ -f "$znhr/module.prop" ] && [ ! -f "$znhr/disable" ]
-    `).then(({ errno }) => {
+    try {
+        const { errno } = await exec(`
+            znhr="/data/adb/modules/hostsredirect"
+            [ -f "$znhr/module.prop" ] && [ ! -f "$znhr/disable" ]
+        `);
         return errno === 0;
-    }).catch(() => { return false });
+    } catch {
+        return false;
+    }
 }
 
-function checkMount() {
-    exec(`system_hosts="$(cat /system/etc/hosts | wc -l)"
-          module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
-          [ $system_hosts -eq $module_hosts ] || echo "error"
-        `).then(async ({ stdout }) => {
-        const isZnhr = await isZnhr();
-        if (stdout === "error" && !isZnhr) document.getElementById('broken-mount-box').style.display = 'flex';
-    });
+async function checkMount() {
+    const result = await exec(`
+        system_hosts="$(cat /system/etc/hosts | wc -l)"
+        module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
+        [ $system_hosts -eq $module_hosts ] || echo "error"
+    `);
+    if (result.stdout.trim() === "error" && !await isZnhr()) {
+        document.getElementById('broken-mount-box').style.display = 'flex';
+    }
 }
 
 // Function to check if running in MMRL
@@ -196,74 +190,34 @@ async function getlastUpdated(isEnable = true) {
 
 let actionMode = 0; // default to load properly
 
-function updateActionModeLabel() {
-  const label = document.getElementById("action-mode-label");
-  if (!label) return;
+function getStatusText() {
+    return actionMode === 1 ? "Pause & Resume" : "Update Hosts";
+}
 
-  label.textContent =
-    actionMode === 1
-      ? "Action Mode - Pause & Resume"
-      : "Action Mode - Update Hosts";
+function updateActionModeLabel() {
+    const label = document.getElementById("action-mode-label");
+    label.textContent = "Action Mode - " + getStatusText();
 }
 
 function loadActionMode() {
-  const cb = "cb_load_am_" + Date.now();
-
-  window[cb] = (code, stdout) => {
-    delete window[cb];
-
-    if (code === 0) {
-      const match = stdout.match(/action_mode=(\d+)/);
-      actionMode = match ? parseInt(match[1], 10) : 0;
-    } else {
-      console.error("Failed to read config, using default 0");
-    }
-
-    updateActionModeLabel();
-  };
-
-  ksu.exec(
-    `grep '^action_mode=' ${CONFIG_PATH} 2>/dev/null || echo 'action_mode=0'`,
-    "{}",
-    cb
-  );
+    exec(`grep '^action_mode=' ${CONFIG_PATH} | cut -d'=' -f2 || echo '0'`).then((result) => {
+        if (result.errno === 0) {
+            actionMode = parseInt(result.stdout, 10) === 0 ? 0 : 1;
+            updateActionModeLabel();
+        }
+    });
 }
 
-function setupActionMode() {
-  const box = document.getElementById("action-mode");
-  if (!box) return;
-
-  box.addEventListener("click", () => {
-    const newMode = actionMode === 1 ? 0 : 1;
-
-    const cb = "cb_set_am_" + Date.now();
-
-    window[cb] = (code) => {
-      delete window[cb];
-
-      if (code === 0) {
-        actionMode = newMode;
-        updateActionModeLabel();
-
-        showPrompt(
-          actionMode === 1
-            ? "Action Mode set to Pause & Resume"
-            : "Action Mode set to Update Hosts",
-          true,
-          2000
-        );
-      } else {
-        showPrompt("Failed to change Action Mode", false, 2000);
-        console.error("ksu.exec failed with code", code);
-      }
-    };
-
-    ksu.exec(
-      `sed -i 's/^action_mode=.*/action_mode=${newMode}/' ${CONFIG_PATH}`,
-      "{}",
-      cb
-    );
-  });
+function updateActionMode(mode) {
+    exec(`sed -i 's/^action_mode=.*/action_mode=${mode}/' ${CONFIG_PATH}`).then((result) => {
+        if (result.errno === 0) {
+            actionMode = mode;
+            updateActionModeLabel();
+            showPrompt(`Action Mode set to ${getStatusText()}`, true, 2000);
+        } else {
+            showPrompt("Failed to change Action Mode", false, 2000);
+        }
+    });
 }
 
 // Function to check block status for different site categories
@@ -298,7 +252,6 @@ async function checkBlockStatus() {
             dailyUpdateToggle.checked = false;
         }
     } catch (error) {
-        console.error('Failed to check status:', error);
         if (error.message === 'Config file not found') {
             const success = await linkFile();
             if (success) await checkBlockStatus();
@@ -359,26 +312,21 @@ function performAction(commandOption) {
     });
 }
 
+let setupResetDialogListener = false;
+
 // Function to reset hosts
 async function resetHostsFile() {
     const resetOverlay = document.getElementById("confirmation-overlay");
     const cancelButton = document.getElementById("cancel-reset");
     const resetButton = document.getElementById("confirm-reset");
 
-    resetOverlay.style.display = 'flex';
-    setTimeout(() => {
-        resetOverlay.style.opacity = 1;
-    }, 10)
+    resetOverlay.classList.add('show');
 
     const closeResetOverlay = () => {
-        resetOverlay.style.opacity = 0;
-        setTimeout(() => {
-            resetOverlay.style.display = 'none';
-        }, 200)
+        resetOverlay.classList.remove('show');
     }
 
-    let setupListener = true;
-    if (setupListener) {
+    if (!setupResetDialogListener) {
         cancelButton.addEventListener('click', () => closeResetOverlay());
         resetOverlay.addEventListener('click', (e) => {
             if (e.target === resetOverlay) closeResetOverlay();
@@ -387,7 +335,7 @@ async function resetHostsFile() {
             closeResetOverlay();
             performAction("--reset");
         })
-        setupListener = false;
+        setupResetDialogListener = true;
     }
 }
 
@@ -400,29 +348,21 @@ async function toggleDailyUpdate() {
     const currentState = toggle.checked;
     toggle.checked = !currentState;
 
-    loadingOverlay.style.display = 'flex';
+    loadingOverlay.classList.add('show');
+    const action = currentState ? "disable" : "enable";
 
-    try {
-        const action = currentState ? "disable" : "enable";
-
-        exec(
-            `nohup sh ${modulePath}/rmlwk.sh --auto-update ${action} >/dev/null 2>&1 &`,
-            { env: { WEBUI: 'true' } }
-        );
-
-        showPrompt(`Daily update ${action}d`, true);
-
-        // Check status after 7 seconds to reset the toggle
-        setTimeout(checkBlockStatus, 7000);
-
-    } catch (err) {
-        console.error(err);
+    exec(`sh ${modulePath}/rmlwk.sh --auto-update ${action} --quiet >/dev/null 2>&1`).then((result) => {
+        if (result.errno === 0) {
+            showPrompt(`Daily update ${action}d`, true);
+        } else {
+            showPrompt(`Failed to toggle daily update`, false);
+        }
+        checkBlockStatus();
+        loadingOverlay.classList.remove('show');
+    }).catch((e) => {
+        console.error(e);
         showPrompt("Failed to toggle daily update", false);
-    } finally {
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-        }, 300);
-    }
+    });
 }
 
 // Function to export logs
@@ -796,9 +736,6 @@ async function linkFile() {
         mkdir -p ${modulePath}/webroot/link
         [ -L ${modulePath} ] || ln -s ${basePath} ${modulePath}/webroot/link/persistent_dir
     `);
-    if (result.errno !== 0) {
-        console.error(`Failed to remove link persistent directory to webroot:`, result.stderr);
-    }
     return result.errno === 0;
 }
 
@@ -819,31 +756,24 @@ function setupPrank() {
 
     // Make sure this won't be triggered in a row for user experience
     if (lastPrank !== '1') {
-        openOverlay();
+        toggleOverlay(true);
         // Set flag in localStorage to prevent it from happening next time
         localStorage.setItem('lastPrank', '1');
     }
 
     closeButton.addEventListener('click', () => redirectRr());
     warningOverlay.addEventListener('dblclick', (e) => {
-        if (e.target === warningOverlay) closeOverlay();
+        if (e.target === warningOverlay) toggleOverlay(false);
     });
 
     const redirectRr = () => {
-        closeOverlay();
+        toggleOverlay(false);
         linkRedirect('https://youtu.be/dQw4w9WgXcQ');
     }
 
-    function openOverlay() {
-        document.body.style.overflow = 'hidden';
-        warningOverlay.style.display = 'flex';
-        setTimeout(() => warningOverlay.style.opacity = '1', 10);
-    }
-
-    function closeOverlay() {
-        document.body.style.overflow = 'auto';
-        warningOverlay.style.opacity = '0';
-        setTimeout(() => warningOverlay.style.display = 'none', 200);
+    const toggleOverlay = (show) => {
+        document.body.style.overflow = show ? 'hidden' : 'auto';
+        warningOverlay.classList.toggle('show', show);
     }
 }
 
@@ -958,6 +888,9 @@ function setupEventListener() {
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
 
+    // Action mode listener
+    document.getElementById("action-mode").addEventListener("click", () => updateActionMode(actionMode === 1 ? 0 : 1));
+
     // Custom block toggle listeners
     setupCustomBlock();
 
@@ -1035,7 +968,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     getVersion();
     checkMount();
     loadActionMode();
-    setupActionMode();
     updateAdblockSwtich();
     initCredit();
     setupRemalwackApp();
