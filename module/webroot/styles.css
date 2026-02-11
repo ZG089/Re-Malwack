@@ -125,6 +125,7 @@ body.input-focused {
     width: calc(100% - 60px);
 
     svg {
+        max-height: 54px;
         fill: var(--btn-primary-text);
     }
 }
@@ -258,11 +259,17 @@ body.input-focused {
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
     z-index: 1100;
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.2s ease;
+}
+
+.overlay.show {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .overlay-content {
@@ -272,13 +279,12 @@ body.input-focused {
     max-height: 90vh;
     overflow-y: auto;
     background: var(--bg-overlay);
-    border-radius: 12px;
-    padding: 30px;
+    border-radius: 16px;
+    padding: 24px;
     z-index: 1200;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    transition: opacity 0.2s ease;
 }
 
 .overlay-content h2 {
@@ -579,7 +585,7 @@ input:checked+.slider:before {
     justify-content: center;
     height: 24px;
     width: 24px;
-    padding-right: 10px;
+    margin-right: 8px;
 
     svg {
         fill: var(--text-primary);
@@ -949,6 +955,12 @@ li:last-child {
     padding-bottom: calc(var(--bottom-inset) + 30px);
     position: relative;
     text-align: center;
+}
+
+.muted {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 .ripple-element {
