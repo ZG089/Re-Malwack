@@ -777,36 +777,92 @@ function setupPrank() {
     }
 }
 
+let cachedThemeData = null;
+
+/**
+ * Load theme from theme.json and apply as CSS variables
+ * @param {string} themeName - Name of the theme to load
+ */
+async function loadTheme(themeName) {
+    try {
+        if (!cachedThemeData) {
+            const response = await fetch('theme.json');
+            cachedThemeData = await response.json();
+        }
+
+        let schemeName = themeName;
+        if (themeName === 'system') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const preferred = prefersDark ? 'dark' : 'light';
+            schemeName = cachedThemeData.schemes[preferred] ? preferred : Object.keys(cachedThemeData.schemes)[0];
+        }
+
+        const scheme = cachedThemeData.schemes[schemeName];
+        if (!scheme) return;
+
+        const root = document.documentElement;
+        for (const [key, value] of Object.entries(scheme)) {
+            const cssVarName = `--md-sys-color-${key.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()}`;
+            root.style.setProperty(cssVarName, value);
+        }
+        root.style.setProperty('--md-sys-color-primary-main', scheme.primary);
+        document.documentElement.classList.toggle('dark-theme', schemeName === 'dark');
+    } catch (error) {
+        console.error('Error loading theme:', error);
+    }
+}
+
 /**
  * Setup WebUI color theme
- * localStorage: remalwack_theme - light, dark
+ * localStorage: remalwack_theme - theme name
  * @return {Promise<void>}
  */
 async function setupTheme() {
-    const savedTheme = localStorage.getItem('remalwack_theme');
     const themeSelect = document.getElementById('theme-select');
+    if (!themeSelect) return;
 
-    const applyTheme = (theme) => {
-        document.documentElement.classList.toggle(
-            'dark-theme',
-            (theme === 'system')
-                ? window.matchMedia('(prefers-color-scheme: dark)').matches // system theme
-                : theme === 'dark' // user theme
-        );
-    }
-
-    applyTheme(savedTheme || 'system');
-    themeSelect.value = savedTheme || 'system';
-
-    // theme switcher
-    themeSelect.addEventListener('change', () => {
-        if (themeSelect.value === 'system') {
-            localStorage.removeItem('remalwack_theme');
-        } else {
-            localStorage.setItem('remalwack_theme', themeSelect.value);
+    try {
+        if (!cachedThemeData) {
+            const response = await fetch('theme.json');
+            cachedThemeData = await response.json();
         }
-        applyTheme(themeSelect.value);
-    });
+
+        // Clear and populate theme-select
+        themeSelect.innerHTML = '';
+        const systemOption = document.createElement('option');
+        systemOption.value = 'system';
+        systemOption.textContent = 'System';
+        themeSelect.appendChild(systemOption);
+
+        Object.keys(cachedThemeData.schemes).forEach(key => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+            themeSelect.appendChild(option);
+        });
+
+        const savedTheme = localStorage.getItem('remalwack_theme') || 'system';
+        themeSelect.value = savedTheme;
+        await loadTheme(savedTheme);
+
+        themeSelect.addEventListener('change', async () => {
+            const newTheme = themeSelect.value;
+            if (newTheme === 'system') {
+                localStorage.removeItem('remalwack_theme');
+            } else {
+                localStorage.setItem('remalwack_theme', newTheme);
+            }
+            await loadTheme(newTheme);
+        });
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (themeSelect.value === 'system') {
+                loadTheme('system');
+            }
+        });
+    } catch (error) {
+        console.error('Error setting up theme:', error);
+    }
 }
 
 // update adblock swtich
