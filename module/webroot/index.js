@@ -2,6 +2,7 @@ import { spawn, exec, toast } from './assets/kernelsu.js';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
+const CONFIG_PATH =`${basePath}/config.sh`;
 
 const filePaths = {
     blacklist: 'blacklist.txt',
@@ -188,6 +189,81 @@ async function getlastUpdated(isEnable = true) {
         console.error("Error getting last updated time:", last.stderr || now.stderr);
         lastUpdatedElement.textContent = '-';
     }
+}
+
+
+// ===== Action Mode =====
+
+let actionMode = 0; // default to load properly
+
+function updateActionModeLabel() {
+  const label = document.getElementById("action-mode-label");
+  if (!label) return;
+
+  label.textContent =
+    actionMode === 1
+      ? "Action Mode - Pause & Resume"
+      : "Action Mode - Update Hosts";
+}
+
+function loadActionMode() {
+  const cb = "cb_load_am_" + Date.now();
+
+  window[cb] = (code, stdout) => {
+    delete window[cb];
+
+    if (code === 0) {
+      const match = stdout.match(/action_mode=(\d+)/);
+      actionMode = match ? parseInt(match[1], 10) : 0;
+    } else {
+      console.error("Failed to read config, using default 0");
+    }
+
+    updateActionModeLabel();
+  };
+
+  ksu.exec(
+    `grep '^action_mode=' ${CONFIG_PATH} 2>/dev/null || echo 'action_mode=0'`,
+    "{}",
+    cb
+  );
+}
+
+function setupActionMode() {
+  const box = document.getElementById("action-mode");
+  if (!box) return;
+
+  box.addEventListener("click", () => {
+    const newMode = actionMode === 1 ? 0 : 1;
+
+    const cb = "cb_set_am_" + Date.now();
+
+    window[cb] = (code) => {
+      delete window[cb];
+
+      if (code === 0) {
+        actionMode = newMode;
+        updateActionModeLabel();
+
+        showPrompt(
+          actionMode === 1
+            ? "Action Mode set to Pause & Resume"
+            : "Action Mode set to Update Hosts",
+          true,
+          2000
+        );
+      } else {
+        showPrompt("Failed to change Action Mode", false, 2000);
+        console.error("ksu.exec failed with code", code);
+      }
+    };
+
+    ksu.exec(
+      `sed -i 's/^action_mode=.*/action_mode=${newMode}/' ${CONFIG_PATH}`,
+      "{}",
+      cb
+    );
+  });
 }
 
 // Function to check block status for different site categories
@@ -958,6 +1034,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyRippleEffect();
     getVersion();
     checkMount();
+    loadActionMode();
+    setupActionMode();
     updateAdblockSwtich();
     initCredit();
     setupRemalwackApp();
