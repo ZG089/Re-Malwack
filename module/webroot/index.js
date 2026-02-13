@@ -195,8 +195,10 @@ function getStatusText() {
 }
 
 function updateActionModeLabel() {
-    const label = document.getElementById("action-mode-label");
-    label.textContent = "Action Mode - " + getStatusText();
+    const label = document.getElementById("action-mode-status");
+    label.classList.toggle("pause", actionMode === 1);
+    label.classList.toggle("update", actionMode === 0);
+    label.textContent = getStatusText();
 }
 
 function loadActionMode() {
