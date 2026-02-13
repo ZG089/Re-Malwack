@@ -46,6 +46,7 @@ body.input-focused {
 .header-disabled {
     display: none;
     justify-content: flex-start !important;
+    gap: 12px;
     font-size: 16px;
     padding: 10px 15px;
     background-color: var(--md-sys-color-outline-variant);
@@ -53,6 +54,7 @@ body.input-focused {
     user-select: none;
 
     svg {
+        flex-shrink: 0;
         fill: var(--md-sys-color-on-surface-variant);
         height: 20px;
         width: 20px;
@@ -69,10 +71,7 @@ body.input-focused {
     color: var(--md-sys-color-primary);
 
     svg {
-        flex-shrink: 0;
         fill: var(--md-sys-color-primary);
-        height: 1.5em;
-        width: 1.5em;
     }
 }
 
@@ -93,8 +92,8 @@ body.input-focused {
     grid-template-columns: repeat(3, 1fr);
     width: 90vw;
     max-width: 800px;
-    background-color: var(--md-sys-color-tertiary-container);
-    color: var(--md-sys-color-on-tertiary-container);
+    background-color: var(--md-sys-color-outline-variant);
+    color: var(--md-sys-color-on-surface);
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
@@ -462,6 +461,27 @@ body.input-focused {
     border: none;
     padding: 15px;
     user-select: none;
+}
+
+#action-mode-status {
+    display: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    user-select: none;
+    transition: all 1s ease;
+}
+
+#action-mode-status.pause {
+    display: block;
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+}
+
+#action-mode-status.update {
+    display: block;
+    background-color: var(--md-sys-color-tertiary);
+    color: var(--md-sys-color-on-tertiary);
 }
 
 .card {
