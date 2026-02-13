@@ -460,12 +460,8 @@ body.input-focused {
     background-color: var(--md-sys-color-surface-container);
     color: var(--md-sys-color-on-surface-container);
     border: none;
-    padding: 5px 15px;
+    padding: 15px;
     user-select: none;
-
-    ul {
-        padding: 0;
-    }
 }
 
 .card {
@@ -490,7 +486,12 @@ body.input-focused {
     font-weight: bold;
     background-color: transparent;
     padding: 0;
-    text-align: left;
+}
+
+.toggle-text {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
 }
 
 #create-shortcut {
