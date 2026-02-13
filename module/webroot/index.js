@@ -344,12 +344,8 @@ async function toggleDailyUpdate() {
     const toggle = document.getElementById('daily-update-toggle');
     const loadingOverlay = document.getElementById('loading-overlay');
 
-    // Prevent UI from changing state directly
-    const currentState = toggle.checked;
-    toggle.checked = !currentState;
-
     loadingOverlay.classList.add('show');
-    const action = currentState ? "disable" : "enable";
+    const action = toggle.checked ? "disable" : "enable";
 
     exec(`sh ${modulePath}/rmlwk.sh --auto-update ${action} --quiet >/dev/null 2>&1`).then((result) => {
         if (result.errno === 0) {
