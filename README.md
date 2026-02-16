@@ -157,7 +157,7 @@
 ### 1 - Contributors
 
 - [@KOWX712](https://github.com/KOWX712)
-- [@bocchi-the-dev](https://github.com/bocchi-the-dev/)
+- [@ikuyo-kita07](https://github.com/ikuyo-kita07/)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
 - [@myst-25](https://github.com/myst-25) (Testing & feedback)
 - [@dnascorpionofficial](https://github.com/dnascorpionofficial) (Testing & feedback)
