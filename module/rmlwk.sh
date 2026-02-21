@@ -961,27 +961,19 @@ fi
 # 4.1 - Log errors
 exec 2>>"$LOGFILE"
 
-# 4.2 - Trap runtime errors (logs failing command line no. + exit code)
+# 4.2 - Trap errors (logs failing command line no. + exit code)
 set -e
-trap '
-code=$?
-[ "$code" -ne 0 ] && echo "[$(date +"%Y-%m-%d %H:%M:%S")] [ERROR] at line $LINENO (exit $code)" >> "$LOGFILE"
-exit $code
-' EXIT
-
-# 4.3 - Trap final script exit
 trap '
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 
 case $exit_code in
     0)   msg="Script ran successfully ✅ - No errors" ;;
-    1)   msg="General error ❌" ;;
-    126) msg="Command invoked cannot execute ❌" ;;
-    127) msg="Command not found ❌" ;;
-    130) msg="Terminated by Ctrl+C (SIGINT) ❌" ;;
+    1)   msg="General error at line $LINENO ❌" ;;
+    126) msg="Command at line $LINENO invoked cannot execute ❌" ;;
+    127) msg="Command at line $LINENO not found ❌" ;;
     137) msg="Killed (SIGKILL / OOM) ❌" ;;
-    *)   msg="Unknown error ❌ (code $exit_code)" ;;
+    *)   msg="Unknown error at line $LINENO ❌ (code $exit_code)" ;;
 esac
 
 echo "[$timestamp] - [$msg]" >> "$LOGFILE"
@@ -1108,7 +1100,7 @@ case "$(tolower "$1")" in
             echo "  rmlwk --whitelist add something*   # Add prefix wildcard to whitelist"
             echo "  rmlwk --whitelist remove example.com # Remove domain from whitelist"
             echo "  rmlwk -w remove domain1.com domain2.com domain3.com # Remove multiple domains from whitelist"
-            display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null)
+            display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null || true )
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
         fi
@@ -1345,7 +1337,7 @@ case "$(tolower "$1")" in
 
         if [ "$option" != "add" ] && [ "$option" != "remove" ] || [ $# -eq 0 ]; then
             echo "Usage: rmlwk --blacklist, -b <add/remove> <domain1> [domain2] [domain3] ..."
-            display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null)
+            display_blacklist=$(cat "$persist_dir/blacklist.txt" 2>/dev/null || true)
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
             exit 1
         fi
