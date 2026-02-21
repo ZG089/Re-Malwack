@@ -147,7 +147,7 @@ resume_protections() {
         echo "[!] No backup hosts file found to resume."
         sleep 0.5
         echo "[i] Force resuming protection and running hosts update as a fallback action"
-        nuke_if_we_dont_have_internet
+        check_internet
         sleep 2
         sed -i 's/^adblock_switch=.*/adblock_switch=0/' "/data/adb/Re-Malwack/config.sh"
         exec "$0" --quiet --update-hosts
@@ -476,7 +476,7 @@ block_content() {
         if [ ! -f "${cache_hosts}1" ]; then
             log_message WARN "No cached $block_type blocklist found, redownloading to disable properly."
             echo "[!] No cached $block_type blocklist found, redownloading to disable properly"
-            nuke_if_we_dont_have_internet
+            check_internet
             fetch_blocklist "$block_type"
 
             # Process downloaded hosts
@@ -493,7 +493,7 @@ block_content() {
         log_message SUCCESS "Disabled $block_type blocklist."
     else
         if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
-            nuke_if_we_dont_have_internet
+            check_internet
             echo "[*] Downloading hosts for $block_type block."
             fetch_blocklist "$block_type"
             # Process downloaded hosts
@@ -545,7 +545,7 @@ block_trackers() {
         fi
 
         if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
-            nuke_if_we_dont_have_internet
+            check_internet
             log_message WARN "No cached trackers blocklist file found for $brand device, redownloading before removal."
             echo "[!] No cached trackers blocklist file(s) found for $brand device, redownloading before removal."
             fetch_blocklist "trackers"
@@ -569,7 +569,7 @@ block_trackers() {
         fi
 
         if ! ls "${cache_hosts}"* >/dev/null 2>&1; then
-            nuke_if_we_dont_have_internet
+            check_internet
             log_message "Fetching trackers block hosts for $brand"
             echo "[*] Fetching trackers block files for $brand"
             fetch_blocklist "trackers"
@@ -648,8 +648,12 @@ abort() {
 }
 
 # Bruh It's clear already what this function does ._.
-nuke_if_we_dont_have_internet() {
-    ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "No internet connection detected, Please connect to a network then try again."
+check_internet() {
+    while ! ping -c 1 8.8.8.8 &>/dev/null; do
+    log_message WARN "No internet connection detected, retrying..."
+    ui_print "[i] No internet connection detected, attempting to reconnect..."
+    sleep 1
+done
 }
 
 # Fetches hosts from sources.txt
@@ -1548,7 +1552,7 @@ case "$(tolower "$1")" in
             echo "[*] Building Anti-Ads fortress 🏰"
             log_message "Installing protection for the first time"
         fi
-        nuke_if_we_dont_have_internet
+        check_internet
         combined_file="${tmp_hosts}_all"
         > "$combined_file"
 
