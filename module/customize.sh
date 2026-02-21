@@ -52,8 +52,10 @@ $BOOTMODE || abort "[!] Not supported to install in recovery"
 # check if adaway is detected or not.
 pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please uninstall to prevent conflicts, backup your setup optionally before uninstalling in case you want to import your setup."
 
-# let's check do we have internet or not.
-ping -c 1 -w 5 8.8.8.8 &>/dev/null || abort "[✗] Failed to connect to the internet"
+while ! ping -c 1 8.8.8.8 &>/dev/null; do
+    ui_print "[i] No internet connection detected, attempting to reconnect..."
+    sleep 1
+done
 
 # Add a persistent directory to save configuration
 ui_print "[*] Preparing Re-Malwack environment"
