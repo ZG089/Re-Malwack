@@ -183,7 +183,7 @@ get_current_time() {
     time_ns=$(date +%s%N 2>/dev/null)
     if [ $? -ne 0 ] || [ "$time_ns" = "%s%N" ]; then
         # Fallback: use seconds only, return as milliseconds
-        time_ns=$(($(date +%s) * 1000))
+        time_ms=$(($(date +%s) * 1000))
     else
         # Convert nanoseconds to milliseconds by dividing by 1,000,000
         time_ms=$((time_ns / 1000000))
