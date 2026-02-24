@@ -652,7 +652,7 @@ abort() {
 check_internet() {
     while ! ping -c 1 8.8.8.8 &>/dev/null; do
     log_message WARN "No internet connection detected, retrying..."
-    ui_print "[i] No internet connection detected, attempting to reconnect..."
+    echo "[i] No internet connection detected, attempting to reconnect..."
     sleep 1
 done
 }
