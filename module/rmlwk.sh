@@ -518,6 +518,7 @@ remount_hosts() {
         return 0
     fi
     log_message "Attempting to remount hosts..."
+    log_message "system hosts file lines count: $system_hosts_lines, module hosts file lines count: $module_hosts_lines"
     echo "[*] Attempting to remount hosts..."
     umount -l "$system_hosts" 2>/dev/null || log_message WARN "Failed to unmount $system_hosts"
     mount --bind "$hosts_file" "$system_hosts" || {
@@ -751,15 +752,19 @@ update_status() {
             status_msg="Status: Protection is disabled due to reset ❌"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
-        if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then
+        system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
+        module_hosts_lines=$(cat "$hosts_file" 2>/dev/null | wc -l)
+        if [ "$module_hosts_lines" -ne "$system_hosts_lines" ] && [ "$is_zn_detected" -ne 1 ]; then
             # Attempt to remount hosts and refresh status
             # Only in case of broken mount detection
             remount_hosts
             refresh_blocked_counts
-            if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ]; then
+            system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
+            module_hosts_lines=$(cat "$hosts_file" 2>/dev/null | wc -l)
+            if [ "$module_hosts_lines" -ne "$system_hosts_lines" ]; then
                 status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
-                echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks none."
+                echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks $blocked_sys domains."
             fi
         fi
         # Set success message if not set to error
