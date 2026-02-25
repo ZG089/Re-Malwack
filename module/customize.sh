@@ -107,22 +107,7 @@ detect_key_press() {
 }
 
 # set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh $MODPATH/service.sh $MODPATH/rmlwk-app.sh $MODPATH/import.sh
-
-if ! pm path me.itejo443.remalwack > /dev/null 2>&1 ; then
-    ui_print "[*] Re-Malwack Quick-Tile Add-on app is not installed, Would you like to install it?"
-    ui_print "  1. Yes, install the app now"
-    ui_print "  2. No, skip app installation"
-    detect_key_press 2 1
-    choice=$?
-    if [ "$choice" -eq 1 ]; then
-        sh $MODPATH/rmlwk-app.sh
-        ui_print ""
-    else
-        ui_print "[i] Skipping app installation as per user choice."
-        ui_print ""
-    fi
-fi
+chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh $MODPATH/service.sh $MODPATH/import.sh
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
