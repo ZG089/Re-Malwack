@@ -374,20 +374,6 @@ async function exportLogs() {
     }
 }
 
-// Function to setup Re-Malwack app installation button
-function setupRemalwackApp() {
-    const installBtn = document.getElementById('remalwack-app');
-
-    exec('pm path me.itejo443.remalwack >/dev/null 2>&1').then((result) => {
-        if (result.errno === 0) {
-            installBtn.style.display = 'none';
-            return;
-        }
-        installBtn.onclick = () => {
-            performAction(`sh ${modulePath}/rmlwk-app.sh`);
-        };
-    });
-}
 
 // Function to handle blocking/unblocking different site categories
 function setupCustomBlock() {
@@ -1024,7 +1010,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadActionMode();
     updateAdblockSwtich();
     initCredit();
-    setupRemalwackApp();
     floatBtn.classList.add('show');
     await checkBlockStatus();
     ["custom-source", "blacklist", "whitelist"].forEach(loadFile);

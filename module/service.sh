@@ -195,25 +195,6 @@ if [ "$daily_update" = 1 ]; then
     fi
 fi
 
-if pm path "me.itejo443.remalwack" > /dev/null 2>&1 && [ ! -f $SELF_DELETE ]; then
-    log_message "Re-Malwack QuickTile Add-on is installed, setting up self-delete service script."
-    mkdir -p "$SERVICE_DIR"
-	cat > "$SELF_DELETE" << 'EOF'
-#!/system/bin/sh
-sleep 10
-MODULE_DIR="/data/adb/modules/Re-Malwack"
-APP_PKG="me.itejo443.remalwack"
-SELF="$0"
-
-if [ ! -d "$MODULE_DIR" ] && pm path "$APP_PKG"; then
-    pm uninstall "$APP_PKG"
-    rm -f "$SELF"
-fi
-exit 0
-EOF
-	chmod 755 "$SELF_DELETE"
-fi
-
 # Apply module status into module description
 sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 log_message "$status_msg"
