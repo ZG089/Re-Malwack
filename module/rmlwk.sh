@@ -334,7 +334,6 @@ query_domain() {
 
 # Function to export logs
 export_logs() {
-    start_time=$(get_current_time)
     log_message "Exporting logs..."
     VERSION=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2)
     LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
@@ -346,11 +345,9 @@ export_logs() {
     else
         tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
     fi
+    log_message SUCCESS "Logs are going to be saved in: /sdcard/Download/$tarFileName"
     tar -czf "/sdcard/Download/$tarFileName" -C "$persist_dir" logs
     echo "Log saved to: /sdcard/Download/$tarFileName"
-    log_message SUCCESS "Log saved to: /sdcard/Download/$tarFileName"
-    end_time=$(get_current_time)
-    log_duration "Exporting logs" "$start_time" "$end_time"
 }
 
 # Functions to process hosts
