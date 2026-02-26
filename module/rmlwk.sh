@@ -650,10 +650,16 @@ abort() {
 
 # Bruh It's clear already what this function does ._.
 check_internet() {
+    retry_count=0
+    max_retries=6
     while ! ping -c 1 8.8.8.8 &>/dev/null; do
-        log_message WARN "No internet connection detected, retrying..."
-        echo "[i] No internet connection detected, attempting to reconnect..."
-        sleep 1
+        retry_count=$((retry_count + 1))
+        if [ "$retry_count" -ge "$max_retries" ]; then
+            abort "No internet connection detected after $max_retries attempts, aborting..."
+        fi
+        log_message WARN "No internet connection detected, retrying... (Attempt $retry_count/$max_retries)"
+        echo "[i] No internet connection detected, attempting to reconnect... (Attempt $retry_count/$max_retries)"
+        sleep 1.5
     done
 }
 
