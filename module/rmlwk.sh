@@ -112,7 +112,8 @@ pause_protections() {
     if is_default_hosts && ! is_protection_paused; then
         abort "You cannot pause protections while hosts is reset."
     fi
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     log_message "Pausing Protections"
     echo "[*] Pausing Protections"
     cp "$hosts_file" "$persist_dir/hosts.bak"
@@ -121,14 +122,16 @@ pause_protections() {
     refresh_blocked_counts
     update_status
     log_message SUCCESS "Protection has been paused."
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Pausing protections" "$start_time" "$end_time"
     echo "[✓] Protection has been paused."
 }
 
 # 2 - Resume adblock
 resume_protections() {
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     log_message "Resuming protection."
     echo "[*] Resuming protection"
     if [ -f "$persist_dir/hosts.bak" ]; then
@@ -138,7 +141,8 @@ resume_protections() {
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Protection has been resumed."
-        local end_time=$(get_current_time)
+        local end_time
+        end_time=$(get_current_time)
         log_duration "Resuming protections" "$start_time" "$end_time"
         echo "[✓] Protection has been resumed."
     else
@@ -267,7 +271,8 @@ log_duration() {
     fi
 
     # Format duration
-    local formatted_time=$(format_duration "$duration_ms")
+    local formatted_time
+    formatted_time=$(format_duration "$duration_ms")
 
     # Log the result
     log_message SUCCESS "Task [$job_name] took $formatted_time"
@@ -364,7 +369,8 @@ stage_blocklist_files() {
 # 2. Install hosts
 install_hosts() {
     type="$1"
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     log_message "Fetching module's repo whitelist files"
     # Update hosts for global whitelist
     mkdir -p "$persist_dir/cache/whitelist"
@@ -432,13 +438,15 @@ install_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully installed $type hosts."
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Installing hosts (Type: $type)" "$start_time" "$end_time"
 }
 
 # 3. Remove hosts
 remove_hosts() {
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     log_message "Starting to remove hosts."
     # Prepare original hosts
     cp -f "$hosts_file" "${tmp_hosts}0"
@@ -461,7 +469,8 @@ remove_hosts() {
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully removed hosts."
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Removing hosts" "$start_time" "$end_time"
 }
 
@@ -532,7 +541,8 @@ remount_hosts() {
 
 # Function to block trackers
 block_trackers() {
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     status=$1
     cache_dir="$persist_dir/cache/trackers"
     cache_hosts="$cache_dir/hosts"
@@ -560,7 +570,8 @@ block_trackers() {
         remove_hosts
         sed -i "s/^block_trackers=.*/block_trackers=0/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist disabled."
-        local end_time=$(get_current_time)
+        local end_time
+        end_time=$(get_current_time)
         log_duration "Disabling trackers block" "$start_time" "$end_time"
         echo "[✓] Trackers block has been disabled"
     else
@@ -588,7 +599,8 @@ block_trackers() {
         install_hosts "trackers"
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
         log_message SUCCESS "Trackers blocklist enabled."
-        local end_time=$(get_current_time)
+        local end_time
+        end_time=$(get_current_time)
         log_duration "Enabling trackers block" "$start_time" "$end_time"
         echo "[✓] Trackers block has been enabled"
     fi
@@ -667,7 +679,8 @@ check_internet() {
 # tmp_hosts 0 = This is the original hosts file, to prevent overwriting before cat process complete, ensure coexisting of different block type.
 # tmp_hosts 1-9 = This is the downloaded hosts, to simplify process of install and remove function.
 fetch() {
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     local output_file="$1"
     local url="$2"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
@@ -691,13 +704,15 @@ fetch() {
         fi
     fi
     log_message SUCCESS "Downloaded from $url using $dl_tool, stored in $output_file"
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Fetching process" "$start_time" "$end_time"
 }
 
 # Updates module status, modifying module description in module.prop
 update_status() {
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
@@ -786,7 +801,8 @@ update_status() {
     # Update module description
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     log_message "$status_msg"
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Updating module status" "$start_time" "$end_time"
 }
 
@@ -853,7 +869,8 @@ enable_auto_update() {
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB="0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo \"Auto-update failed at \$(date)\" ) >> /data/adb/Re-Malwack/logs/auto_update-cron.log"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
 
     log_message "Enabling auto update has been initiated."
 
@@ -896,7 +913,8 @@ enable_auto_update() {
 
     sed -i 's/^daily_update=.*/daily_update=1/' "/data/adb/Re-Malwack/config.sh"
     log_message SUCCESS "Auto update has been enabled."
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_duration "Enabling auto update" "$start_time" "$end_time"
     echo "[✓] Auto update has been enabled."
 }
@@ -906,7 +924,8 @@ disable_auto_update() {
     JOB_DIR="$persist_dir/auto_update"
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-    local start_time=$(get_current_time)
+    local start_time
+    start_time=$(get_current_time)
 
     if [ "$auto_update" = "0" ]; then
         abort "Auto update is already disabled"
@@ -941,7 +960,8 @@ disable_auto_update() {
     fi
 
     sed -i 's/^daily_update=.*/daily_update=0/' "/data/adb/Re-Malwack/config.sh"
-    local end_time=$(get_current_time)
+    local end_time
+    end_time=$(get_current_time)
     log_message SUCCESS "Auto update has been disabled."
     log_duration "Disabling auto update" "$start_time" "$end_time"
     echo "[✓] Auto update has been disabled."
