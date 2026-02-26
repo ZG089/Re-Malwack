@@ -135,6 +135,12 @@ fi
 
 if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
     # Initialize
+    . $persistent_dir/config.sh
+    [ "$adblock_switch" -eq 1 ] && {
+        echo "[i] Detected adblock pause, auto resuming before updating hosts..."
+        mv -f "$persistent_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
+        sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
+    }
     if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
         ui_print "[✗] Failed to initialize script"
         # Extract version from module.prop
