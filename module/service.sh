@@ -140,15 +140,18 @@ else
 fi
 
 # Here goes the part where we actually determine module status
-if is_protection_paused; then
+if [ -f "$persist_dir/mode_ready" ]; then
+    [ -f "$MODDIR/system/etc/hosts" ] && rm -f "$persist_dir/mode_ready"
+    status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
+elif is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
 elif is_default_hosts; then
     if [ "$blacklist_count" -gt 0 ]; then
         plural="entries are active"
         [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-        status_msg="Status: Protection is disabled due to reset ❌ | Only $blacklist_count blacklist $plural"
+        status_msg="Status: Protection is reset ❌ | Only $blacklist_count blacklist $plural"
     else
-        status_msg="Status: Protection is disabled due to reset ❌"
+        status_msg="Status: Protection is reset ❌"
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
     if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then

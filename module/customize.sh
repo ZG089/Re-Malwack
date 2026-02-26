@@ -52,11 +52,6 @@ $BOOTMODE || abort "[!] Not supported to install in recovery"
 # check if adaway is detected or not.
 pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please uninstall to prevent conflicts, backup your setup optionally before uninstalling in case you want to import your setup."
 
-while ! ping -c 1 8.8.8.8 &>/dev/null; do
-    ui_print "[i] No internet connection detected, attempting to reconnect..."
-    sleep 1
-done
-
 # Add a persistent directory to save configuration
 ui_print "[*] Preparing Re-Malwack environment"
 persistent_dir="/data/adb/Re-Malwack"
@@ -138,27 +133,45 @@ else
     add_url_if_not_exists "https://blocklistproject.github.io/Lists/ads.txt"
 fi
 
-# Initialize
-if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
-    ui_print "[✗] Failed to initialize script"
-    # Extract version from module.prop
-    module_version=$(grep_prop version $MODPATH/module.prop)
+if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
+    # Initialize
+    if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
+        ui_print "[✗] Failed to initialize script"
+        # Extract version from module.prop
+        module_version=$(grep_prop version $MODPATH/module.prop)
 
-    # Check if it's a test release and extract PR/commit info
-    if echo "$module_version" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
-        # Extract base version commit hash (ex: 1995-5ex77xx) from version string
-        base_version=$(echo "$module_version" | sed 's/-test.*//')
-        build_id=$(echo "$module_version" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
-        tarFileName="/sdcard/Download/Re-Malwack_${base_version}_${build_id}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
-    else
-        # Regular release version
-        tarFileName="/sdcard/Download/Re-Malwack_${module_version}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+        # Check if it's a test release and extract PR/commit info
+        if echo "$module_version" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
+            # Extract base version commit hash (ex: 1995-5ex77xx) from version string
+            base_version=$(echo "$module_version" | sed 's/-test.*//')
+            build_id=$(echo "$module_version" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
+            tarFileName="/sdcard/Download/Re-Malwack_${base_version}_${build_id}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+        else
+            # Regular release version
+            tarFileName="/sdcard/Download/Re-Malwack_${module_version}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+        fi
+
+        tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+        # cleanup in case of failure (in worst cases on first install)
+        [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
+        abort "[i] Logs are saved in ${tarFileName}"
     fi
-
-    tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
-    # cleanup in case of failure (in worst cases on first install)
-    [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
-    abort "[i] Logs are saved in ${tarFileName}"
+else
+    ui_print "[i] No internet connection, skipping hosts initialization. You may initialize it later after reboot."
+    # In case of module update without internet while there's an existing hosts file
+        # We don't want to delete user's existing hosts file, so we just move it to the new location if it exists
+        # otherwise we just create an empty hosts file to prevent potential issues.
+    if [ ! -f /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
+        printf "127.0.0.1 localhost\n::1 localhost" > $MODPATH/system/etc/hosts
+        status_msg="Status: Awaiting reboot 🔃"
+        touch "$persistent_dir/mode_ready"
+    else
+        ui_print "[*] migrating existing hosts file to module directory"
+        mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts
+        status_msg="Status: Reboot required to apply updates 🔃"
+    fi
+    chmod 0644 $MODPATH/system/etc/hosts
+    sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 fi
 
 # Create symlink on install for ksu/ap
@@ -167,4 +180,4 @@ for i in /data/adb/ap/bin /data/adb/ksu/bin; do
 done
 
 # Cleanup
-rm -f $MODPATH/import.sh
+rm -f $MODPATH/import.sh && rm -rf $MODPATH/bin
