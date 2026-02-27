@@ -60,9 +60,10 @@ jobs:
 
       - name: Check Commit Info
         id: check_commit
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          COMMIT_MSG='${{ github.event.head_commit.message }}'
-          if echo "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|website|site"; then
+          if printf '%s\n' "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|website|site"; then
             echo "SKIP=true" >> $GITHUB_ENV
             SKIP=true
           else
@@ -76,19 +77,19 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          THUMB: $GITHUB_WORKSPACE/assets/dl.jpg
-          COMMIT_HASH: "${{ github.sha }}"
-          COMMIT_MSG_RAW: "${{ github.event.head_commit.message }}"
-          COMMIT_URL: "${{ github.event.head_commit.url }}"
-          DISCORD_RELEASES: "${{ secrets.DISCORD_RELEASES }}"
+          THUMB: ${{ github.workspace }}/assets/dl.jpg
+          COMMIT_HASH: ${{ github.sha }}
+          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+          DISCORD_RELEASES: ${{ secrets.DISCORD_RELEASES }}
         run: |
-          COMMIT_MSG=$(echo "$COMMIT_MSG_RAW")
+          COMMIT_MSG="$COMMIT_MSG_RAW"
           CONTENT="⚙️ **New test release**\n\n$COMMIT_MSG\n\n\`Base Version: $VERSION\`\n\`Test Build ID: $TEST_BUILD_ID\`\n\n[View Commit]($COMMIT_URL)\n[Workflow Run]($RUN_URL)"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
-              -F document=@"${{ env.ZIP_NAME }}.zip" \
-              -F thumb=@"${{ env.THUMB }}" \
+              -F document=@"$ZIP_NAME.zip" \
+              -F thumb=@"$THUMB" \
               -F caption="⚙️ *New test release!*
           \`\`\`
           $COMMIT_MSG
@@ -100,4 +101,4 @@ jobs:
           [- Workflow Run -]($RUN_URL)" \
               -F parse_mode="Markdown"
           curl -X POST -H "Content-Type: multipart/form-data" -F \
-            "payload_json={\"content\": \"$CONTENT\"}" -F "file=@${{ env.ZIP_NAME }}.zip" "${DISCORD_RELEASES}"
+            "payload_json={\"content\": \"$CONTENT\"}" -F "file=@$ZIP_NAME.zip" "$DISCORD_RELEASES"
