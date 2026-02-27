@@ -264,53 +264,61 @@ async function checkBlockStatus() {
 /**
  * Run rmlwk command and show stdout in terminal
  * @param {string} commandOption - rmlwk --option
- * @returns {void}
+ * @param {boolean} showTerminal - show terminal
+ * @returns {Promise<boolean>} - true if the command was successful
  */
-function performAction(commandOption) {
+function performAction(commandOption, showTerminal = true) {
     const terminal = document.querySelector('.terminal');
     const terminalContent = document.getElementById('terminal-output-text');
     const backBtn = document.getElementById('aciton-back-btn');
     const closeBtn = document.querySelector('.close-terminal');
-
-    terminal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    if (isShellRunning) return;
+    const loadingOverlay = document.getElementById('loading-overlay');
 
     const closeTerminal = () => {
         document.body.style.overflow = 'auto';
         terminal.classList.remove('show');
         terminalContent.innerHTML = "";
         closeBtn.classList.remove('show');
-        backBtn.removeEventListener('click', () => closeTerminal());
-        closeBtn.removeEventListener('click', () => closeTerminal());
     }
 
-    backBtn.addEventListener('click', () => closeTerminal());
-    closeBtn.addEventListener('click', () => closeTerminal());
+    const appendOutput = (data, isError = false) => {
+        if (!showTerminal) return;
+        const newline = document.createElement('p');
+        newline.className = 'output-line';
+        if (isError) newline.classList.add('error');
+        newline.textContent = data;
+        terminalContent.appendChild(newline);
+        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
+    }
+
+    if (showTerminal) {
+        terminal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        backBtn.onclick = () => closeTerminal();
+        closeBtn.onclick = () => closeTerminal();
+    } else {
+        loadingOverlay.classList.add('show');
+    }
+
+    if (isShellRunning) return;
 
     isShellRunning = true;
-    const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
-    output.stdout.on('data', (data) => {
-        const newline = document.createElement('p');
-        newline.className = 'output-line';
-        newline.textContent = data;
-        terminalContent.appendChild(newline);
-        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
-    });
-    output.stderr.on('data', (data) => {
-        const newline = document.createElement('p');
-        newline.className = 'output-line';
-        newline.textContent = data;
-        newline.style.color = 'red';
-        terminalContent.appendChild(newline);
-        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
-    });
-    output.on('exit', () => {
-        isShellRunning = false;
-        closeBtn.classList.add('show');
-        getStatus();
-        checkBlockStatus();
-        updateAdblockSwtich();
+    return new Promise((resolve) => {
+        const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
+        output.stdout.on('data', (data) => appendOutput(data));
+        output.stderr.on('data', (data) => appendOutput(data, true));
+        output.on('exit', (code) => {
+            isShellRunning = false;
+            if (showTerminal) {
+                closeBtn.classList.add('show');
+            } else {
+                loadingOverlay.classList.remove('show');
+            }
+            getStatus();
+            checkBlockStatus();
+            updateAdblockSwtich();
+            resolve(code === 0);
+        });
     });
 }
 
@@ -344,23 +352,15 @@ async function resetHostsFile() {
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const toggle = document.getElementById('daily-update-toggle');
-    const loadingOverlay = document.getElementById('loading-overlay');
-
-    loadingOverlay.classList.add('show');
     const action = toggle.checked ? "disable" : "enable";
 
-    exec(`sh ${modulePath}/rmlwk.sh --auto-update ${action} --quiet >/dev/null 2>&1`).then((result) => {
-        if (result.errno === 0) {
-            showPrompt(`Daily update ${action}d`, true);
-        } else {
-            showPrompt(`Failed to toggle daily update`, false);
-        }
-        checkBlockStatus();
-        loadingOverlay.classList.remove('show');
-    }).catch((e) => {
-        console.error(e);
-        showPrompt("Failed to toggle daily update", false);
-    });
+    const result = await performAction(`--auto-update ${action}`, false);
+    if (result) {
+        showPrompt(`Daily update ${action}d`, true);
+    } else {
+        showPrompt(`Failed to toggle daily update`, false);
+    }
+    checkBlockStatus();
 }
 
 // Function to export logs
@@ -398,11 +398,11 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
         clearTimeout(window.promptTimeout);
     }
     setTimeout(() => {
-        prompt.style.transform = 'translateY(calc((var(--window-inset-bottom, 0px) + 30px) * -1))';
+        prompt.classList.add('show');
         window.promptTimeout = setTimeout(() => {
-            prompt.style.transform = 'translateY(100%)';
+            prompt.classList.remove('show');
         }, duration);
-    }, 100);
+    }, 10);
 }
 
 // Function to handle add whitelist/blacklist
@@ -942,8 +942,10 @@ function setupEventListener() {
     });
 
     // Adblock switch
-    document.getElementById('adblock-switch').addEventListener("click", () => {
-        performAction('--adblock-switch');
+    document.getElementById('adblock-switch').addEventListener("click", async () => {
+        const result = await performAction('--adblock-switch', actionMode === 0);
+        if (actionMode === 0) return;
+        showPrompt(result ? "Success" : "Failed", result);
     });
 
     // Add button

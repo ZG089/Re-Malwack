@@ -92,7 +92,7 @@ body.input-focused {
     grid-template-columns: repeat(3, 1fr);
     width: 90vw;
     max-width: 800px;
-    background-color: var(--md-sys-color-outline-variant);
+    background-color: var(--md-sys-color-surface-container-highest);
     color: var(--md-sys-color-on-surface);
     border-radius: 15px;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
@@ -905,6 +905,10 @@ li:last-child {
     margin: 0;
 }
 
+.output-line.error {
+    color: red;
+}
+
 .close-terminal {
     display: flex;
     align-items: center;
@@ -930,8 +934,8 @@ li:last-child {
 
 .prompt {
     position: fixed;
-    bottom: 0;
-    left: 10px;
+    bottom: calc(var(--bottom-inset) + 16px);
+    left: 16px;
     background-color: var(--md-sys-color-on-surface);
     color: var(--md-sys-color-surface-container-high);
     border-radius: 8px;
@@ -939,9 +943,9 @@ li:last-child {
     font-size: 15px;
     padding: 5px 10px;
     z-index: 1300;
-    width: auto;
-    max-width: calc(100% - 40px);
-    transform: translateY(100%);
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+    transform: translateY(calc(100% + var(--bottom-inset) + 16px));
     transition: transform 0.2s ease;
     user-select: none;
 }
@@ -949,6 +953,10 @@ li:last-child {
 .prompt.error {
     background-color: var(--md-sys-color-error);
     color: var(--md-sys-color-on-error);
+}
+
+.prompt.show {
+    transform: translateY(0);
 }
 
 .footer {
