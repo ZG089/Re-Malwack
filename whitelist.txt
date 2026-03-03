@@ -66,6 +66,7 @@ app-measurement.com
 p11.techlab-cdn.com
 cm.everesttech.net
 weather-server.allawnos.com
+api.visicom.ua
 
 # Google
 googleapis.com
@@ -136,7 +137,7 @@ prod.spotify.map.fastly.net
 html-load.com
 addtoany.com
 
-  # Subway
+# Subway
 www.subway.com
 api.subway.com
 media.subway.com
