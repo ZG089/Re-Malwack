@@ -1,4 +1,5 @@
-# Re-Malwack hosts whitelist
+# Re-Malwack global hosts whitelist
+# Automatically applies on all Re-Malwack versions on every hosts update or blocklist toggeling.
 
 # AliExpress
 alicdn.com
@@ -163,3 +164,7 @@ api.line.me
 d.line-scdn.net
 obs.line-scdn.net
 static.addtoany.com
+
+# Xiaomi
+api.sec.miui.com
+app.market.xiaomi.com
