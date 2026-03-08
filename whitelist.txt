@@ -137,6 +137,7 @@ prod.spotify.map.fastly.net
 # Sites
 html-load.com
 addtoany.com
+freedownloadmanager.org
 
 # Subway
 www.subway.com
