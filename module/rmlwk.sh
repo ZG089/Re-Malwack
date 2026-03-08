@@ -22,7 +22,7 @@ LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
 # ====== Pre-config ======
 
 # 1 - Sourcing config file
-. "$persist_dir/config.sh"
+. $persist_dir/config.sh
 # 2 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
 
@@ -871,7 +871,7 @@ enable_auto_update() {
 
     log_message "Enabling auto update has been initiated."
 
-    if [ "$auto_update" = "1" ]; then
+    if [ "$daily_update" = "1" ]; then
         abort "Auto update is already enabled"
         return
     fi
@@ -924,7 +924,7 @@ disable_auto_update() {
     local start_time
     start_time=$(get_current_time)
 
-    if [ "$auto_update" = "0" ]; then
+    if [ "$daily_update" = "0" ]; then
         abort "Auto update is already disabled"
         return
     fi
