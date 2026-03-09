@@ -30,30 +30,40 @@ mkdir -p "$persist_dir/logs"
 rmlwk_banner() {
     [ "$quiet_mode" -eq 1 ] && return
     clear
-    if command -v shuf >/dev/null 2>&1; then
-        random_index=$(shuf -i 1-2 -n 1)
+    if [ "$(date +%m%d)" = "0401" ]; then
+        printf '\033[0;31m'
+        printf "    ____             __  ___      __                       \n"
+        printf "   / __ \___        /  |/  /___ _/ /      ______ _________ \n"
+        printf "  / /_/ / _ \______/ /|_/ / __ `/ / | /| / / __ `/ ___/ _ \\n"
+        printf " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /  /  __/\n"
+        printf "/_/ |_|\___/     /_/  /_/\__,_/_/ |__/|__/\__,_/_/   \___/ \n"
+        printf '\033[0m'
     else
-        random_index=$(( ($(date +%s) % 2) + 1 ))
+        if command -v shuf >/dev/null 2>&1; then
+            random_index=$(shuf -i 1-2 -n 1)
+        else
+            random_index=$(( ($(date +%s) % 2) + 1 ))
+        fi
+        case "$random_index" in
+            1)
+                printf '\033[0;31m'
+                printf "    ____             __  ___      __                    __            \n"
+                printf "   / __ \\___        /  |/  /___ _/ /      ______ ______/ /__          \n"
+                printf "  / /_/ / _ \\______/ /|_/ / __ \`/ / | /| / / __ \`/ ___/ //_/       \n"
+                printf " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<              \n"
+                printf "/_/ |_|\\___/     /_/  /_/\\__,_/_/ |__/|__/\\__,_/\\___/_/|_|      \n"
+                ;;
+            2)
+                printf '\033[0;31m'
+                printf "██████╗ ███████╗    ███╗   ███╗ █████╗ ██╗     ██╗    ██╗ █████╗  ██████╗██╗  ██╗\n"
+                printf "██╔══██╗██╔════╝    ████╗ ████║██╔══██╗██║     ██║    ██║██╔══██╗██╔════╝██║ ██╔╝\n"
+                printf "██████╔╝█████╗█████╗██╔████╔██║███████║██║     ██║ █╗ ██║███████║██║     █████╔╝ \n"
+                printf "██╔══██╗██╔══╝╚════╝██║╚██╔╝██║██╔══██║██║     ██║███╗██║██╔══██║██║     ██╔═██╗ \n"
+                printf "██║  ██║███████╗    ██║ ╚═╝ ██║██║  ██║███████╗╚███╔███╔╝██║  ██║╚██████╗██║  ██╗\n"
+                printf "╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝\n"
+                ;;
+        esac
     fi
-    case "$random_index" in
-        1)
-            printf '\033[0;31m'
-            printf "    ____             __  ___      __                    __            \n"
-            printf "   / __ \\___        /  |/  /___ _/ /      ______ ______/ /__          \n"
-            printf "  / /_/ / _ \\______/ /|_/ / __ \`/ / | /| / / __ \`/ ___/ //_/       \n"
-            printf " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /__/ ,<              \n"
-            printf "/_/ |_|\\___/     /_/  /_/\\__,_/_/ |__/|__/\\__,_/\\___/_/|_|      \n"
-            ;;
-        2)
-            printf '\033[0;31m'
-            printf "██████╗ ███████╗    ███╗   ███╗ █████╗ ██╗     ██╗    ██╗ █████╗  ██████╗██╗  ██╗\n"
-            printf "██╔══██╗██╔════╝    ████╗ ████║██╔══██╗██║     ██║    ██║██╔══██╗██╔════╝██║ ██╔╝\n"
-            printf "██████╔╝█████╗█████╗██╔████╔██║███████║██║     ██║ █╗ ██║███████║██║     █████╔╝ \n"
-            printf "██╔══██╗██╔══╝╚════╝██║╚██╔╝██║██╔══██║██║     ██║███╗██║██╔══██║██║     ██╔═██╗ \n"
-            printf "██║  ██║███████╗    ██║ ╚═╝ ██║██║  ██║███████╗╚███╔███╔╝██║  ██║╚██████╗██║  ██╗\n"
-            printf "╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝\n"
-            ;;
-    esac
     printf '\033[0m'
     update_status
     echo ""
@@ -787,11 +797,25 @@ update_status() {
         fi
         # Set success message if not set to error
         if [ -z "$status_msg" ]; then
-            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
-            status_msg="$status_msg | Last updated: $last_mod | $mode"
+            if [ "$(date +%m%d)" = "0401" ]; then
+                status_msg="Status: Protection is enabled ✅ | Allowing $blocked_mod ads"
+                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+                status_msg="$status_msg | Last updated: $last_mod | $mode"
+                
+                sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
+            else
+                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+                status_msg="$status_msg | Last updated: $last_mod | $mode"
+                
+                sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+            fi
         fi
     fi
 
