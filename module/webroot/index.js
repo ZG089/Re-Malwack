@@ -723,16 +723,32 @@ async function linkFile() {
     return result.errno === 0;
 }
 
-/**
- * Setup the Rick Roll overlay to appear on April 1st
- * Consecutive trigger protection for user experience.
- * Clicking on understood button will redirect to rick roll
- * Double click on blank space to exit early
- * @returns {void} 
- */
 function setupPrank() {
     const today = new Date();
-    if (today.getMonth() !== 3 || today.getDate() !== 1) return;
+    if (today.getMonth() !== 3 || today.getDate() !== 1) {
+        // Not April 1st, revert Easter Egg changes if any
+        document.getElementById('module-name').textContent = "Re-Malwack";
+        const statusText = document.getElementById('status-text');
+        if (statusText && statusText.previousElementSibling && statusText.previousElementSibling.textContent === "Allowed Ads") {
+            statusText.previousElementSibling.textContent = "Blocked Entries";
+        }
+        return;
+    }
+
+    // April 1st Easter Egg
+    document.getElementById('module-name').textContent = "Re-Malware";
+    
+    // Change Blocked Entries to Allowed Ads
+    const statusText = document.getElementById('status-text');
+    if (statusText && statusText.previousElementSibling) {
+        statusText.previousElementSibling.textContent = "Allowed Ads";
+    }
+
+    // Replace the logo with the Re-Malware SVG
+    const logoElement = document.getElementById('logo');
+    if (logoElement) {
+        logoElement.innerHTML = `<svg width="339.25" height="39.7" viewBox="0 0 339.25 39.7" xmlns="http://www.w3.org/2000/svg"><g id="svgGroup" stroke-linecap="round" fill-rule="evenodd" font-size="9pt" stroke="#000000" stroke-width="0.25mm" fill="var(--md-sys-color-on-background)" style="stroke:var(--md-sys-color-on-background);stroke-width:0.25mm;fill:var(--md-sys-color-on-background)"><path d="M 277.2 37.365 L 255.15 0 L 233.05 37.45 L 277.2 37.45 L 277.2 37.5 L 307.95 37.5 L 302.8 27.85 C 306.15 25.25 308.25 21.25 308.25 16.7 C 308.25 8.8 301.85 2.45 294 2.45 L 277.2 2.45 L 277.2 37.365 Z M 164.2 37.365 L 142.15 0 L 120.05 37.45 L 164.2 37.45 L 164.25 37.45 L 191.4 37.45 L 191.4 19.95 L 181.7 19.95 L 181.7 2.45 L 164.2 2.45 L 164.2 37.365 Z M 184.7 2.35 L 206.75 39.7 L 215.1 25.8 L 211.55 19.8 L 212.65 18.75 C 216.8 25.8 220.95 32.6 225.15 39.7 L 247.2 2.35 L 184.7 2.35 Z M 33.05 2.4 L 33.05 37.4 L 62.05 37.4 L 62.05 25.6 L 54.8 25.6 L 54.8 24.1 L 62.05 24.1 L 62.05 15.7 L 54.8 15.7 L 54.8 14.2 L 62.05 14.2 L 62.05 2.4 L 33.05 2.4 Z M 310.25 2.4 L 310.25 37.4 L 339.25 37.4 L 339.25 25.6 L 332 25.6 L 332 24.1 L 339.25 24.1 L 339.25 15.7 L 332 15.7 L 332 14.2 L 339.25 14.2 L 339.25 2.4 L 310.25 2.4 Z M 85.05 37.45 L 120.05 37.45 L 119.95 1.1 L 102.45 14.35 L 84.95 1.1 L 85.05 37.45 Z M 16.8 2.45 L 0 2.45 L 0 37.5 L 30.75 37.5 L 25.6 27.85 C 28.95 25.25 31.05 21.25 31.05 16.7 C 31.05 8.8 24.65 2.45 16.8 2.45 Z"/></g></svg>`;
+    }
 
     const warningOverlay = document.getElementById('security-warning');
     const closeButton = document.getElementById('understood');

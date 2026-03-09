@@ -159,10 +159,23 @@ elif [ "$blocked_mod" -ge 0 ]; then
     fi
     # Set success message if not set to error
     if [ -z "$status_msg" ]; then
-        status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-        [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-        [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-        status_msg="$status_msg | Last updated: $last_mod | $mode"
+        if [ "$(date +%m%d)" = "0401" ]; then
+            status_msg="Status: Protection is enabled ✅ | Allowing $blocked_mod ads"
+            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            status_msg="$status_msg | Last updated: $last_mod | $mode"
+
+            sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
+            sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
+        else
+            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            status_msg="$status_msg | Last updated: $last_mod | $mode"
+
+            sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
+            sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+        fi
     fi
 fi
 
