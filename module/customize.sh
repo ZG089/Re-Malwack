@@ -102,7 +102,7 @@ detect_key_press() {
 }
 
 # set permissions
-chmod 0755 $persistent_dir/config.sh $MODPATH/action.sh $MODPATH/rmlwk.sh $MODPATH/uninstall.sh $MODPATH/service.sh $MODPATH/import.sh
+chmod +x $MODPATH/*.sh
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
