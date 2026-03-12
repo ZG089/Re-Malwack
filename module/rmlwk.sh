@@ -801,7 +801,7 @@ update_status() {
                 status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
                 [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
                 status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
                 
                 sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
