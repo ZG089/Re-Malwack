@@ -73,6 +73,7 @@ api.visicom.ua
 googleapis.com
 googleadservices.com
 s.youtube.com
+s2.youtube.com
 ssl.google-analytics.com
 oauth.googleusercontent.com
 mtalk.google.com
