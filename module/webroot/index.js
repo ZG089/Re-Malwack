@@ -449,7 +449,7 @@ function handleQuery() {
     resultCard.style.display = 'block';
 
     const output = [];
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`], { env: { WEBUI: 'true' } });
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `--quiet`, `${inputValue}`], { env: { WEBUI: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.stderr.on('data', (data) => output.push(data));
     result.on('exit', () => {
