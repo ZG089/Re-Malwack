@@ -78,6 +78,21 @@ cron_cmd() {
     esac
 }
 
+identify_enabled_blocklists() {
+enabled_blocklists=""
+for bl in porn gambling fakenews social trackers safebrowsing; do
+    eval enabled=\$block_${bl}
+    if [ "$enabled" = "1" ]; then
+        enabled_blocklists="$enabled_blocklists $bl"
+    fi
+done
+if [ -n "$enabled_blocklists" ]; then
+    log_message "Enabled blocklists:$enabled_blocklists"
+else
+    log_message "No blocklists enabled"
+fi
+}
+
 #  =========== Preparation ===========
 
 # 1 - Sourcing config file
@@ -122,6 +137,7 @@ log_message "Module hosts entries count: $blocked_mod"
 log_message "Blacklist entries count: $blacklist_count"
 [ -s "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
 log_message "Whitelist entries count: $whitelist_count"
+identify_enabled_blocklists
 
 # =========== Main script logic ===========
 
@@ -163,7 +179,8 @@ elif [ "$blocked_mod" -ge 0 ]; then
             status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            status_msg="$status_msg | Last updated: $last_mod | $mode"
+            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
+            status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
 
             sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
             sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
@@ -171,6 +188,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
             status_msg="$status_msg | Last updated: $last_mod | $mode"
 
             sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
