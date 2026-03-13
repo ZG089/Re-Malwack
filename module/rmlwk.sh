@@ -1071,6 +1071,8 @@ case "$(tolower "$1")" in
 
         # Reset blocklist values to 0
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
+        ndc resolver clearnetdns 2>/dev/null
+        ndc resolver flushdefaultif 2>/dev/null
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully reset hosts."
@@ -1665,6 +1667,8 @@ case "$(tolower "$1")" in
         install_hosts "all"
 
         # 4 - Done
+        ndc resolver clearnetdns 2>/dev/null
+        ndc resolver flushdefaultif 2>/dev/null
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully updated all hosts."
