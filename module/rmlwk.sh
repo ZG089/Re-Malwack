@@ -442,6 +442,8 @@ install_hosts() {
 
     # Clean up
     chmod 644 "$hosts_file"
+    ndc resolver clearnetdns 2>/dev/null
+    ndc resolver flushdefaultif 2>/dev/null
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully installed $type hosts."
@@ -1667,8 +1669,6 @@ case "$(tolower "$1")" in
         install_hosts "all"
 
         # 4 - Done
-        ndc resolver clearnetdns 2>/dev/null
-        ndc resolver flushdefaultif 2>/dev/null
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully updated all hosts."
