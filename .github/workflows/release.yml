@@ -51,6 +51,12 @@ jobs:
           mv update.json.tmp update.json
           echo "Updated update.json:"
           cat update.json
+          
+      - name: Update README.md version badge
+        run: |
+          sed -i 's|^\[!\[Module Version\].*|[![Module Version](https://img.shields.io/badge/Module_Version-'"${VERSION}"'-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/'"${VERSION}"')|g' README.md
+          echo "Updated README.md:"
+          grep "Module Version" README.md
       
       - name: Install ImageMagick
         run: |
@@ -71,6 +77,19 @@ jobs:
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           cat CHANGELOG_PART.md >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          
+          # Smart auto-truncate for Telegram (API caption limit is 1024 chars)
+          TG_CHANGELOG="$(cat CHANGELOG_PART.md)"
+          MAX_LEN=600
+          if [ ${#TG_CHANGELOG} -gt $MAX_LEN ]; then
+            TG_CHANGELOG="${TG_CHANGELOG:0:$MAX_LEN}"
+            printf "%s\n" "${TG_CHANGELOG% *}..." > CHANGELOG_TG.md
+            echo "TG_TRUNCATED=true" >> $GITHUB_ENV
+          else
+            cat CHANGELOG_PART.md > CHANGELOG_TG.md
+            echo "TG_TRUNCATED=false" >> $GITHUB_ENV
+          fi
+          
           echo "Extracted changelog:"
           cat CHANGELOG_PART.md
 
@@ -78,8 +97,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add module/module.prop update.json
-          git commit -m "module_release: bump version to ${VERSION} [release]"
+          git add module/module.prop update.json README.md
+          git commit -m "module_release: bump version to ${VERSION} [release]
+
+          Co-authored-by: ZG089 <159061718+ZG089@users.noreply.github.com>"
           git push
 
       - name: Create ZIP
@@ -107,13 +128,19 @@ jobs:
         run: |
           CHAT_ID="-1002271023118"
           THREAD_ID="347"
-          VERSION="${{ env.VERSION }}"
-          CHANGELOG="$(cat CHANGELOG_PART.md)"
+          VERSION="${{ github.event.inputs.releaseName || github.event.inputs.tag }}"
+          CHANGELOG="$(cat CHANGELOG_TG.md)"
+          TRUNCATED_MSG=""
+          if [ "$TG_TRUNCATED" == "true" ]; then
+            TRUNCATED_MSG="
+          
+          (Changelog was truncated. Read the full release notes on GitHub!)"
+          fi
           CAPTION="🚨 *New Re-Malwack Update Released!*  
-          - Version: *${VERSION}*
+          > Version: *${VERSION}*
           \`\`\`
           What's new? 👀:
-          ${CHANGELOG}
+          ${CHANGELOG} ${TRUNCATED_MSG}
           \`\`\`
           🔗 Download: [Github](https://github.com/${{ github.repository }}/releases/latest) | [MMRL](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
           🌐 @zgx\_projects x @Re\_Malwack
@@ -132,12 +159,18 @@ jobs:
         run: |
           CHANNEL_ID="-1002453262614"
           VERSION="${{ env.VERSION }}"
-          CHANGELOG="$(cat CHANGELOG_PART.md)"
+          CHANGELOG="$(cat CHANGELOG_TG.md)"
+          TRUNCATED_MSG=""
+          if [ "$TG_TRUNCATED" == "true" ]; then
+            TRUNCATED_MSG="
+          
+          (Changelog was truncated. Read the full release notes on GitHub!)"
+          fi
           CAPTION="*Re-Malwack | New Update ✨*
-          - Version: *${VERSION}*
+          > Version: *${VERSION}*
           \`\`\`
           What's new? 👀:
-          ${CHANGELOG}
+          ${CHANGELOG} ${TRUNCATED_MSG}
           \`\`\`
           🔗 Download: [Github](https://github.com/${{ github.repository }}/releases/latest) | [MMRL](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
           🌐 @zgx\_projects x @Re\_Malwack
