@@ -157,7 +157,6 @@ fi
 
 # Here goes the part where we actually determine module status
 if [ -f "$persist_dir/mode_ready" ]; then
-    [ -f "$MODDIR/system/etc/hosts" ] && rm -f "$persist_dir/mode_ready"
     status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
 elif is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
