@@ -767,7 +767,9 @@ update_status() {
     fi
 
     # Here goes the part where we actually determine module status
-    if is_protection_paused; then
+    if [ -f "$persist_dir/mode_ready" ]; then
+        status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
+    elif is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
@@ -799,13 +801,14 @@ update_status() {
         fi
         # Set success message if not set to error
         if [ -z "$status_msg" ]; then
+            [ -f "$persist_dir/mode_ready" ] && rm -f "$persist_dir/mode_ready"
             if [ "$(date +%m%d)" = "0401" ]; then
                 status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
                 [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
                 status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
-                
+
                 sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
                 sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
             else
@@ -814,7 +817,7 @@ update_status() {
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
                 status_msg="$status_msg | Last updated: $last_mod | $mode"
-                
+
                 sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
                 sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
             fi
