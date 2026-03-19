@@ -117,7 +117,7 @@ rm -rf $persistent_dir/cache/* 2>/dev/null
 # Function to add URL only if it doesn't exist
 add_url_if_not_exists() {
     local url="$1"
-    if ! grep -q "^$url$" "$persistent_dir/sources.txt"; then
+    if ! grep -q "$url" "$persistent_dir/sources.txt"; then
         echo "$url" >> "$persistent_dir/sources.txt"
     fi
 }
