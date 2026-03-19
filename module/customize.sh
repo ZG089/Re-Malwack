@@ -154,10 +154,10 @@ if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
             # Extract base version commit hash (ex: 1995-5ex77xx) from version string
             base_version=$(echo "$module_version" | sed 's/-test.*//')
             build_id=$(echo "$module_version" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
-            tarFileName="/sdcard/Download/Re-Malwack_${base_version}_${build_id}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+            tarFileName="/sdcard/Download/Re-Malwack_${base_version}_${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
         else
             # Regular release version
-            tarFileName="/sdcard/Download/Re-Malwack_${module_version}_install_log_$(date +%Y-%m-%d__%H%M%S).tar.gz"
+            tarFileName="/sdcard/Download/Re-Malwack_${module_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
         fi
 
         tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
