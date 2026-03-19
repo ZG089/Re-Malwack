@@ -60,6 +60,8 @@ mkdir -p "$persistent_dir"
 touch "$config_file"
 for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
+    touch "$persistent_dir/blacklist.txt"
+    touch "$persistent_dir/whitelist.txt"
 done
 
 detect_key_press() {
@@ -104,8 +106,6 @@ detect_key_press() {
 # set permissions
 chmod +x $MODPATH/*.sh
 
-# Import from other ad-block modules (All respect to other ad-block modules developers)
-. $MODPATH/import.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
@@ -132,6 +132,9 @@ else
     add_url_if_not_exists "https://hosts.rem01gaming.dev/adblock"
     add_url_if_not_exists "https://blocklistproject.github.io/Lists/ads.txt"
 fi
+
+# Import from other ad-block modules (All respect to other ad-block modules developers)
+. $MODPATH/import.sh
 
 if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
     # Initialize

@@ -83,7 +83,11 @@ enabled_blocklists=""
 for bl in porn gambling fakenews social trackers safebrowsing; do
     eval enabled=\$block_${bl}
     if [ "$enabled" = "1" ]; then
-        enabled_blocklists="$enabled_blocklists $bl"
+        if [ -z "$enabled_blocklists" ]; then
+            enabled_blocklists=" $bl"
+        else
+            enabled_blocklists="$enabled_blocklists - $bl"
+        fi
     fi
 done
 if [ -n "$enabled_blocklists" ]; then
@@ -137,7 +141,23 @@ log_message "Module hosts entries count: $blocked_mod"
 log_message "Blacklist entries count: $blacklist_count"
 [ -s "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
 log_message "Whitelist entries count: $whitelist_count"
+if [ -f "$persist_dir/counts/sources.counts" ]; then
+    while IFS="|" read -r src count; do
+        if [ -n "$src" ] && [ -n "$count" ]; then
+            log_message "Host source $src has $count entries"
+        fi
+    done < "$persist_dir/counts/sources.counts"
+fi
+
 identify_enabled_blocklists
+
+if [ -f "$persist_dir/counts/blocklists.counts" ]; then
+    while IFS="|" read -r bl count; do
+        if [ -n "$bl" ] && [ -n "$count" ]; then
+            log_message "Blocklist $bl has $count entries"
+        fi
+    done < "$persist_dir/counts/blocklists.counts"
+fi
 
 # =========== Main script logic ===========
 
@@ -182,7 +202,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
             status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
 
             sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
-            sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
+            sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
         else
             status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
