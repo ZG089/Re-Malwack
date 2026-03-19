@@ -442,10 +442,6 @@ install_hosts() {
 
     # Clean up
     chmod 644 "$hosts_file"
-    echo "[i] Turning on airplane mode on and off for a moment to apply changes."
-    cmd connectivity airplane-mode enable
-    sleep 2
-    cmd connectivity airplane-mode disable
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully installed $type hosts."
