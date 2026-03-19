@@ -67,7 +67,8 @@ async function getVersion() {
         document.getElementById('version-text').textContent = version || 'Unknown';
         if (hash) {
             document.getElementById('test-version-box').style.display = 'flex';
-            document.getElementById('test-version-text').textContent = `You're using a test release: ${hash}`;
+            let displayHash = hash.replace(/^test \(/, '').replace(/\)$/, '');
+            document.getElementById('test-version-text').textContent = `You're using a test release: ${displayHash}`;
         }
 
         getStatus();
@@ -114,12 +115,39 @@ async function isPaused() {
     return result.errno === 0;
 }
 
+function formatNumber(numStr, isApril1st = false, includeLabel = false) {
+    let num = parseInt(numStr, 10);
+    if (isNaN(num)) return numStr;
+    
+    let formattedNum = num.toString();
+    if (num > 999999) {
+        formattedNum = (num / 1000000).toFixed(1) + 'M';
+    } else if (num > 9999) {
+        formattedNum = (num / 1000).toFixed(1) + 'K';
+    }
+
+    if (!includeLabel) return formattedNum;
+
+    const label = isApril1st ? "Allowed Ads" : "Blocked entries";
+    return `${formattedNum} ${label}`;
+}
+
 // Function to get working status
 async function getStatus() {
     const statusElement = document.getElementById('status-text');
     const disableBox = document.querySelector('.header-disabled');
     const disableText = document.getElementById('disable-text');
     const result = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
+    
+    // Check if it's april 1st
+    const now = new Date();
+    const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
+
+    const statusTitleElement = document.getElementById('status-title');
+    if (statusTitleElement) {
+        statusTitleElement.textContent = isApril1st ? "Allowed Ads" : "Blocked Entries";
+    }
+
     if (result.errno === 0) {
         let status = result.stdout.trim();
         if (parseInt(status) === 0) {
@@ -129,14 +157,8 @@ async function getStatus() {
             statusElement.textContent = '-';
             getlastUpdated(false);
             return;
-            // Convert 1 000 000 to 1M
-        } else if (parseInt(status) > 999999) {
-            status = (parseInt(status) / 1000000).toFixed(1) + 'M';
-            // Convert 1 000 to 1k
-        } else if (parseInt(status) > 9999) {
-            status = (parseInt(status) / 1000).toFixed(1) + 'k';
         }
-        statusElement.textContent = status;
+        statusElement.textContent = formatNumber(status, isApril1st, false);
         disableBox.style.display = 'none';
     } else {
         console.error("Error getting status:", result.stderr);
@@ -231,16 +253,45 @@ async function checkBlockStatus() {
         });
         const lines = result.split("\n");
 
+        let blocklistCounts = {};
+        try {
+            const countsResult = await fetch('link/persistent_dir/counts/blocklists.counts').then(res => res.text());
+            countsResult.split('\n').forEach(line => {
+                const parts = line.split('|');
+                if (parts.length === 2) {
+                    blocklistCounts[parts[0].trim()] = parts[1].trim();
+                }
+            });
+        } catch (e) {
+            // ignore if counts file is not found
+        }
+
         // Check each block type
+        const now = new Date();
+        const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
         const customBlock = document.querySelector('.custom-block');
         customBlock.querySelectorAll('.toggle-container').forEach(container => {
+            const type = container.dataset.type;
             const toggle = container.querySelector('input[type="checkbox"]');
-            const blockLine = lines.find(line => line.trim().startsWith(`block_${container.dataset.type}=`));
+            const badge = document.getElementById(`badge-${type}`);
+            const blockLine = lines.find(line => line.trim().startsWith(`block_${type}=`));
+            
+            let isEnabled = false;
             if (blockLine) {
                 const value = blockLine.split('=')[1].trim();
-                toggle.checked = value === '1';
+                isEnabled = (value === '1');
+                toggle.checked = isEnabled;
             } else {
                 toggle.checked = false;
+            }
+
+            if (badge) {
+                if (isEnabled && blocklistCounts[type] !== undefined) {
+                    badge.textContent = formatNumber(blocklistCounts[type], isApril1st, true);
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
             }
         });
 
@@ -423,8 +474,16 @@ function handleAdd(fileType) {
     }
 
     loading.classList.add('show');
+    
+    // For custom-source, handle multiple arguments (domain and name)
+    const args = [];
+    if (fileType === "custom-source") {
+        args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', ...inputValue.split(/\s+/));
+    } else {
+        args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`);
+    }
 
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`], { env: { WEBUI: 'true' } });
+    const result = spawn('sh', args, { env: { WEBUI: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         loading.classList.remove('show');
@@ -572,6 +631,7 @@ function setupControlListListeners(listElement) {
     const backBtn = controlList.querySelector('.back');
     const selectAllBtn = controlList.querySelector('.select-all');
     const deleteBtn = controlList.querySelector('.delete');
+    const editBtn = controlList.querySelector('.edit');
     const fileType = listElement.id.replace('-list', '');
 
     if (listElement.controlListeners) {
@@ -599,7 +659,10 @@ function setupControlListListeners(listElement) {
         const checkboxes = listElement.querySelectorAll('.checkbox-wrapper .checkbox');
         const allSelected = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
         checkboxes.forEach(cb => {
-            cb.checked = !allSelected;
+            if (cb.checked !== !allSelected) {
+                cb.checked = !allSelected;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         });
     };
 
@@ -607,11 +670,69 @@ function setupControlListListeners(listElement) {
         const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
         if (checkedItems.length === 0) return;
 
-        const lines = Array.from(checkedItems).map(item => item.closest('li').querySelector('span').textContent);
+        const lines = Array.from(checkedItems).map(item => {
+            const span = item.closest('li').querySelector('span');
+            return span.getAttribute('data-actual') || span.textContent;
+        });
         removeLine(fileType, lines);
 
         hideControls();
     };
+
+    if (editBtn) {
+        const updateEditBtn = () => {
+            const checkedCount = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked').length;
+            if (checkedCount === 1) {
+                editBtn.style.opacity = '1';
+                editBtn.style.pointerEvents = 'auto';
+            } else {
+                editBtn.style.opacity = '0.5';
+                editBtn.style.pointerEvents = 'none';
+            }
+        };
+
+        listElement.addEventListener('change', updateEditBtn, { signal: controller.signal });
+        updateEditBtn(); // Initialize state
+
+        const editAction = () => {
+            const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
+            if (checkedItems.length !== 1) {
+                if (checkedItems.length > 1) {
+                    showPrompt("You cannot edit multiple hosts sources at once", false, 3500);
+                }
+                return;
+            }
+            
+            const itemSpan = checkedItems[0].closest('li').querySelector('span');
+            const oldUrl = itemSpan.getAttribute('data-actual') || itemSpan.textContent;
+            let oldName = itemSpan.textContent;
+            if (oldName === oldUrl) oldName = "";
+
+            let newUrl = prompt("Enter new URL:", oldUrl);
+            if (newUrl === null) return;
+            newUrl = newUrl.trim();
+            if (!newUrl) return;
+
+            let newName = prompt("Enter new name (optional):", oldName);
+            if (newName === null) return;
+            newName = newName.trim();
+
+            showPrompt(`Editing...`, true);
+            const args = [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'edit', oldUrl, newUrl];
+            if (newName) {
+                args.push(...newName.split(/\s+/));
+            }
+            
+            const result = spawn('sh', args, { env: { WEBUI: 'true' } });
+            result.on('exit', async (code) => {
+                showPrompt(code === 0 ? "Edited successfully" : "Failed to edit", code === 0);
+                await loadFile(fileType);
+                await getStatus();
+            });
+            hideControls();
+        };
+        editBtn.addEventListener('click', editAction, { signal: controller.signal });
+    }
 
     backBtn.addEventListener('click', backAction, { signal: controller.signal });
     selectAllBtn.addEventListener('click', selectAllAction, { signal: controller.signal });
@@ -627,14 +748,78 @@ async function loadFile(fileType) {
         const lines = content
             .split("\n")
             .map(line => line.trim())
-            .filter(line => line && !line.startsWith("#"));
+            .filter(line => line);
+        
+        let sourceCounts = {};
+        if (fileType === "custom-source") {
+            try {
+                const countResponse = await fetch('link/persistent_dir/counts/sources.counts');
+                if (countResponse.ok) {
+                    const countContent = await countResponse.text();
+                    countContent.split("\n").forEach(line => {
+                        const parts = line.split("|");
+                        if (parts.length === 2) {
+                            sourceCounts[parts[0].trim()] = parts[1].trim();
+                        }
+                    });
+                }
+            } catch (e) {
+                console.log("No counts file found for sources.");
+            }
+        }
+
         const listElement = document.getElementById(`${fileType}-list`);
         listElement.innerHTML = "";
         lines.forEach((line, index) => {
+            // skip commented lines
+            if (line.startsWith("#")) return;
+            
+            let displayName = line;
+            let actualData = line; // What we use for removal
+            let countBadge = '';
+            let isEnabled = true;
+
+            if (fileType === "custom-source") {
+                if (line.startsWith("# OFF # ")) {
+                    isEnabled = false;
+                    line = line.replace("# OFF # ", "");
+                }
+
+                const parts = line.split('#');
+                const url = parts[0].trim();
+                actualData = url;
+                displayName = parts.length > 1 && parts[1].trim() !== "" ? parts[1].trim() : url;
+                
+                if (displayName !== url) {
+                    displayName = `<b>${displayName}</b>`;
+                }
+
+                // show count badge if available and source is enabled
+                if (sourceCounts[url] && isEnabled) {
+                    const now = new Date();
+                    const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
+                    countBadge = `<span class="source-count badge">${formatNumber(sourceCounts[url], isApril1st, true)}</span>`;
+                }
+            }
+
             const listItem = document.createElement("li");
             const checkboxId = `${fileType}-checkbox-${index}`;
+            const toggleId = `${fileType}-toggle-${index}`;
+            
+            let toggleHtml = '';
+            if (fileType === "custom-source") {
+                toggleHtml = `
+                    <label class="toggle-switch toggle-switch-small">
+                        <input type="checkbox" id="${toggleId}" ${isEnabled ? 'checked' : ''}>
+                        <span class="slider slider-small round"></span>
+                    </label>
+                `;
+            }
+
             listItem.innerHTML = `
-                <span>${line}</span>
+                <span data-actual="${actualData}" ${!isEnabled ? 'class="disabled-source"' : ''}>${displayName}</span>
+                ${countBadge}
+                ${toggleHtml}
                 <div class="checkbox-wrapper">
                     <input type="checkbox" class="checkbox" id="${checkboxId}" disabled />
                     <label for="${checkboxId}" class="custom-checkbox">
@@ -644,6 +829,18 @@ async function loadFile(fileType) {
                     </label>
                 </div>
             `;
+
+            if (fileType === "custom-source") {
+                const toggle = listItem.querySelector(`#${toggleId}`);
+                toggle.addEventListener('change', async (e) => {
+                    e.stopPropagation();
+                    const action = toggle.checked ? 'enable' : 'disable';
+                    const span = listItem.querySelector('span');
+                    span.classList.toggle('disabled-source', !toggle.checked);
+                    await performAction(`--custom-source ${action} ${actualData}`, false);
+                    loadFile("custom-source");
+                });
+            }
 
             let pressTimer;
             let isLongPress = false;
@@ -665,6 +862,7 @@ async function loadFile(fileType) {
                         const checkbox = listItem.querySelector('.checkbox');
                         if (checkbox) {
                             checkbox.checked = true;
+                            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                         }
                     }
                 }, 500);
@@ -682,6 +880,7 @@ async function loadFile(fileType) {
                 if (!listItem.querySelector('.checkbox-wrapper').classList.contains('show')) return;
                 const checkbox = listItem.querySelector('.checkbox');
                 checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             });
             listItem.addEventListener('mousedown', startPress);
             listItem.addEventListener('mouseup', cancelPress);
@@ -754,6 +953,11 @@ function setupPrank() {
     const closeButton = document.getElementById('understood');
     const lastPrank = localStorage.getItem('lastPrank');
 
+    const toggleOverlay = (show) => {
+        document.body.style.overflow = show ? 'hidden' : 'auto';
+        warningOverlay.classList.toggle('show', show);
+    }
+
     // Make sure this won't be triggered in a row for user experience
     if (lastPrank !== '1') {
         toggleOverlay(true);
@@ -769,11 +973,6 @@ function setupPrank() {
     const redirectRr = () => {
         toggleOverlay(false);
         linkRedirect('https://youtu.be/dQw4w9WgXcQ');
-    }
-
-    const toggleOverlay = (show) => {
-        document.body.style.overflow = show ? 'hidden' : 'auto';
-        warningOverlay.classList.toggle('show', show);
     }
 }
 

@@ -484,6 +484,20 @@ body.input-focused {
     color: var(--md-sys-color-on-tertiary);
 }
 
+.badge {
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 12px;
+    background-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-primary);
+    margin-left: 8px;
+    user-select: none;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .card {
     display: none;
     margin-top: 10px;
@@ -573,6 +587,29 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.toggle-switch-small {
+    width: 28px;
+    height: 16px;
+    margin-left: 10px;
+}
+
+.slider-small:before {
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+}
+
+input:checked+.slider-small:before {
+    transform: translateX(12px);
+}
+
+.disabled-source {
+    text-decoration: line-through;
+    color: grey;
+    opacity: 0.7;
 }
 
 .control-icon {
@@ -695,6 +732,7 @@ input:checked+.slider:before {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -713,9 +751,9 @@ input:checked+.slider:before {
     flex-shrink: 0;
     position: relative;
     display: inline-block;
-    width: 20px;
+    width: 0;
     height: 20px;
-    padding: 7px;
+    padding: 7px 0;
     margin-left: auto;
     pointer-events: none;
     opacity: 0;
@@ -726,6 +764,8 @@ input:checked+.slider:before {
 .checkbox-wrapper.show {
     pointer-events: auto;
     opacity: 1;
+    width: 20px;
+    padding: 7px;
     transform: scale(1);
 }
 
@@ -765,18 +805,18 @@ input:checked+.slider:before {
     }
 }
 
-.checkbox:checked + .custom-checkbox {
+.checkbox:checked+.custom-checkbox {
     border-color: var(--md-sys-color-primary);
     background-color: var(--md-sys-color-primary);
     transition: border-color 0.1s ease;
     animation: checked-bounce 0.3s ease-out;
 }
 
-.checkbox:not(:checked) + .custom-checkbox {
+.checkbox:not(:checked)+.custom-checkbox {
     animation: unchecked-bounce 0.3s ease-out;
 }
 
-.checkbox:checked + .custom-checkbox .tick-symbol {
+.checkbox:checked+.custom-checkbox .tick-symbol {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
 }
@@ -785,9 +825,11 @@ input:checked+.slider:before {
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(0.8);
     }
+
     100% {
         transform: scale(1);
     }
@@ -797,9 +839,11 @@ input:checked+.slider:before {
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(0.8);
     }
+
     100% {
         transform: scale(1);
     }
@@ -819,7 +863,7 @@ input:checked+.slider:before {
     border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
-.box li span {
+.box li span:not(.badge) {
     font-size: 14px;
     word-break: break-all;
     word-wrap: break-word;
