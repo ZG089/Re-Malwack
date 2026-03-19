@@ -44,6 +44,7 @@ remount_hosts() {
         return 0
     fi
     log_message "Attempting to remount hosts..."
+    umount -l "$system_hosts" 2>/dev/null || log_message "Failed to unmount $system_hosts"
     mount --bind "$hosts_file" "$system_hosts" || {
         log_message "Failed to bind mount $hosts_file to $system_hosts"
         return 1
@@ -133,6 +134,8 @@ else
 fi
 
 # 6 - Module status determination preparations
+mount_failed=0
+remount_hosts || mount_failed=1
 refresh_blocked_counts
 last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
 log_message "System hosts entries count: $blocked_sys"
@@ -176,7 +179,9 @@ else
 fi
 
 # Here goes the part where we actually determine module status
-if [ -f "$persist_dir/mode_ready" ]; then
+if [ "$mount_failed" -eq 1 ]; then
+    status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
+elif [ -f "$persist_dir/mode_ready" ]; then
     status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
 elif is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
@@ -189,9 +194,6 @@ elif is_default_hosts; then
         status_msg="Status: Protection is reset ❌"
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
-    if [ "$blocked_sys" -eq 0 ] && [ "$blocked_mod" -gt 0 ] && [ "$is_zn_detected" -ne 1 ]; then
-        remount_hosts || status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
-    fi
     # Set success message if not set to error
     if [ -z "$status_msg" ]; then
         if [ "$(date +%m%d)" = "0401" ]; then
