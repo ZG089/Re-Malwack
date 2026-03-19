@@ -32,11 +32,11 @@ rmlwk_banner() {
     clear
     if [ "$(date +%m%d)" = "0401" ]; then
         printf '\033[0;31m'
-        printf "    ____             __  ___      __                       \n"
-        printf "   / __ \___        /  |/  /___ _/ /      ______ _________ \n"
-        printf "  / /_/ / _ \______/ /|_/ / __ `/ / | /| / / __ `/ ___/ _ \\n"
-        printf " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /  /  __/\n"
-        printf "/_/ |_|\___/     /_/  /_/\__,_/_/ |__/|__/\__,_/_/   \___/ \n"
+        printf "    ____             __  ___      __                        \n"
+        printf "   / __ \___        /  |/  /___ _/ /      ______ _________  \n"
+        printf "  / /_/ / _ \______/ /|_/ / __ `/ / | /| / / __ `/ ___/ _ \ \n"
+        printf " / _, _/  __/_____/ /  / / /_/ / /| |/ |/ / /_/ / /  /  __/ \n"
+        printf "/_/ |_|\___/     /_/  /_/\__,_/_/ |__/|__/\__,_/_/   \___/  \n"
         printf '\033[0m'
     else
         if command -v shuf >/dev/null 2>&1; then
@@ -442,8 +442,10 @@ install_hosts() {
 
     # Clean up
     chmod 644 "$hosts_file"
-    ndc resolver clearnetdns 2>/dev/null
-    ndc resolver flushdefaultif 2>/dev/null
+    echo "[i] Turning on airplane mode on and off for a moment to apply changes."
+    settings put global airplane_mode_on 1 
+    sleep 2
+    settings put global airplane_mode_on 0
     log_message "Cleaning up..."
     rm -f "${tmp_hosts}"* 2>/dev/null
     log_message SUCCESS "Successfully installed $type hosts."
@@ -524,7 +526,16 @@ block_content() {
             stage_blocklist_files "$block_type"
             install_hosts "$block_type"
             sed -i "s/^block_${block_type}=.*/block_${block_type}=1/" "$persist_dir/config.sh"
-            log_message SUCCESS "Enabled $block_type blocklist."
+            
+            # Count the entries blocks for this blocklist
+            bl_count=0
+            for file in "$persist_dir/cache/$block_type/hosts"*; do
+                if [ -f "$file" ]; then
+                    file_count=$(wc -l < "$file")
+                    bl_count=$((bl_count + file_count))
+                fi
+            done
+            log_message SUCCESS "Enabled $block_type blocklist ($bl_count entries)."
         fi
     fi
 }
@@ -607,7 +618,16 @@ block_trackers() {
         stage_blocklist_files "trackers"
         install_hosts "trackers"
         sed -i "s/^block_trackers=.*/block_trackers=1/" "$persist_dir/config.sh"
-        log_message SUCCESS "Trackers blocklist enabled."
+        
+        # Count trackers entries
+        tr_count=0
+        for file in "$persist_dir/cache/trackers/hosts"*; do
+            if [ -f "$file" ]; then
+                file_count=$(wc -l < "$file")
+                tr_count=$((tr_count + file_count))
+            fi
+        done
+        log_message SUCCESS "Trackers blocklist enabled ($tr_count entries)."
         local end_time
         end_time=$(get_current_time)
         log_duration "Enabling trackers block" "$start_time" "$end_time"
@@ -757,7 +777,11 @@ update_status() {
     for bl in porn gambling fakenews social trackers safebrowsing; do
         eval enabled=\$block_${bl}
         if [ "$enabled" = "1" ]; then
-            enabled_blocklists="$enabled_blocklists $bl"
+            if [ -z "$enabled_blocklists" ]; then
+                enabled_blocklists=" $bl"
+            else
+                enabled_blocklists="$enabled_blocklists - $bl"
+            fi
         fi
     done
     if [ -n "$enabled_blocklists" ]; then
@@ -810,7 +834,7 @@ update_status() {
                 status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
 
                 sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
-                sed -i 's/^banner=.*/banner=banner2.png/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
             else
                 status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
                 [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
@@ -1509,15 +1533,17 @@ case "$(tolower "$1")" in
             exit 1
         fi
 
-        if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
-            echo "[!] Invalid option: Use 'add' or 'remove'."
-            echo "Usage: rmlwk --custom-source <add/remove> <domain1> [domain2] [domain3] ..."
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] && [ "$option" != "edit" ] && [ "$option" != "enable" ] && [ "$option" != "disable" ]; then
+            echo "[!] Invalid option: Use 'add', 'remove', 'edit', 'enable', or 'disable'."
+            echo "Usage: rmlwk --custom-source <add/remove/edit/enable/disable> <domain1> [domain2] [domain3] ..."
             exit 1
         fi
         touch "$persist_dir/sources.txt"
         if [ "$option" = "add" ]; then
-            # For add, process only the first domain to maintain current behavior
+            # For add, process the first argument as domain and the rest as the name
             domain="$1"
+            shift
+            name="$*"
             
             # Validate URL format (accept http/https)
             if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
@@ -1526,12 +1552,72 @@ case "$(tolower "$1")" in
                 exit 1
             fi
 
-            if grep -qx "$domain" "$persist_dir/sources.txt"; then
+            # Check if domain already exists, ignoring the comment part
+            if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain"; then
                 echo "[!] $domain is already in sources."
             else
-                echo "$domain" >> "$persist_dir/sources.txt"
-                log_message SUCCESS "Added $domain to sources."
-                echo "[✓] Added $domain to sources."
+                if [ -n "$name" ]; then
+                    echo "$domain # $name" >> "$persist_dir/sources.txt"
+                    log_message SUCCESS "Added $domain ($name) to sources."
+                    echo "[✓] Added $domain ($name) to sources."
+                else
+                    echo "$domain" >> "$persist_dir/sources.txt"
+                    log_message SUCCESS "Added $domain to sources."
+                    echo "[✓] Added $domain to sources."
+                fi
+            fi
+        elif [ "$option" = "edit" ]; then
+            old_domain="$1"
+            new_domain="$2"
+            shift 2
+            new_name="$*"
+
+            # Validate URL format
+            if ! printf '%s' "$new_domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
+                echo "[!] Invalid new domain: $new_domain"
+                echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
+                exit 1
+            fi
+
+            if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$old_domain"; then
+                awk -v dom="$old_domain" '$1 != dom' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
+                if [ -n "$new_name" ]; then
+                    echo "$new_domain # $new_name" >> "$persist_dir/sources.tmp"
+                    log_message SUCCESS "Edited $old_domain to $new_domain ($new_name)."
+                    echo "[✓] Edited $old_domain to $new_domain ($new_name)."
+                else
+                    echo "$new_domain" >> "$persist_dir/sources.tmp"
+                    log_message SUCCESS "Edited $old_domain to $new_domain."
+                    echo "[✓] Edited $old_domain to $new_domain."
+                fi
+                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+            else
+                echo "[!] $old_domain was not found in sources."
+                exit 1
+            fi
+        elif [ "$option" = "enable" ] || [ "$option" = "disable" ]; then
+            domain="$1"
+            
+            # Validate URL format
+            if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
+                echo "[!] Invalid domain: $domain"
+                exit 1
+            fi
+
+            if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "#" || awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain" || awk '{print $4}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain"; then
+                if [ "$option" = "enable" ]; then
+                    sed -i "s|^# OFF # $domain|$domain|g" "$persist_dir/sources.txt"
+                    log_message SUCCESS "Enabled $domain in sources."
+                    echo "[✓] Enabled $domain in sources."
+                else
+                    sed -i "s|^$domain|# OFF # $domain|g" "$persist_dir/sources.txt"
+                    log_message SUCCESS "Disabled $domain in sources."
+                    echo "[✓] Disabled $domain in sources."
+                fi
+            else
+                echo "[!] $domain was not found in sources."
+                log_message WARN "$domain not found in sources"
+                exit 1
             fi
         else
             # Remove multiple domains from sources
@@ -1546,8 +1632,15 @@ case "$(tolower "$1")" in
                     continue
                 fi
 
-                if grep -qx "$domain_to_remove" "$persist_dir/sources.txt"; then
-                    sed -i "/^$(printf '%s' "$domain_to_remove" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/sources.txt"
+                # Check correctly by filtering out the prefix if present
+                if grep -E "^(# OFF # )?$domain_to_remove" "$persist_dir/sources.txt" >/dev/null 2>&1; then
+                    # Remove the line matching the domain (even if it has a comment after it or # OFF # prefix)
+                    awk -v dom="$domain_to_remove" '{
+                        actual=$1; 
+                        if (actual=="#") actual=$4; 
+                        if (actual != dom) print $0
+                    }' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
+                    mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
                     log_message SUCCESS "Removed $domain_to_remove from sources."
                     echo "[✓] Removed $domain_to_remove from sources."
                     total_removed=$((total_removed + 1))
@@ -1610,12 +1703,15 @@ case "$(tolower "$1")" in
         # 1 - Download base hosts from sources.txt with limited parallelism to prevent resource exhaustion
         echo "[*] Fetching base hosts..."
         log_message "Starting download of base hosts"
-        hosts_list=$(grep -Ev '^#|^$' "$persist_dir/sources.txt" | sort -u)
+        # Extract only the URLs for fetching (ignore inline comments too)
+        hosts_list=$(awk '!/^#|^$/ {print $1}' "$persist_dir/sources.txt" | sort -u)
         counter=0
         download_limit=3
         download_count=0
         for host in $hosts_list; do
             counter=$((counter + 1))
+            # Save the url mapping for this counter for later counting
+            echo "$host" > "${tmp_hosts}${counter}.url"
             fetch "${tmp_hosts}${counter}" "$host" &
             download_count=$((download_count + 1))
             # Limit concurrent downloads
@@ -1627,10 +1723,21 @@ case "$(tolower "$1")" in
         # 1.1 - Process in parallel with conservative limits
         job_limit=3
         job_count=0
+        mkdir -p "$persist_dir/counts"
+        > "$persist_dir/counts/sources.counts"
         for i in $(seq 1 $counter); do
             (
-                [ -f "${tmp_hosts}${i}" ] && host_process "${tmp_hosts}${i}"
-                [ -f "${tmp_hosts}${i}" ] && cat "${tmp_hosts}${i}" >> "$combined_file"
+                if [ -f "${tmp_hosts}${i}" ]; then
+                    host_process "${tmp_hosts}${i}"
+                    # Count block entries and save it
+                    if [ -f "${tmp_hosts}${i}.url" ]; then
+                        host_url=$(cat "${tmp_hosts}${i}.url")
+                        entries_count=$(wc -l < "${tmp_hosts}${i}")
+                        echo "${host_url}|${entries_count}" >> "$persist_dir/counts/sources.counts"
+                        log_message SUCCESS "Downloaded $entries_count entries from $host_url"
+                    fi
+                    cat "${tmp_hosts}${i}" >> "$combined_file"
+                fi
             ) &
             job_count=$((job_count + 1))
             [ "$job_count" -ge "$job_limit" ] && { wait; job_count=0; sleep 0.25; }
@@ -1639,6 +1746,7 @@ case "$(tolower "$1")" in
         log_message "Completed processing of all source files"
 
         # 2 - Download & process blocklists with small delays to prevent resource starvation
+        > "$persist_dir/counts/blocklists.counts"
         for bl in porn gambling fakenews social trackers safebrowsing; do
             block_var="block_${bl}"
             eval enabled=\$$block_var
@@ -1655,14 +1763,20 @@ case "$(tolower "$1")" in
             fetch_blocklist "$bl"
 
             # 2.4 - Process blocklists
+            bl_count=0
             for file in "$persist_dir/cache/$bl/hosts"*; do
-                [ -f "$file" ] && host_process "$file"
+                if [ -f "$file" ]; then
+                    host_process "$file"
+                    file_count=$(wc -l < "$file")
+                    bl_count=$((bl_count + file_count))
+                fi
             done
+            echo "${bl}|${bl_count}" >> "$persist_dir/counts/blocklists.counts"
 
             # 2.5 - Append to combined file
             cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
             echo "[✓] Fetched $bl blocklist"
-            log_message "Added $bl hosts entries to combined hosts"
+            log_message "Added $bl ($bl_count) hosts entries to combined hosts"
         done
 
         # 3 - Install hosts
@@ -1685,7 +1799,7 @@ case "$(tolower "$1")" in
         echo "[i] Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
-        echo "--custom-source, -c <add|remove> <domain1> [domain2] ...: Add/remove custom hosts sources."
+        echo "--custom-source, -c <add|remove|edit> ...: Add/remove/edit custom hosts sources."
         echo "--reset, -r: Reset hosts file to default."
         echo "--query-domain, -q <domain>: Query if a domain is blocked, redirected, or not blocked."
         echo "--adblock-switch, -as: Toggle protections on/off."

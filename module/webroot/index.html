@@ -57,7 +57,7 @@
                 <div class="dashboard-item-content" id="version-text">-</div>
             </div>
             <div class="dashboard-item">
-                <div class="dashboard-item-title">Blocked Entries</div>
+                <div class="dashboard-item-title" id="status-title">Blocked Entries</div>
                 <div class="dashboard-item-content" id="status-text">-</div>
             </div>
             <div class="dashboard-item">
@@ -128,6 +128,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q54 0 104-17.5t92-50.5L228-676q-33 42-50.5 92T160-480q0 134 93 227t227 93Zm252-124q33-42 50.5-92T800-480q0-134-93-227t-227-93q-54 0-104 17.5T284-732l448 448Z" /></svg>
                     </i>
                     <div class="toggle-text">Block pornography sites</div>
+                    <span class="badge blocklist-badge" id="badge-porn" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-porn-toggle" disabled>
                         <span class="slider round"></span>
@@ -142,6 +143,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-83v-40q-35-5-67.5-19T312-256l-28 29q33 26 72.5 42.5T440-163Zm80 0q44-5 83.5-21.5T676-227l-28-29q-28 20-60.5 34T520-203v40Zm-40-117q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm253-4q26-33 42.5-72.5T797-440h-40q-5 35-19 67.5T704-312l29 28Zm-506 0 29-29q-20-28-34-60t-19-67h-40q5 44 21.5 83.5T227-284Zm253-36L360-480l120-160 120 160-120 160ZM163-520h40q5-35 19-67t34-60l-29-29q-26 33-42.5 72.5T163-520Zm594 0h40q-5-44-22-83.5T732-676l-28 28q20 28 34 60.5t19 67.5ZM313-704q28-20 60-34t67-19v-40q-44 5-83.5 21.5T284-733l29 29Zm335 0 28-28q-33-26-72.5-43T520-797v40q35 5 67.5 19t60.5 34Z" /></svg>
                     </i>
                     <div class="toggle-text">Block gambling sites</div>
+                    <span class="badge blocklist-badge" id="badge-gambling" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-gambling-toggle" disabled>
                         <span class="slider round"></span>
@@ -156,6 +158,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-280q17 0 28.5-11.5T320-320q0-17-11.5-28.5T280-360q-17 0-28.5 11.5T240-320q0 17 11.5 28.5T280-280Zm-40-160h80v-240h-80v240Zm200 160h280v-80H440v80Zm0-160h280v-80H440v80Zm0-160h280v-80H440v80ZM160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm0 0v-560 560Z" /></svg>
                     </i>
                     <div class="toggle-text">Block fake news sites</div>
+                    <span class="badge blocklist-badge" id="badge-fakenews" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-fakenews-toggle" disabled>
                         <span class="slider round"></span>
@@ -170,6 +173,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M96-192v-92q0-25.78 12.5-47.39T143-366q54-32 114.5-49T384-432q66 0 126.5 17T625-366q22 13 34.5 34.61T672-284v92H96Zm648 0v-92q0-42-19.5-78T672-421q39 8 75.5 21.5T817-366q22 13 34.5 34.67Q864-309.65 864-284v92H744ZM384-480q-60 0-102-42t-42-102q0-60 42-102t102-42q60 0 102 42t42 102q0 60-42 102t-102 42Zm336-144q0 60-42 102t-102 42q-8 0-15-.5t-15-2.5q25-29 39.5-64.5T600-624q0-41-14.5-76.5T546-765q8-2 15-2.5t15-.5q60 0 102 42t42 102ZM168-264h432v-20q0-6.47-3.03-11.76-3.02-5.3-7.97-8.24-47-27-99-41.5T384-360q-54 0-106 14t-99 42q-4.95 2.83-7.98 7.91-3.02 5.09-3.02 12V-264Zm216.21-288Q414-552 435-573.21t21-51Q456-654 434.79-675t-51-21Q354-696 333-674.79t-21 51Q312-594 333.21-573t51 21ZM384-264Zm0-360Z"/></svg>
                     </i>
                     <div class="toggle-text">Block social media sites</div>
+                    <span class="badge blocklist-badge" id="badge-social" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-social-toggle" disabled>
                         <span class="slider round"></span>
@@ -184,6 +188,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M260-840q-45 0-72.5 50T160-680q0 63 17.5 111.5T210-496l110-22q13-32 26.5-73t13.5-89q0-60-27.5-110T260-840Zm55 520q19 0 32-14t13-39q0-17-8-35t-16-32l-96 20q0 40 17.5 70t57.5 30Zm385-320q-45 0-72.5 50T600-480q0 48 13.5 88.5T640-318l110 22q15-24 32.5-72T800-480q0-60-27.5-110T700-640Zm-55 520q40 0 57.5-30t17.5-70l-96-20q-8 14-16 32t-8 35q0 20 12.5 36.5T645-120ZM315-240q-77 0-117-57t-38-128l-18-27q-11-17-36.5-77T80-680q0-103 51-171.5T260-920q85 0 132.5 75.5T440-680q0 58-16 107t-28 79l8 13q8 14 22 44.5t14 63.5q0 57-35.5 95T315-240ZM645-40q-54 0-89.5-38T520-173q0-33 14-63.5t22-44.5l8-13q-12-30-28-79t-16-107q0-89 47.5-164.5T700-720q78 0 129 68.5T880-480q0 91-25.5 150.5T818-253l-18 28q1 71-38.5 128T645-40Z"/></svg>
                     </i>
                     <div class="toggle-text">Block trackers sites</div>
+                    <span class="badge blocklist-badge" id="badge-trackers" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-trackers-toggle" disabled>
                         <span class="slider round"></span>
@@ -198,6 +203,7 @@
                         <svg width="800" height="800" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><title>ionicons-v5-f</title><path d="M256 64C150.13 64 64 150.13 64 256s86.13 192 192 192 192-86.13 192-192S361.87 64 256 64m91.31 283.31a16 16 0 0 1-22.62 0l-42.84-42.83a88.08 88.08 0 1 1 22.63-22.63l42.83 42.84a16 16 0 0 1 0 22.62"/><circle cx="232" cy="232" r="56"/></svg>
                     </i>
                     <div class="toggle-text">Enable Safebrowsing</div>
+                    <span class="badge blocklist-badge" id="badge-safebrowsing" style="display: none; margin-right: 10px;"></span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="block-safebrowsing-toggle" disabled>
                         <span class="slider round"></span>
@@ -273,7 +279,7 @@
         <div class="box" id="custom-source">
             <h2>Sources</h2>
             <div class="category-container">
-                <input id="custom-source-input" type="text" placeholder="https://example.com/hosts.txt" />
+                <input id="custom-source-input" type="text" placeholder="https://example.com/hosts.txt [Optional: Source name]" />
                 <button class="ripple-element" id="custom-source-add">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M440-240h80v-120h120v-80H520v-120h-80v120H320v80h120v120ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
                     <div class="loading">
@@ -285,8 +291,11 @@
                 <button class="control-icon back ripple-element">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
                 </button>
-                <button class="control-icon select-all ripple-element ripple-element">
+                <button class="control-icon select-all ripple-element">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-280v-400h400v400H280Zm80-80h240v-240H360v240ZM200-200v80q-33 0-56.5-23.5T120-200h80Zm-80-80v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm80-160h-80q0-33 23.5-56.5T200-840v80Zm80 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z"/></svg>
+                </button>
+                <button class="control-icon edit ripple-element">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
                 </button>
                 <button class="control-icon delete ripple-element">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
@@ -367,8 +376,8 @@
     <!-- 1st April Easter egg -->
     <div class="overlay" id="security-warning">
         <div class="overlay-content" id="security-warning-content">
-            <h2>Your device doesn't meet security requirements</h2>
-            <p>You can't use Re-Malwack with this device. It doesn't pass the ultra integrity check. Contact your device manufacturer or contact Re-Malwack support team for more info.</p>
+            <h2>Your device doesn't meet security requirements!</h2>
+            <p>You cannot unfortunately use this module. Your device does not pass the ultra integrity check. Contact your device manufacturer or contact module developer for more info.</p>
             <div class="confirmation-btn-container">
                 <button class="confirmation-btn ripple-element" id="understood">Understood</button>
             </div>
