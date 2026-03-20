@@ -42,7 +42,7 @@
 - ⛔ It blocks ads, malware and trackers By default[*], you can also block porn sites, fake news sites, gambling sites and social sites
 - ⚙ Allows you to modify and manage hosts file (whitelist & blacklist urls, reset hosts, auto update adblock)
 - 🎨 Allows you to add custom hosts sources, also modify default ones
-- 💫 Supprts [wildcarded whitelisting](https://github.com/ZG089/Re-Malwack/blob/c09063e46b42ecb36b6b288f6382a2fcb29d4a19/changelog.md?plain=1#L94)
+- 💫 Supports [wildcarded whitelisting](https://github.com/ZG089/Re-Malwack/blob/c09063e46b42ecb36b6b288f6382a2fcb29d4a19/changelog.md?plain=1#L94)
 - 🧰 An elegant, yet simple WebUI (Thanks to [@KOWX712](https://github.com/KOWX712) for his Awesome work)
 - ⏸ Ability to pause/resume adblock without disabling the module
 - ⛑ Can handle hosts mounts by itself
