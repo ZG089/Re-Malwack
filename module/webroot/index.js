@@ -8,6 +8,7 @@ const filePaths = {
     blacklist: 'blacklist.txt',
     whitelist: 'whitelist.txt',
     "custom-source": 'sources.txt',
+    "custom-rule": 'custom_rules.txt',
 };
 
 const festivals = [
@@ -456,8 +457,36 @@ function showPrompt(message, isSuccess = true, duration = 2000) {
     }, 10);
 }
 
-// Function to handle add whitelist/blacklist
+// Function to handle add whitelist/blacklist/custom-rules
 function handleAdd(fileType) {
+    if (fileType === "custom-rule") {
+        const ipInput = document.getElementById('custom-rule-ip');
+        const domInput = document.getElementById('custom-rule-domain');
+        const ipValue = ipInput.value.trim();
+        const domValue = domInput.value.trim();
+        const box = document.getElementById('custom-rule');
+        const loading = box.querySelector('.loading');
+        
+        if (ipValue === "" || domValue === "" || (loading && loading.classList.contains('show'))) return;
+        
+        loading.classList.add('show');
+        const output = [];
+        const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue], { env: { WEBUI: 'true' } });
+        result.stdout.on('data', (data) => output.push(data));
+        result.on('exit', async (code) => {
+            loading.classList.remove('show');
+            const msg = output.length ? output[output.length - 1].trim() : (code === 0 ? "Success" : "Failed");
+            showPrompt(msg, code === 0);
+            if (code === 0) {
+                ipInput.value = "";
+                domInput.value = "";
+            }
+            await loadFile(fileType);
+            await getStatus();
+        });
+        return;
+    }
+
     const box = document.getElementById(fileType);
     const inputElement = document.getElementById(`${fileType}-input`);
     const inputValue = inputElement.value.trim();
@@ -778,6 +807,14 @@ async function loadFile(fileType) {
             let actualData = line; // What we use for removal
             let countBadge = '';
             let isEnabled = true;
+            let spanStyle = '';
+
+            if (fileType === "custom-rule") {
+                const parts = line.split(/\s+/);
+                actualData = parts[1] || parts[0];
+                displayName = `<span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${parts[0]}</span><span style="flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${parts[1] || ''}</span>`;
+                spanStyle = ' style="display: flex; gap: 8px; width: 100%; align-items: center;"';
+            }
 
             if (fileType === "custom-source") {
                 if (line.startsWith("# OFF # ")) {
@@ -817,7 +854,7 @@ async function loadFile(fileType) {
             }
 
             listItem.innerHTML = `
-                <span data-actual="${actualData}" ${!isEnabled ? 'class="disabled-source"' : ''}>${displayName}</span>
+                <span data-actual="${actualData}" ${!isEnabled ? 'class="disabled-source"' : ''}${spanStyle}>${displayName}</span>
                 ${countBadge}
                 ${toggleHtml}
                 <div class="checkbox-wrapper">
@@ -1173,9 +1210,16 @@ function setupEventListener() {
     document.getElementById("custom-source-input").addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleAdd("custom-source");
     });
+    document.getElementById("custom-rule-ip").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("custom-rule");
+    });
+    document.getElementById("custom-rule-domain").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleAdd("custom-rule");
+    });
     document.getElementById("whitelist-add").addEventListener("click", () => handleAdd("whitelist"));
     document.getElementById("blacklist-add").addEventListener("click", () => handleAdd("blacklist"));
     document.getElementById("custom-source-add").addEventListener("click", () => handleAdd("custom-source"));
+    document.getElementById("custom-rule-add").addEventListener("click", () => handleAdd("custom-rule"));
 
     // Query
     document.getElementById("query-input").addEventListener("keypress", (e) => {
@@ -1229,5 +1273,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCredit();
     floatBtn.classList.add('show');
     await checkBlockStatus();
-    ["custom-source", "blacklist", "whitelist"].forEach(loadFile);
+    ["custom-source", "custom-rule", "blacklist", "whitelist"].forEach(loadFile);
 });

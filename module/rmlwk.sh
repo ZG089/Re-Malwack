@@ -92,6 +92,17 @@ host_process() {
     sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g; s/127.0.0.1/0.0.0.0/g' "$file"
 }
 
+# Function to apply custom rules
+apply_custom_rules() {
+    if [ -s "$persist_dir/custom_rules.txt" ]; then
+        log_message "Re-Applying custom rules..."
+        echo "[*] Re-Applying custom rules..."
+        # Add a newline just in case
+        [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+        cat "$persist_dir/custom_rules.txt" >> "$hosts_file"
+    fi
+}
+
 # Function to count blocked entries and store them
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
@@ -439,6 +450,7 @@ install_hosts() {
         # Fallback to awk if grep fails
         awk 'NR==FNR {seen[$0]=1; next} !seen[$0]' "${tmp_hosts}w" "${tmp_hosts}merged.sorted" > "$hosts_file"
     }
+    apply_custom_rules
 
     # Clean up
     chmod 644 "$hosts_file"
@@ -1092,6 +1104,7 @@ case "$(tolower "$1")" in
             cat "${tmp_hosts}_b" > "$hosts_file"
             rm -f "${tmp_hosts}_b"
         fi
+        apply_custom_rules
         chmod 644 "$hosts_file"
 
         # Reset blocklist values to 0
@@ -1665,6 +1678,105 @@ case "$(tolower "$1")" in
         fi
         ;;
 
+    --custom-rule|-cr)
+        start_time=$(get_current_time)
+        is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
+        option="$2"
+        shift 2
+
+        if [ -z "$option" ] || [ $# -eq 0 ]; then
+            echo "[!] Missing arguments."
+            echo "Usage: rmlwk --custom-rule <add|remove> <IP> <domain>"
+            display_rules=$(cat "$persist_dir/custom_rules.txt" 2>/dev/null)
+            [ -n "$display_rules" ] && echo -e "Current custom rules:\n$display_rules" || echo "Current custom rules: no saved custom rules"
+            exit 1
+        fi
+
+        if [ "$option" != "add" ] && [ "$option" != "remove" ]; then
+            echo "[!] Invalid option: Use 'add' or 'remove'."
+            echo "Usage: rmlwk --custom-rule <add/remove> <IP> <domain>"
+            exit 1
+        fi
+
+        touch "$persist_dir/custom_rules.txt"
+        if [ "$option" = "add" ]; then
+            if [ $# -lt 2 ]; then
+                echo "[!] Incomplete input."
+                echo "[i] Usage: rmlwk --custom-rule add <IP> <domain>"
+                exit 1
+            fi
+            ip="$1"
+            domain="$2"
+
+            # Validate IP format
+            if ! printf '%s' "$ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$'; then
+                echo "[!] Invalid IP format: $ip"
+                exit 1
+            fi
+
+            # Validate Domain format
+            if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+                echo "[!] Invalid domain format: $domain"
+                exit 1
+            fi
+
+            # Check if domain already has a custom rule
+            if awk '{print $2}' "$persist_dir/custom_rules.txt" 2>/dev/null | grep -qx "$domain"; then
+                echo "[!] Domain $domain already has a custom rule."
+                exit 1
+            else
+                echo "$ip $domain" >> "$persist_dir/custom_rules.txt"
+                log_message SUCCESS "Added custom rule: $ip $domain"
+                echo "[✓] Added custom rule: $ip $domain"
+
+                # Append to active hosts immediately if not present
+                [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+                echo "$ip $domain" >> "$hosts_file"
+            fi
+
+        elif [ "$option" = "remove" ]; then
+            log_message "Removing multiple domains from custom rules: $*"
+            total_removed=0
+            failed_removals=""
+            for domain_to_remove in "$@"; do
+                if grep -qw "$domain_to_remove" "$persist_dir/custom_rules.txt"; then
+                    awk -v dom="$domain_to_remove" '$2 != dom' "$persist_dir/custom_rules.txt" > "$persist_dir/custom_rules.tmp"
+                    mv "$persist_dir/custom_rules.tmp" "$persist_dir/custom_rules.txt"
+
+                    # Remove from active hosts too
+                    tmp_hosts="$persist_dir/tmp.hosts.$$"
+                    grep -vE "^[0-9a-fA-F:.]+ $domain_to_remove\$" "$hosts_file" > "$tmp_hosts" || true
+                    cat "$tmp_hosts" > "$hosts_file"
+                    rm -f "$tmp_hosts"
+
+                    log_message SUCCESS "Removed custom rule for $domain_to_remove."
+                    echo "[✓] Removed custom rule for $domain_to_remove."
+                    total_removed=$((total_removed + 1))
+                else
+                    echo "[!] $domain_to_remove was not found in custom rules."
+                    failed_removals="$failed_removals $domain_to_remove"
+                    log_message WARN "$domain_to_remove not found in custom rules"
+                fi
+            done
+
+            if [ $total_removed -gt 0 ]; then
+                echo "[i] Successfully removed $total_removed custom rule(s)"
+            fi
+            if [ -n "$failed_removals" ]; then
+                echo "[i] Failed to remove rules for:$failed_removals"
+            fi
+            if [ $total_removed -eq 0 ]; then
+                echo "[!] No custom rules were removed"
+                exit 1
+            fi
+        fi
+
+        refresh_blocked_counts
+        update_status
+        end_time=$(get_current_time)
+        log_duration "Custom rule action: $option" "$start_time" "$end_time"
+        ;;
+
     --auto-update|-a)
         case "$2" in
             enable)
@@ -1796,6 +1908,7 @@ case "$(tolower "$1")" in
         echo "--update-hosts, -u: Update the hosts file."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove|edit> ...: Add/remove/edit custom hosts sources."
+        echo "--custom-rule, -cr <add|remove> <IP> <domain>: Add or remove custom hosts rules."
         echo "--reset, -r: Reset hosts file to default."
         echo "--query-domain, -q <domain>: Query if a domain is blocked, redirected, or not blocked."
         echo "--adblock-switch, -as: Toggle protections on/off."
