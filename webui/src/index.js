@@ -879,39 +879,22 @@ async function loadFile(fileType) {
                 });
             }
 
-            let pressTimer;
-            let isLongPress = false;
-
-            const startPress = (e) => {
-                if (e.button && e.button !== 0) return;
-                isLongPress = false;
-                pressTimer = window.setTimeout(() => {
-                    isLongPress = true;
-                    const list = listItem.closest('ul');
-                    if (list) {
-                        const controlList = list.previousElementSibling;
-                        const checkboxes = list.querySelectorAll('.checkbox-wrapper');
-                        checkboxes.forEach(cb => {
-                            cb.classList.add('show');
-                        });
-                        if (controlList) controlList.classList.add('show');
-                        setupControlListListeners(list);
-                        const checkbox = listItem.querySelector('.checkbox');
-                        if (checkbox) {
-                            checkbox.checked = true;
-                            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
+            listItem.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const list = listItem.closest('ul');
+                if (list) {
+                    const controlList = list.previousElementSibling;
+                    const checkboxes = list.querySelectorAll('.checkbox-wrapper');
+                    checkboxes.forEach(cb => cb.classList.add('show'));
+                    if (controlList) controlList.classList.add('show');
+                    setupControlListListeners(list);
+                    const checkbox = listItem.querySelector('.checkbox');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                     }
-                }, 500);
-            };
-
-            const cancelPress = () => clearTimeout(pressTimer);
-            const clickHandler = (e) => {
-                if (isLongPress) {
-                    e.preventDefault();
-                    e.stopPropagation();
                 }
-            };
+            });
 
             listItem.addEventListener('click', () => {
                 if (!listItem.querySelector('.checkbox-wrapper').classList.contains('show')) return;
@@ -919,12 +902,6 @@ async function loadFile(fileType) {
                 checkbox.checked = !checkbox.checked;
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             });
-            listItem.addEventListener('mousedown', startPress);
-            listItem.addEventListener('mouseup', cancelPress);
-            listItem.addEventListener('mouseleave', cancelPress);
-            listItem.addEventListener('touchstart', startPress);
-            listItem.addEventListener('touchend', cancelPress);
-            listItem.addEventListener('click', clickHandler, true);
             listElement.appendChild(listItem);
         });
         applyRippleEffect();
