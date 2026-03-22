@@ -1,4 +1,4 @@
-import { spawn, exec, toast } from './assets/kernelsu.js';
+import { spawn, exec, toast } from 'kernelsu-alt';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
