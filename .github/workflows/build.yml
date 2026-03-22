@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/build.yml'
-      - 'module/**'
-      - 'update.json'
-  pull_request:
-    branches:
-      - main
+      - new_webui
     paths:
       - '.github/workflows/build.yml'
       - 'module/**'
