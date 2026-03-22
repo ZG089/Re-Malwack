@@ -1605,27 +1605,45 @@ case "$(tolower "$1")" in
                 exit 1
             fi
         elif [ "$option" = "enable" ] || [ "$option" = "disable" ]; then
-            domain="$1"
-            
-            # Validate URL format
-            if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
-                echo "[!] Invalid domain: $domain"
-                exit 1
-            fi
-
-            if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "#" || awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain" || awk '{print $4}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain"; then
-                if [ "$option" = "enable" ]; then
-                    sed -i "s|^# OFF # $domain|$domain|g" "$persist_dir/sources.txt"
-                    log_message SUCCESS "Enabled $domain in sources."
-                    echo "[✓] Enabled $domain in sources."
-                else
-                    sed -i "s|^$domain|# OFF # $domain|g" "$persist_dir/sources.txt"
-                    log_message SUCCESS "Disabled $domain in sources."
-                    echo "[✓] Disabled $domain in sources."
+            total_processed=0
+            failed_process=""
+            for domain in "$@"; do
+                # Validate URL format
+                if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
+                    echo "[!] Invalid domain: $domain"
+                    failed_process="$failed_process $domain"
+                    continue
                 fi
-            else
-                echo "[!] $domain was not found in sources."
-                log_message WARN "$domain not found in sources"
+
+                if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "#" || awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain" || awk '{print $4}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$domain"; then
+                    if [ "$option" = "enable" ]; then
+                        sed -i "s|^# OFF # $domain|$domain|g" "$persist_dir/sources.txt"
+                        log_message SUCCESS "Enabled $domain in sources."
+                        echo "[✓] Enabled $domain in sources."
+                    else
+                        sed -i "s|^$domain|# OFF # $domain|g" "$persist_dir/sources.txt"
+                        log_message SUCCESS "Disabled $domain in sources."
+                        echo "[✓] Disabled $domain in sources."
+                    fi
+                    total_processed=$((total_processed + 1))
+                else
+                    echo "[!] $domain was not found in sources."
+                    log_message WARN "$domain not found in sources"
+                    failed_process="$failed_process $domain"
+                fi
+            done
+            
+            # Summary
+            if [ $total_processed -gt 0 ]; then
+                echo "[i] Successfully processed $total_processed source(s)"
+            fi
+            
+            if [ -n "$failed_process" ]; then
+                echo "[i] Failed to process:$failed_process"
+            fi
+            
+            if [ $total_processed -eq 0 ]; then
+                echo "[!] No sources were processed"
                 exit 1
             fi
         else
@@ -1714,9 +1732,9 @@ case "$(tolower "$1")" in
                 exit 1
             fi
 
-            # Validate Domain format
-            if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
-                echo "[!] Invalid domain format: $domain"
+            # Validate Domain or IP format
+            if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$|^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$'; then
+                echo "[!] Invalid domain or IP format: $domain"
                 exit 1
             fi
 
