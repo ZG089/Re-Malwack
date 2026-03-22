@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <div class="content">
+    <div class="content" unresolved>
         <!-- Header -->
         <div class="header" id="info-box">
             <i class="logo" id="logo">
@@ -22,55 +22,36 @@
                         d="M557.8 11.7V135h97.7V73h-34.7V11.6Zm138.2.8.1.1h-65.4l76.8 133.2 29.9-51.7-13.3-21.3 5-3.1 43.8 76 77-133.1zM863.9.3l77.8 135h-156Zm187.3 119.9a66 66 0 0 1-93-.2 66 66 0 0 1 .2-93 66 66 0 0 1 93 .2l-46.6 46.4zm76.9-108.4h-73.2v124h73.2v.1h48.3l-45.8-62.1 45.7-62Z" />
                 </svg>
             </i>
-            <i class="about">
-                <div class="theme-wrapper">
-                    <svg id="theme-toggle" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                        width="24px">
-                        <path
-                            d="M396-396q-32-32-58.5-67T289-537q-5 14-6.5 28.5T281-480q0 83 58 141t141 58q14 0 28.5-2t28.5-6q-39-22-74-48.5T396-396Zm57-56q51 51 114 87.5T702-308q-40 51-98 79.5T481-200q-117 0-198.5-81.5T201-480q0-65 28.5-123t79.5-98q20 72 56.5 135T453-452Zm290 72q-20-5-39.5-11T665-405q8-18 11.5-36.5T680-480q0-83-58.5-141.5T480-680q-20 0-38.5 3.5T405-665q-8-19-13.5-38T381-742q24-9 49-13.5t51-4.5q117 0 198.5 81.5T761-480q0 26-4.5 51T743-380ZM440-840v-120h80v120h-80Zm0 840v-120h80V0h-80Zm323-706-57-57 85-84 57 56-85 85ZM169-113l-57-56 85-85 57 57-85 84Zm671-327v-80h120v80H840ZM0-440v-80h120v80H0Zm791 328-85-85 57-57 84 85-56 57ZM197-706l-84-85 56-57 85 85-57 57Zm199 310Z" />
-                    </svg>
-                    <select id="theme-select"></select>
-                </div>
-                <svg id="about-button" xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960"
-                    width="26px">
-                    <path
-                        d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-                </svg>
-            </i>
+            <div class="spacer"></div>
+            <span class="menu">
+                <md-icon-button id="theme-toggle"><md-icon>routine</md-icon></md-icon-button>
+                <md-menu id="theme-select" anchor="theme-toggle"></md-menu>
+            </span>
             <div id="festival-theme">
                 <img class="festival" id="christmas" src="snowflakes.png">
                 <!-- <img class="festival" id="halloween" src="assets/pumpkin.png"> -->
             </div>
+            <md-ripple></md-ripple>
         </div>
 
         <!-- Disabled block -->
         <div class="header header-disabled" id="disabled-box">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                <path
-                    d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z" />
-            </svg>
+            <md-icon>warning</md-icon>
             <div id="disable-text"></div>
         </div>
 
         <!-- Test version block -->
         <div class="header header-disabled" id="test-version-box">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                <path
-                    d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-            </svg>
+            <md-icon>info</md-icon>
             <div id="test-version-text"></div>
         </div>
 
         <!-- Broken mount block -->
         <div class="header header-disabled" id="broken-mount-box">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                <path
-                    d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-            </svg>
+            <md-icon>close</md-icon>
             <div>
                 Critical Error: Broken hosts mount
-                <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your
-                    device.</p>
+                <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your device.</p>
             </div>
 
         </div>
@@ -91,207 +72,114 @@
             </div>
         </div>
 
-        <!-- Float button -->
-        <div class="float-container">
-            <div class="float-icon ripple-element" id="adblock-switch">
-                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960"
-                    width="40px">
-                    <path d="M560-200v-560h160v560H560Zm-320 0v-560h160v560H240Z" />
-                </svg>
-                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960"
-                    width="40px">
-                    <path d="M320-200v-560l440 280-440 280Z" />
-                </svg>
-            </div>
-        </div>
-
         <!-- rmlwk function box -->
-        <!-- reset -->
-        <div class="box ripple-element">
-            <div class="toggle-container" id="reset">
-                <i class="control-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M480-120q-138 0-240.5-91.5T122-440h82q14 104 92.5 172T480-200q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h110v80H120v-240h80v94q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm112-192L440-464v-216h80v184l128 128-56 56Z" />
-                    </svg>
-                </i>
-                <div class="toggle-text">Restore original hosts file</div>
-            </div>
-        </div>
-
-        <!-- update -->
-        <div class="box ripple-element">
-            <div class="toggle-container" id="update">
-                <i class="control-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q17-72 85-137t145-65q33 0 56.5 23.5T520-716v242l64-62 56 56-160 160-160-160 56-56 64 62v-242q-76 14-118 73.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-48-22-89.5T600-680v-93q74 35 117 103.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm220-358Z" />
-                    </svg>
-                </i>
-                <div class="toggle-text">Update hosts file</div>
-            </div>
-        </div>
-
         <!-- Action Mode -->
-        <div class="box ripple-element">
-            <div class="toggle-container" id="action-mode">
-                <i class="control-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path d="M320-200v-560l440 280-440 280Zm80-280Zm0 134 210-134-210-134v268Z" />
-                    </svg>
-                </i>
+        <div class="list-container">
+            <div class="list-item" id="action-mode">
+                <md-icon>play_arrow</md-icon>
                 <div class="toggle-text" id="action-mode-label">Action Mode</div>
+                <div class="spacer"></div>
                 <div id="action-mode-status"></div>
+                <md-ripple></md-ripple>
             </div>
         </div>
-
-        <!-- daily update -->
-        <div class="box ripple-element">
-            <div class="toggle-container" id="daily-update">
-                <i class="control-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M480-144q-70 0-131.13-26.6-61.14-26.6-106.4-71.87-45.27-45.26-71.87-106.4Q144-410 144-480t26.6-131.13q26.6-61.14 71.87-106.4 45.26-45.27 106.4-71.87Q410-816 480-816q81 0 149.5 35T744-686v-130h72v240H576v-72h107q-35.91-44.8-88.45-70.4Q542-744 480-744q-109 0-186.5 77.5T216-480q0 109 77.5 186.5T480-216q109 0 186.5-77.5T744-480h72q0 140-98 238t-238 98Zm100-200L444-480v-192h72v162l115 115-51 51Z" />
-                    </svg> </i>
-                <div class="toggle-text">Daily update hosts file</div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="daily-update-toggle" disabled>
-                    <span class="slider round"></span>
-                </label>
+    
+        <div class="list-title">Host Operation</div>
+        <div class="list-container">
+            <!-- reset -->
+            <div class="list-item" id="reset">
+                <md-icon>history</md-icon>
+                <div class="toggle-text">Reset hosts file</div>
+                <md-ripple></md-ripple>
             </div>
+
+            <!-- update -->
+            <div class="list-item" id="update">
+                <md-icon>cloud_download</md-icon>
+                <div class="toggle-text">Update hosts file</div>
+                <md-ripple></md-ripple>
+            </div>
+
+            <!-- daily update -->
+            <label class="list-item" id="daily-update">
+                <md-icon>update</md-icon>
+                <div class="toggle-text">Daily update hosts file</div>
+                <div class="spacer"></div>
+                <md-switch icons id="daily-update-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
         </div>
 
         <!-- Custom block -->
-        <div class="outer-box custom-block">
+        <div class="list-title">Preset Blocking Sources</div>
+        <div class="list-container custom-block">
             <!-- porn block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-porn" data-type="porn">
-                    <i class="control-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path
-                                d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q54 0 104-17.5t92-50.5L228-676q-33 42-50.5 92T160-480q0 134 93 227t227 93Zm252-124q33-42 50.5-92T800-480q0-134-93-227t-227-93q-54 0-104 17.5T284-732l448 448Z" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Block pornography sites</div>
-                    <span class="badge blocklist-badge" id="badge-porn"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-porn-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-porn" data-type="porn">
+                <md-icon>block</md-icon>
+                <div class="toggle-text">Block pornography sites</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-porn"></span>
+                <md-switch icons id="block-porn-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
 
             <!-- gambling block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-gambling" data-type="gambling">
-                    <i class="control-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path
-                                d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-83v-40q-35-5-67.5-19T312-256l-28 29q33 26 72.5 42.5T440-163Zm80 0q44-5 83.5-21.5T676-227l-28-29q-28 20-60.5 34T520-203v40Zm-40-117q83 0 141.5-58.5T680-480q0-83-58.5-141.5T480-680q-83 0-141.5 58.5T280-480q0 83 58.5 141.5T480-280Zm253-4q26-33 42.5-72.5T797-440h-40q-5 35-19 67.5T704-312l29 28Zm-506 0 29-29q-20-28-34-60t-19-67h-40q5 44 21.5 83.5T227-284Zm253-36L360-480l120-160 120 160-120 160ZM163-520h40q5-35 19-67t34-60l-29-29q-26 33-42.5 72.5T163-520Zm594 0h40q-5-44-22-83.5T732-676l-28 28q20 28 34 60.5t19 67.5ZM313-704q28-20 60-34t67-19v-40q-44 5-83.5 21.5T284-733l29 29Zm335 0 28-28q-33-26-72.5-43T520-797v40q35 5 67.5 19t60.5 34Z" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Block gambling sites</div>
-                    <span class="badge blocklist-badge" id="badge-gambling"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-gambling-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-gambling" data-type="gambling">
+                <md-icon>poker_chip</md-icon>
+                <div class="toggle-text">Block gambling sites</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-gambling"></span>
+                <md-switch icons id="block-gambling-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
 
             <!-- fakenews block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-fakenews" data-type="fakenews">
-                    <i class="control-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path
-                                d="M280-280q17 0 28.5-11.5T320-320q0-17-11.5-28.5T280-360q-17 0-28.5 11.5T240-320q0 17 11.5 28.5T280-280Zm-40-160h80v-240h-80v240Zm200 160h280v-80H440v80Zm0-160h280v-80H440v80Zm0-160h280v-80H440v80ZM160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm0 0v-560 560Z" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Block fake news sites</div>
-                    <span class="badge blocklist-badge" id="badge-fakenews"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-fakenews-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-fakenews" data-type="fakenews">
+                <md-icon>breaking_news</md-icon>
+                <div class="toggle-text">Block fake news sites</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-fakenews"></span>
+                <md-switch icons id="block-fakenews-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
 
             <!-- social media block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-social" data-type="social">
-                    <i class="control-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path
-                                d="M96-192v-92q0-25.78 12.5-47.39T143-366q54-32 114.5-49T384-432q66 0 126.5 17T625-366q22 13 34.5 34.61T672-284v92H96Zm648 0v-92q0-42-19.5-78T672-421q39 8 75.5 21.5T817-366q22 13 34.5 34.67Q864-309.65 864-284v92H744ZM384-480q-60 0-102-42t-42-102q0-60 42-102t102-42q60 0 102 42t42 102q0 60-42 102t-102 42Zm336-144q0 60-42 102t-102 42q-8 0-15-.5t-15-2.5q25-29 39.5-64.5T600-624q0-41-14.5-76.5T546-765q8-2 15-2.5t15-.5q60 0 102 42t42 102ZM168-264h432v-20q0-6.47-3.03-11.76-3.02-5.3-7.97-8.24-47-27-99-41.5T384-360q-54 0-106 14t-99 42q-4.95 2.83-7.98 7.91-3.02 5.09-3.02 12V-264Zm216.21-288Q414-552 435-573.21t21-51Q456-654 434.79-675t-51-21Q354-696 333-674.79t-21 51Q312-594 333.21-573t51 21ZM384-264Zm0-360Z" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Block social media sites</div>
-                    <span class="badge blocklist-badge" id="badge-social"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-social-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-social" data-type="social">
+                <md-icon>group</md-icon>
+                <div class="toggle-text">Block social media sites</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-social"></span>
+                <md-switch icons id="block-social-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
 
             <!-- trackers block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-trackers" data-type="trackers">
-                    <i class="control-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                            <path
-                                d="M260-840q-45 0-72.5 50T160-680q0 63 17.5 111.5T210-496l110-22q13-32 26.5-73t13.5-89q0-60-27.5-110T260-840Zm55 520q19 0 32-14t13-39q0-17-8-35t-16-32l-96 20q0 40 17.5 70t57.5 30Zm385-320q-45 0-72.5 50T600-480q0 48 13.5 88.5T640-318l110 22q15-24 32.5-72T800-480q0-60-27.5-110T700-640Zm-55 520q40 0 57.5-30t17.5-70l-96-20q-8 14-16 32t-8 35q0 20 12.5 36.5T645-120ZM315-240q-77 0-117-57t-38-128l-18-27q-11-17-36.5-77T80-680q0-103 51-171.5T260-920q85 0 132.5 75.5T440-680q0 58-16 107t-28 79l8 13q8 14 22 44.5t14 63.5q0 57-35.5 95T315-240ZM645-40q-54 0-89.5-38T520-173q0-33 14-63.5t22-44.5l8-13q-12-30-28-79t-16-107q0-89 47.5-164.5T700-720q78 0 129 68.5T880-480q0 91-25.5 150.5T818-253l-18 28q1 71-38.5 128T645-40Z" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Block trackers sites</div>
-                    <span class="badge blocklist-badge" id="badge-trackers"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-trackers-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-trackers" data-type="trackers">
+                <md-icon>footprint</md-icon>
+                <div class="toggle-text">Block trackers sites</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-trackers"></span>
+                <md-switch icons id="block-trackers-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
 
             <!-- safebrowsing block -->
-            <div class="inner-box ripple-element">
-                <div class="toggle-container" id="block-safebrowsing" data-type="safebrowsing">
-                    <i class="control-icon">
-                        <svg width="800" height="800" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                            <title>ionicons-v5-f</title>
-                            <path
-                                d="M256 64C150.13 64 64 150.13 64 256s86.13 192 192 192 192-86.13 192-192S361.87 64 256 64m91.31 283.31a16 16 0 0 1-22.62 0l-42.84-42.83a88.08 88.08 0 1 1 22.63-22.63l42.83 42.84a16 16 0 0 1 0 22.62" />
-                            <circle cx="232" cy="232" r="56" />
-                        </svg>
-                    </i>
-                    <div class="toggle-text">Enable Safebrowsing</div>
-                    <span class="badge blocklist-badge" id="badge-safebrowsing"
-                        style="display: none; margin-right: 10px;"></span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="block-safebrowsing-toggle" disabled>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            <label class="list-item" id="block-safebrowsing" data-type="safebrowsing">
+                <md-icon>data_loss_prevention</md-icon>
+                <div class="toggle-text">Enable Safebrowsing</div>
+                <div class="spacer"></div>
+                <span class="badge blocklist-badge" id="badge-safebrowsing"></span>
+                <md-switch icons id="block-safebrowsing-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
         </div>
 
         <!-- Query -->
+        <div class="list-title">Query</div>
         <div class="box" id="query">
-            <h2>Query</h2>
             <div class="category-container">
-                <input id="query-input" type="text" placeholder="query.this.domain" />
-                <button class="ripple-element" id="query-search">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#ffffff">
-                        <path
-                            d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
-                    </svg>
-                </button>
+                <md-outlined-text-field id="query-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-filled-icon-button id="query-search"><md-icon>search</md-icon></md-filled-icon-button>
             </div>
             <div class="card" id="query-result-card">
                 <p id="query-result-text"></p>
@@ -299,293 +187,196 @@
         </div>
 
         <!-- Whitelist -->
+        <div class="list-title">Whitelist</div>
         <div class="box" id="whitelist">
-            <h2>Whitelist</h2>
             <div class="category-container">
-                <input id="whitelist-input" type="text" placeholder="whitelist.this.domain" />
-                <button class="ripple-element" id="whitelist-add">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#ffffff">
-                        <path
-                            d="m438-338 226-226-57-57-169 169-84-84-57 57 141 141Zm42 258q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z" />
-                    </svg>
-                </button>
+                <md-outlined-text-field id="whitelist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-filled-icon-button id="whitelist-add"><md-icon>verified_user</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
-                <button class="control-icon back ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                    </svg>
-                </button>
-                <button class="control-icon select-all ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-280v-400h400v400H280Zm80-80h240v-240H360v240ZM200-200v80q-33 0-56.5-23.5T120-200h80Zm-80-80v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm80-160h-80q0-33 23.5-56.5T200-840v80Zm80 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z" />
-                    </svg>
-                </button>
-                <button class="control-icon delete ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                    </svg>
-                </button>
+                <md-icon-button class="back"><md-icon>arrow_back</md-icon></md-icon-button>
+                <div class="spacer"></div>
+                <md-icon-button class="select-all"><md-icon>select_all</md-icon></md-icon-button>
+                <md-icon-button class="delete"><md-icon>delete</md-icon></md-icon-button>
             </div>
-            <ul id="whitelist-list"></ul>
+            <div id="whitelist-list"></div>
         </div>
 
         <!-- Blacklist -->
+        <div class="list-title">Blacklist</div>
         <div class="box" id="blacklist">
-            <h2>Blacklist</h2>
             <div class="category-container">
-                <input id="blacklist-input" type="text" placeholder="block.this.domain" />
-                <button class="ripple-element" id="blacklist-add">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px"
-                        fill="#ffffff">
-                        <path
-                            d="M330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm36-190 114-114 114 114 56-56-114-114 114-114-56-56-114 114-114-114-56 56 114 114-114 114 56 56Zm-2 110h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z" />
-                    </svg>
-                    <div class="loading">
-                        <div class="loading-circle"></div>
-                    </div>
-                </button>
+                <md-outlined-text-field id="blacklist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-filled-icon-button id="blacklist-add"><md-icon>block</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
-                <button class="control-icon back ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                    </svg>
-                </button>
-                <button class="control-icon select-all ripple-element ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-280v-400h400v400H280Zm80-80h240v-240H360v240ZM200-200v80q-33 0-56.5-23.5T120-200h80Zm-80-80v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm80-160h-80q0-33 23.5-56.5T200-840v80Zm80 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z" />
-                    </svg>
-                </button>
-                <button class="control-icon delete ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                    </svg>
-                </button>
+                <md-icon-button class="back"><md-icon>arrow_back</md-icon></md-icon-button>
+                <div class="spacer"></div>
+                <md-icon-button class="select-all"><md-icon>select_all</md-icon></md-icon-button>
+                <md-icon-button class="delete"><md-icon>delete</md-icon></md-icon-button>
             </div>
-            <ul id="blacklist-list"></ul>
+            <div id="blacklist-list"></div>
         </div>
 
         <!-- Sources -->
+        <div class="list-title">Sources</div>
         <div class="box" id="custom-source">
-            <h2>Sources</h2>
             <div class="category-container">
-                <input id="custom-source-input" type="text"
-                    placeholder="https://example.com/hosts.txt [Optional: Source name]" />
-                <button class="ripple-element" id="custom-source-add">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#FFFFFF">
-                        <path
-                            d="M440-240h80v-120h120v-80H520v-120h-80v120H320v80h120v120ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z" />
-                    </svg>
-                    <div class="loading">
-                        <div class="loading-circle"></div>
-                    </div>
-                </button>
+                <md-outlined-text-field id="custom-source-input" label="URL" placeholder="https://example.com/hosts.txt"></md-outlined-text-field>
+                <md-filled-icon-button id="custom-source-add"><md-icon>note_add</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
-                <button class="control-icon back ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                    </svg>
-                </button>
-                <button class="control-icon select-all ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-280v-400h400v400H280Zm80-80h240v-240H360v240ZM200-200v80q-33 0-56.5-23.5T120-200h80Zm-80-80v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm80-160h-80q0-33 23.5-56.5T200-840v80Zm80 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z" />
-                    </svg>
-                </button>
-                <button class="control-icon edit ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
-                    </svg>
-                </button>
-                <button class="control-icon delete ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                    </svg>
-                </button>
+                <md-icon-button class="back"><md-icon>arrow_back</md-icon></md-icon-button>
+                <div class="spacer"></div>
+                <md-icon-button class="select-all"><md-icon>select_all</md-icon></md-icon-button>
+                <md-icon-button class="enable"><md-icon>check_circle</md-icon></md-icon-button>
+                <md-icon-button class="disable"><md-icon>do_not_disturb_on</md-icon></md-icon-button>
+                <md-icon-button class="delete"><md-icon>delete</md-icon></md-icon-button>
             </div>
-            <ul id="custom-source-list"></ul>
+            <div id="custom-source-list"></div>
         </div>
 
         <!-- Custom Rules -->
+        <div class="list-title">Custom Rules</div>
         <div class="box" id="custom-rule">
-            <h2>Custom Rules</h2>
-            <div class="category-container" style="display: flex; gap: 8px;">
-                <input id="custom-rule-ip" type="text" placeholder="IP Address (e.g. 255.255.255.255)"
-                    style="flex: 1; min-width: 0;" />
-                <input id="custom-rule-domain" type="text" placeholder="Domain (e.g. example.com)"
-                    style="flex: 2; min-width: 0;" />
-                <button class="ripple-element" id="custom-rule-add">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
-                        fill="#FFFFFF">
-                        <path
-                            d="M440-240h80v-120h120v-80H520v-120h-80v120H320v80h120v120ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z" />
-                    </svg>
-                    <div class="loading">
-                        <div class="loading-circle"></div>
-                    </div>
-                </button>
+            <div class="category-container">
+                <md-outlined-text-field id="custom-rule-ip" label="IP" placeholder="0.0.0.0"></md-outlined-text-field>
+                <md-outlined-text-field id="custom-rule-domain" label="Domain" placeholder="example.com"></md-outlined-text-field>
+                <md-filled-icon-button id="custom-rule-add"><md-icon>edit_document</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
-                <button class="control-icon back ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                    </svg>
-                </button>
-                <button class="control-icon select-all ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-280v-400h400v400H280Zm80-80h240v-240H360v240ZM200-200v80q-33 0-56.5-23.5T120-200h80Zm-80-80v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm80-160h-80q0-33 23.5-56.5T200-840v80Zm80 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80q0 33-23.5 56.5T760-120Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80q33 0 56.5 23.5T840-760h-80Z" />
-                    </svg>
-                </button>
-                <button class="control-icon delete ripple-element">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-                        <path
-                            d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                    </svg>
-                </button>
+                <md-icon-button class="back"><md-icon>arrow_back</md-icon></md-icon-button>
+                <div class="spacer"></div>
+                <md-icon-button class="select-all"><md-icon>select_all</md-icon></md-icon-button>
+                <md-icon-button class="delete"><md-icon>delete</md-icon></md-icon-button>
             </div>
-            <ul id="custom-rule-list" class="custom-rule-list-container"></ul>
+            <div id="custom-rule-list" class="custom-rule-list-container"></div>
         </div>
 
         <!-- Export logs -->
-        <div class="box ripple-element">
-            <div class="toggle-container" id="export-logs">
-                <i class="control-icon" id="export-logs-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+        <div class="list-container">
+            <div class="list-item" id="export-logs">
+                <md-icon>bug_report</md-icon>
+                <div class="toggle-text" id="export-logs-text">Export logs</div>
+                <md-ripple></md-ripple>
+            </div>
+        </div>
+    </div>
+
+    <!-- Float button -->
+    <md-fab id="adblock-switch" variant="primary" class="float-container">
+        <div slot="icon">
+            <md-icon class="float-icon" id="pause-icon">pause</md-icon>
+            <md-icon class="float-icon" id="play-icon">play_arrow</md-icon>
+        </div>
+    </md-fab>
+
+    <!-- Dialog -->
+    <div class="dialog-wrapper" unresolved>
+        <!-- About Dialog -->
+        <md-dialog id="about-dialog">
+        <div slot="content" class="about-content">
+            <div class="about-logo-container">
+                <i class="about-logo">
+                    <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
                         <path
-                            d="M480-200q66 0 113-47t47-113v-160q0-66-47-113t-113-47q-66 0-113 47t-47 113v160q0 66 47 113t113 47Zm-80-120h160v-80H400v80Zm0-160h160v-80H400v80Zm80 40Zm0 320q-65 0-120.5-32T272-240H160v-80h84q-3-20-3.5-40t-.5-40h-80v-80h80q0-20 .5-40t3.5-40h-84v-80h112q14-23 31.5-43t40.5-35l-64-66 56-56 86 86q28-9 57-9t57 9l88-86 56 56-66 66q23 15 41.5 34.5T688-640h112v80h-84q3 20 3.5 40t.5 40h80v80h-80q0 20-.5 40t-3.5 40h84v80H688q-32 56-87.5 88T480-120Z" />
+                            d="m351.7 133.2-17.6 28 85.8 54q4.6 3.8 9.6 10 4.1 6.5 11.4 11.3l116 73c14.3 9 31.6 7 38.9-4.5s1.6-28-12.7-37l-116-73.1a36 36 0 0 0-16.7-5.6c-10.4-2-23.3-9-23.3-9l.3.6z" />
+                        <path
+                            d="m334.2 161 17.6-28 134.8 85-17.6 28zM207 192.5l16.5 10.7 15.8 10.2 15 8.6 7.4 3.6 12.7-21.5-.8-11-.1-5.3.4-3.5 1-2.9 1.7-3.1 4-5 8.8-9 4.4-4.1 2.5-1.5 1.4-.5h1.3l1.4.3 1.7.7 4.2 2.7 1.8 1.2 2 1.2 3 1.3 1.4.3 1.3-.5 1.4-.8 2-1.6 4.7-5 6.6-9 6.1-10.5 3.6-7.4 3.8-9.3 1.2-4.5v-2.5l-.5-2-2-2.5-7.8-6.7-2.6-2.6-1-1.3-.2-.9-.2-.9.3-1.1.7-2 11.8-20.4 11.1-15.9 5-5 14.7-11.1 1.7-1.7.5-.8v-.5l-.8-.4-3.3.3-5.5 1.2-5.6 1.4-12.2 4.2-5.4 2-10.8 4.5-4.5 2-6.2 3.1-12.9 8.4-7.7 5.9-10.3 8.6-10.6 11-8 9.7-12.7 19.4-6.3 10.7-5.1 8.1-1 2.3-.4 2.5v2.1l-.5 1.8-1 2.8-1.8 3.8-2.5 3.7-4.2 4.6-2.7 2.2-3.3 2.3-2.5 1-1.6.2h-1.7l-1.7.4-1.9 1-2.1 2-3.3 4.6zM86.5 243.4c-5 .1-9.5 3.2-11.3 8l-1.2 3.2c-2.5 6.5.8 13.7 7.3 16.2l24.4 9.2a39 39 0 0 1 13.3 9.4l.2.4 4.2 6.1v.1c1 1.6 3.4 6.2 1 10.5l-3.2 4.3-1.6 2c-1.5 1.6-5.9 10-8.6 17.7s-2.6 11.9-2.6 11.9.4 3.4 1.3 5.4c.7 1.7 2.4 2 3 2h.2l53.5.1H248c.5-.1 2.2-.4 3-2 .8-2.1 1.2-5.5 1.2-5.5s.2-4.2-2.6-11.9a82 82 0 0 0-8.6-17.7 42 42 0 0 1-4.7-6.2c-2.5-4.4-.1-9 .8-10.6h.1l4.2-6.1q0-.3.3-.4a38 38 0 0 1 13.2-9.4l24.4-9.3c6.6-2.5 9.8-9.7 7.3-16.2l-1.2-3.1a12.5 12.5 0 0 0-16.2-7.3l-36.8 14-1.7.8q-3.4 1.3-5.7 4.6l-13.2 19.2a7 7 0 0 1-6.1 2l-5-1.7h-.1a72 72 0 0 0-19-2.6h-1.8l-4.5.3-2 .1q-6.6.5-13.1 2.3-.4-.1-1.6.4l-3.5 1.2a7 7 0 0 1-6.1-2l-13.2-19.2a13 13 0 0 0-5.8-4.6l-1.7-.8-36.8-14q-2.4-1-5-.8M14.2 358.2a13.3 13.3 0 0 0-9.1 23l39.6 38.6q1 1 2.2 1.8 3.4 2.5 8 2.6h36.5v48.6l.2 6H69.5q-4.6 0-8 2.7-1.2.8-2.3 1.8L19.7 522a13.3 13.3 0 1 0 18.7 19l35.8-35h23.6a88 88 0 0 0 58.3 51.9l.1-27.4q0-1.7.5-3.4.3-4.6 3.9-8l24.8-23.3a25 25 0 0 1-1.2-7.7 25 25 0 0 1 25.2-25.2 25 25 0 0 1 25.1 25.2 25 25 0 0 1-25.1 25.2l-4.3-.4-23 21.5V561a88 88 0 0 0 79.3-55h25l36 35a13.3 13.3 0 1 0 18.6-19l-39.5-38.7q-1-1-2.3-1.8-3.4-2.5-8-2.6h-23.7q.3-3 .2-6v-48.7h38.1q4.6-.1 8-2.6 1.3-.7 2.2-1.8l39.6-38.7a13.3 13.3 0 0 0-9.1-22.9q-5.4 0-9.5 3.9l-36 35h-33.3v-3.8c0-7.5-6-13.5-13.5-13.5h-50.4l-.1 28.6q0 1.9-.5 3.4-.3 4.6-3.9 8.1l-24.8 23.3a25 25 0 0 1 1.2 7.7 25 25 0 0 1-25.2 25.1 25 25 0 0 1-25.1-25.1 25 25 0 0 1 25.1-25.2l4.3.4 23-21.5v-24.8h-72.5c-7.4 0-13.5 6-13.5 13.5v3.8H59.6l-35.9-35q-4-3.9-9.5-3.9" />
                     </svg>
                 </i>
-                <div class="toggle-text" id="export-logs-text">Export logs</div>
             </div>
-        </div>
-
-        <!-- About -->
-        <div id="about-overlay" class="overlay">
-            <div id="about-menu" class="overlay-content">
-                <button id="close-about" class="close-about">&#x2715;</button>
-                <div class="about-content">
-                    <div class="about-logo-container">
-                        <i class="about-logo">
-                            <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="m351.7 133.2-17.6 28 85.8 54q4.6 3.8 9.6 10 4.1 6.5 11.4 11.3l116 73c14.3 9 31.6 7 38.9-4.5s1.6-28-12.7-37l-116-73.1a36 36 0 0 0-16.7-5.6c-10.4-2-23.3-9-23.3-9l.3.6z" />
-                                <path
-                                    d="m334.2 161 17.6-28 134.8 85-17.6 28zM207 192.5l16.5 10.7 15.8 10.2 15 8.6 7.4 3.6 12.7-21.5-.8-11-.1-5.3.4-3.5 1-2.9 1.7-3.1 4-5 8.8-9 4.4-4.1 2.5-1.5 1.4-.5h1.3l1.4.3 1.7.7 4.2 2.7 1.8 1.2 2 1.2 3 1.3 1.4.3 1.3-.5 1.4-.8 2-1.6 4.7-5 6.6-9 6.1-10.5 3.6-7.4 3.8-9.3 1.2-4.5v-2.5l-.5-2-2-2.5-7.8-6.7-2.6-2.6-1-1.3-.2-.9-.2-.9.3-1.1.7-2 11.8-20.4 11.1-15.9 5-5 14.7-11.1 1.7-1.7.5-.8v-.5l-.8-.4-3.3.3-5.5 1.2-5.6 1.4-12.2 4.2-5.4 2-10.8 4.5-4.5 2-6.2 3.1-12.9 8.4-7.7 5.9-10.3 8.6-10.6 11-8 9.7-12.7 19.4-6.3 10.7-5.1 8.1-1 2.3-.4 2.5v2.1l-.5 1.8-1 2.8-1.8 3.8-2.5 3.7-4.2 4.6-2.7 2.2-3.3 2.3-2.5 1-1.6.2h-1.7l-1.7.4-1.9 1-2.1 2-3.3 4.6zM86.5 243.4c-5 .1-9.5 3.2-11.3 8l-1.2 3.2c-2.5 6.5.8 13.7 7.3 16.2l24.4 9.2a39 39 0 0 1 13.3 9.4l.2.4 4.2 6.1v.1c1 1.6 3.4 6.2 1 10.5l-3.2 4.3-1.6 2c-1.5 1.6-5.9 10-8.6 17.7s-2.6 11.9-2.6 11.9.4 3.4 1.3 5.4c.7 1.7 2.4 2 3 2h.2l53.5.1H248c.5-.1 2.2-.4 3-2 .8-2.1 1.2-5.5 1.2-5.5s.2-4.2-2.6-11.9a82 82 0 0 0-8.6-17.7 42 42 0 0 1-4.7-6.2c-2.5-4.4-.1-9 .8-10.6h.1l4.2-6.1q0-.3.3-.4a38 38 0 0 1 13.2-9.4l24.4-9.3c6.6-2.5 9.8-9.7 7.3-16.2l-1.2-3.1a12.5 12.5 0 0 0-16.2-7.3l-36.8 14-1.7.8q-3.4 1.3-5.7 4.6l-13.2 19.2a7 7 0 0 1-6.1 2l-5-1.7h-.1a72 72 0 0 0-19-2.6h-1.8l-4.5.3-2 .1q-6.6.5-13.1 2.3-.4-.1-1.6.4l-3.5 1.2a7 7 0 0 1-6.1-2l-13.2-19.2a13 13 0 0 0-5.8-4.6l-1.7-.8-36.8-14q-2.4-1-5-.8M14.2 358.2a13.3 13.3 0 0 0-9.1 23l39.6 38.6q1 1 2.2 1.8 3.4 2.5 8 2.6h36.5v48.6l.2 6H69.5q-4.6 0-8 2.7-1.2.8-2.3 1.8L19.7 522a13.3 13.3 0 1 0 18.7 19l35.8-35h23.6a88 88 0 0 0 58.3 51.9l.1-27.4q0-1.7.5-3.4.3-4.6 3.9-8l24.8-23.3a25 25 0 0 1-1.2-7.7 25 25 0 0 1 25.2-25.2 25 25 0 0 1 25.1 25.2 25 25 0 0 1-25.1 25.2l-4.3-.4-23 21.5V561a88 88 0 0 0 79.3-55h25l36 35a13.3 13.3 0 1 0 18.6-19l-39.5-38.7q-1-1-2.3-1.8-3.4-2.5-8-2.6h-23.7q.3-3 .2-6v-48.7h38.1q4.6-.1 8-2.6 1.3-.7 2.2-1.8l39.6-38.7a13.3 13.3 0 0 0-9.1-22.9q-5.4 0-9.5 3.9l-36 35h-33.3v-3.8c0-7.5-6-13.5-13.5-13.5h-50.4l-.1 28.6q0 1.9-.5 3.4-.3 4.6-3.9 8.1l-24.8 23.3a25 25 0 0 1 1.2 7.7 25 25 0 0 1-25.2 25.1 25 25 0 0 1-25.1-25.1 25 25 0 0 1 25.1-25.2l4.3.4 23-21.5v-24.8h-72.5c-7.4 0-13.5 6-13.5 13.5v3.8H59.6l-35.9-35q-4-3.9-9.5-3.9" />
-                            </svg>
-                        </i>
-                    </div>
-                    <p id="module-name">Re-Malwack</p>
-                    <p id="author">by ZG089<br>WebUI by KOWX712</p>
-                    <p>
-                    <div class="link">
-                        <i class="link-icon ripple-element" id="telegram">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                                <path
-                                    d="M248 8C111 8 0 119 0 256S111 504 248 504 496 393 496 256 385 8 248 8zM363 176.7c-3.7 39.2-19.9 134.4-28.1 178.3-3.5 18.6-10.3 24.8-16.9 25.4-14.4 1.3-25.3-9.5-39.3-18.7-21.8-14.3-34.2-23.2-55.3-37.2-24.5-16.1-8.6-25 5.3-39.5 3.7-3.8 67.1-61.5 68.3-66.7 .2-.7 .3-3.1-1.2-4.4s-3.6-.8-5.1-.5q-3.3 .7-104.6 69.1-14.8 10.2-26.9 9.9c-8.9-.2-25.9-5-38.6-9.1-15.5-5-27.9-7.7-26.8-16.3q.8-6.7 18.5-13.7 108.4-47.2 144.6-62.3c68.9-28.6 83.2-33.6 92.5-33.8 2.1 0 6.6 .5 9.6 2.9a10.5 10.5 0 0 1 3.5 6.7A43.8 43.8 0 0 1 363 176.7z" />
-                            </svg>
-                            <span class="link-text">Telegram Support Group</span>
-                        </i>
-                        <i class="link-icon ripple-element" id="github">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                                <path
-                                    d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" />
-                            </svg>
-                            <span class="link-text">GitHub</span>
-                        </i>
-                        <i class="link-icon ripple-element" id="xda">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                                <path
-                                    d="M512 240c0 114.9-114.6 208-256 208c-37.1 0-72.3-6.4-104.1-17.9c-11.9 8.7-31.3 20.6-54.3 30.6C73.6 471.1 44.7 480 16 480c-6.5 0-12.3-3.9-14.8-9.9c-2.5-6-1.1-12.8 3.4-17.4c0 0 0 0 0 0s0 0 0 0s0 0 0 0c0 0 0 0 0 0l.3-.3c.3-.3 .7-.7 1.3-1.4c1.1-1.2 2.8-3.1 4.9-5.7c4.1-5 9.6-12.4 15.2-21.6c10-16.6 19.5-38.4 21.4-62.9C17.7 326.8 0 285.1 0 240C0 125.1 114.6 32 256 32s256 93.1 256 208z" />
-                            </svg>
-                            <span class="link-text">XDA Thread</span>
-                        </i>
-                        <i class="link-icon ripple-element" id="sponsor">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                                <path
-                                    d="M96 64c0-17.7 14.3-32 32-32l320 0 64 0c70.7 0 128 57.3 128 128s-57.3 128-128 128l-32 0c0 53-43 96-96 96l-192 0c-53 0-96-43-96-96L96 64zM480 224l32 0c35.3 0 64-28.7 64-64s-28.7-64-64-64l-32 0 0 128zM32 416l512 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32s14.3-32 32-32z" />
-                            </svg>
-                            <span class="link-text">Support Us</span>
-                        </i>
-                    </div>
-                    </p>
-                    <div class="credit">
-                        <div class="credit-list">
-                            <!-- list of users will be here -->
-                        </div>
-                        <div class="credit-placeholder"></div>
-                    </div>
+            <p id="module-name">Re-Malwack</p>
+            <p id="author">by ZG089<br>WebUI by KOWX712</p>
+            <p>
+            <div class="link">
+                <div class="link-icon" id="telegram">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                        <path
+                            d="M248 8C111 8 0 119 0 256S111 504 248 504 496 393 496 256 385 8 248 8zM363 176.7c-3.7 39.2-19.9 134.4-28.1 178.3-3.5 18.6-10.3 24.8-16.9 25.4-14.4 1.3-25.3-9.5-39.3-18.7-21.8-14.3-34.2-23.2-55.3-37.2-24.5-16.1-8.6-25 5.3-39.5 3.7-3.8 67.1-61.5 68.3-66.7 .2-.7 .3-3.1-1.2-4.4s-3.6-.8-5.1-.5q-3.3 .7-104.6 69.1-14.8 10.2-26.9 9.9c-8.9-.2-25.9-5-38.6-9.1-15.5-5-27.9-7.7-26.8-16.3q.8-6.7 18.5-13.7 108.4-47.2 144.6-62.3c68.9-28.6 83.2-33.6 92.5-33.8 2.1 0 6.6 .5 9.6 2.9a10.5 10.5 0 0 1 3.5 6.7A43.8 43.8 0 0 1 363 176.7z" />
+                    </svg>
+                    <span class="link-text">Telegram Support Group</span>
+                    <md-ripple></md-ripple>
+                </div>
+                <div class="link-icon" id="github">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                        <path
+                            d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" />
+                    </svg>
+                    <span class="link-text">GitHub</span>
+                    <md-ripple></md-ripple>
+                </div>
+                <div class="link-icon" id="xda">
+                    <md-icon>forum</md-icon>
+                    <span class="link-text">XDA Thread</span>
+                    <md-ripple></md-ripple>
+                </div>
+                <div class="link-icon" id="sponsor">
+                    <md-icon>local_cafe</md-icon>
+                    <span class="link-text">Support Us</span>
+                    <md-ripple></md-ripple>
                 </div>
             </div>
+            </p>
+            <div class="credit">
+                <div class="credit-list">
+                    <!-- list of users will be here -->
+                </div>
+                <div class="credit-placeholder"></div>
+            </div>
         </div>
+        </md-dialog>
 
         <!-- Confirmation dialog -->
-        <div class="overlay" id="confirmation-overlay">
-            <div class="overlay-content">
-                <h2>Confirm Reset?</h2>
-                <div>Are you sure you want to reset hosts file?</div>
-                <div class="confirmation-btn-container">
-                    <button class="confirmation-btn ripple-element" id="cancel-reset">Cancel</button>
-                    <button class="confirmation-btn ripple-element" id="confirm-reset">Reset</button>
-                </div>
-            </div>
+        <md-dialog id="confirmation-dialog">
+        <div slot="headline">Confirm Reset?</div>
+        <div slot="content">Are you sure you want to reset hosts file?</div>
+        <div slot="actions">
+            <md-outlined-button id="cancel-reset">Cancel</md-outlined-button>
+            <md-filled-button id="confirm-reset">Reset</md-filled-button>
         </div>
+        </md-dialog>
 
-        <!-- Loading overlay -->
-        <div class="overlay" id="loading-overlay">
-            <div class="loading-spinner"></div>
+        <!-- Edit dialog -->
+        <md-dialog id="edit-dialog" class="input-dialog">
+            <div slot="headline">Edit</div>
+            <div slot="content" class="edit-dialog-content">
+                <md-outlined-text-field id="edit-name" label="Name (Optional)"></md-outlined-text-field>
+                <md-outlined-text-field id="edit-domain" label="Domain" type="textarea" rows="5"></md-outlined-text-field>
+            </div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-edit">Cancel</md-outlined-button>
+                <md-filled-button id="confirm-edit">Save</md-filled-button>
+            </div>
+        </md-dialog>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="overlay" id="loading-overlay" unresolved>
+        <md-circular-progress indeterminate></md-circular-progress>
+    </div>
+
+    <!-- Output terminal -->
+    <div class="terminal" unresolved>
+        <div class="terminal-header">
+            <md-icon-button class="back-icon" id="aciton-back-btn"><md-icon>arrow_back</md-icon></md-icon-button>
+            <span>Action</span>
         </div>
-
-        <!-- 1st April Easter egg -->
-        <div class="overlay" id="security-warning">
-            <div class="overlay-content" id="security-warning-content">
-                <h2>Your device doesn't meet security requirements!</h2>
-                <p>You cannot unfortunately use this module. Your device does not pass the ultra integrity check.
-                    Contact your device manufacturer or contact module developer for more info.</p>
-                <div class="confirmation-btn-container">
-                    <button class="confirmation-btn ripple-element" id="understood">Understood</button>
-                </div>
-            </div>
+        <div class="terminal-content">
+            <div class="output-text" id="terminal-output-text"></div>
         </div>
+        <md-fab class="close-terminal" variant="primary">
+            <md-icon slot="icon">close</md-icon>
+        </md-fab>
+    </div>
 
-        <!-- Output terminal -->
-        <div class="terminal">
-            <div class="terminal-header">
-                <div class="back-icon ripple-element" id="aciton-back-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px">
-                        <path d="M640-80 240-480l400-400 71 71-329 329 329 329-71 71Z" />
-                    </svg>
-                </div>
-                <span>Action</span>
-            </div>
-            <div class="terminal-content">
-                <div class="output-text" id="terminal-output-text"></div>
-            </div>
-            <div class="close-terminal ripple-element fixed-ripple">
-                <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 -960 960 960" width="40px">
-                    <path
-                        d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                </svg>
-            </div>
-        </div>
-
+    <!-- Prompt -->
+    <div class="prompt-container">
         <div id="prompt" class="prompt"></div>
+    </div>
 
-        <div class="footer"></div>
+    <div class="footer"></div>
 </body>
-
 </html>

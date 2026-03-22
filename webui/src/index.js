@@ -36,46 +36,39 @@ const links = [
     { element: 'sponsor', url: 'https://buymeacoffee.com/zg089' }
 ];
 
-let modeActive = false;
-
+let initAboutMenu = false;
 // Function to handle about menu
 function aboutMenu() {
-    const aboutOverlay = document.getElementById('about-overlay');
-    const aboutMenu = document.getElementById('about-menu');
-    const closeAbout = document.getElementById('close-about');
-    const toggleMenu = (show) => {
-        aboutOverlay.classList.toggle('show', show);
-        document.body.style.overflow = show ? 'hidden' : 'auto';
-    };
-    toggleMenu(true);
-    closeAbout.addEventListener('click', (event) => {
-        event.stopPropagation();
-        toggleMenu(false);
-    });
-    aboutOverlay.addEventListener('click', (event) => {
-        if (!aboutMenu.contains(event.target)) {
-            toggleMenu(false);
-        }
-    });
-    menu.addEventListener('click', (event) => event.stopPropagation());
+    const aboutOverlay = document.getElementById('about-dialog');
+    if (!initAboutMenu) {
+        initCredit();
+        initAboutMenu = true;
+    }
+    aboutOverlay.show();
 }
 
 // Get module version from module.prop
 async function getVersion() {
-    const result = await exec(`grep '^version=' ${modulePath}/module.prop | cut -d'=' -f2`);
+    const versionMain = document.getElementById('version-text');
+    const versionBox = document.getElementById('test-version-box');
+    const versionText = document.getElementById('test-version-text');
+
+    let displayHash = "";
+
+    const result = await exec(`grep '^version=' "${modulePath}/module.prop" | cut -d'=' -f2`);
     if (result.errno === 0) {
         const [version, ...hashParts] = result.stdout.trim().split('-');
         const hash = hashParts.join('-');
 
-        document.getElementById('version-text').textContent = version || 'Unknown';
-        if (hash) {
-            document.getElementById('test-version-box').style.display = 'flex';
-            let displayHash = hash.replace(/^test \(/, '').replace(/\)$/, '');
-            document.getElementById('test-version-text').textContent = `You're using a test release: ${displayHash}`;
-        }
-
-        getStatus();
+        versionMain.textContent = version || 'Unknown';
+        if (!hash) return;
+        displayHash = hash.replace(/^test \(/, '').replace(/\)$/, '');
+    } else if (import.meta.env.DEV) {
+        versionMain.textContent = "DEV";
+        displayHash = "DEVELOPMENT STAGE";
     }
+    versionText.textContent = `You're using a test release: ${displayHash}`;
+    versionBox.classList.add('display-flex');
 }
 
 async function isZnhr() {
@@ -96,8 +89,8 @@ async function checkMount() {
         module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
         [ $system_hosts -eq $module_hosts ] || echo "error"
     `);
-    if (result.stdout.trim() === "error" && !await isZnhr()) {
-        document.getElementById('broken-mount-box').style.display = 'flex';
+    if (result.stdout.trim().includes("error") && !await isZnhr() || import.meta.env.DEV) {
+        document.getElementById('broken-mount-box').classList.add('display-flex');
     }
 }
 
@@ -138,7 +131,7 @@ function formatNumber(numStr, isApril1st = false, includeLabel = false) {
 // Function to get working status
 async function getStatus() {
     const statusElement = document.getElementById('status-text');
-    const disableBox = document.querySelector('.header-disabled');
+    const disableBox = document.getElementById('disabled-box');
     const disableText = document.getElementById('disable-text');
     const result = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
     
@@ -156,13 +149,17 @@ async function getStatus() {
         if (parseInt(status) === 0) {
             const pause = await isPaused();
             disableText.textContent = pause ? "Protection is paused" : "Protection is disabled due to reset";
-            disableBox.style.display = 'flex';
+            disableBox.classList.add('display-flex');
             statusElement.textContent = '-';
             getlastUpdated(false);
             return;
         }
         statusElement.textContent = formatNumber(status, isApril1st, false);
-        disableBox.style.display = 'none';
+        disableBox.classList.remove('display-flex');
+    } else if (import.meta.env.DEV) {
+        statusElement.textContent = formatNumber(10, isApril1st, false);
+        disableBox.classList.add('display-flex');
+        disableText.textContent = "Protection is under development";
     } else {
         console.error("Error getting status:", result.stderr);
     }
@@ -181,7 +178,11 @@ async function getlastUpdated(isEnable = true) {
     const hostsFile = await isZnhr() ? `/data/adb/hostsredirect/hosts` : `${modulePath}/system/etc/hosts`;
     const last = await exec(`date -r '${hostsFile}' '+%H %d/%m/%Y'`);
     const now = await exec("date +'%H %d/%m/%Y'");
-    if (last.errno === 0 || now.errno === 0) {
+    if (import.meta.env.DEV) {
+        last.stdout = "12 5/12/2026";
+        now.stdout = "12 12/12/2026";
+    }
+    if (last.stdout.trim() !== '' && now.stdout.trim() !== '') {
         const [lastHour, lastDay, lastMonth, lastYear] = last.stdout.trim().split(/[ /]/);
         const [nowHour, nowDay, nowMonth, nowYear] = now.stdout.trim().split(/[ /]/);
 
@@ -231,13 +232,16 @@ function loadActionMode() {
         if (result.errno === 0) {
             actionMode = parseInt(result.stdout, 10) === 0 ? 0 : 1;
             updateActionModeLabel();
+        } else if (import.meta.env.DEV) {
+            actionMode = 0;
+            updateActionModeLabel();
         }
     });
 }
 
 function updateActionMode(mode) {
     exec(`sed -i 's/^action_mode=.*/action_mode=${mode}/' ${CONFIG_PATH}`).then((result) => {
-        if (result.errno === 0) {
+        if (result.errno === 0 || import.meta.env.DEV) {
             actionMode = mode;
             updateActionModeLabel();
             showPrompt(`Action Mode set to ${getStatusText()}`, true, 2000);
@@ -273,28 +277,22 @@ async function checkBlockStatus() {
         const now = new Date();
         const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
         const customBlock = document.querySelector('.custom-block');
-        customBlock.querySelectorAll('.toggle-container').forEach(container => {
+        customBlock.querySelectorAll('.list-item').forEach(container => {
             const type = container.dataset.type;
-            const toggle = container.querySelector('input[type="checkbox"]');
+            const toggle = container.querySelector('md-switch');
             const badge = document.getElementById(`badge-${type}`);
             const blockLine = lines.find(line => line.trim().startsWith(`block_${type}=`));
             
             let isEnabled = false;
             if (blockLine) {
-                const value = blockLine.split('=')[1].trim();
-                isEnabled = (value === '1');
-                toggle.checked = isEnabled;
-            } else {
-                toggle.checked = false;
+                isEnabled = blockLine.split('=')[1].trim() === '1';
             }
+            toggle.selected = isEnabled;
 
             if (badge) {
-                if (isEnabled && blocklistCounts[type] !== undefined) {
-                    badge.textContent = formatNumber(blocklistCounts[type], isApril1st, true);
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
+                const enabled = isEnabled && blocklistCounts[type] !== undefined;
+                badge.textContent = enabled ? formatNumber(blocklistCounts[type], isApril1st, true) : "0";
+                badge.classList.toggle('display-flex', enabled);
             }
         });
 
@@ -303,9 +301,9 @@ async function checkBlockStatus() {
         const dailyUpdateLine = lines.find(line => line.trim().startsWith('daily_update='));
         if (dailyUpdateLine) {
             const value = dailyUpdateLine.split('=')[1].trim();
-            dailyUpdateToggle.checked = value === '1';
+            dailyUpdateToggle.selected = value === '1';
         } else {
-            dailyUpdateToggle.checked = false;
+            dailyUpdateToggle.selected = false;
         }
     } catch (error) {
         if (error.message === 'Config file not found') {
@@ -329,7 +327,7 @@ function performAction(commandOption, showTerminal = true) {
     const loadingOverlay = document.getElementById('loading-overlay');
 
     const closeTerminal = () => {
-        document.body.style.overflow = 'auto';
+        document.body.classList.remove('noscroll');
         terminal.classList.remove('show');
         terminalContent.innerHTML = "";
         closeBtn.classList.remove('show');
@@ -347,7 +345,7 @@ function performAction(commandOption, showTerminal = true) {
 
     if (showTerminal) {
         terminal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('noscroll');
         backBtn.onclick = () => closeTerminal();
         closeBtn.onclick = () => closeTerminal();
     } else {
@@ -380,25 +378,18 @@ let setupResetDialogListener = false;
 
 // Function to reset hosts
 async function resetHostsFile() {
-    const resetOverlay = document.getElementById("confirmation-overlay");
+    const resetDialog = document.getElementById("confirmation-dialog");
     const cancelButton = document.getElementById("cancel-reset");
     const resetButton = document.getElementById("confirm-reset");
 
-    resetOverlay.classList.add('show');
-
-    const closeResetOverlay = () => {
-        resetOverlay.classList.remove('show');
-    }
+    resetDialog.show();
 
     if (!setupResetDialogListener) {
-        cancelButton.addEventListener('click', () => closeResetOverlay());
-        resetOverlay.addEventListener('click', (e) => {
-            if (e.target === resetOverlay) closeResetOverlay();
-        })
-        resetButton.addEventListener('click', () => {
-            closeResetOverlay();
+        cancelButton.onclick = () => resetDialog.close();
+        resetButton.onclick = () => {
+            resetDialog.close();
             performAction("--reset");
-        })
+        }
         setupResetDialogListener = true;
     }
 }
@@ -406,7 +397,7 @@ async function resetHostsFile() {
 // Function to enable/disable daily update
 async function toggleDailyUpdate() {
     const toggle = document.getElementById('daily-update-toggle');
-    const action = toggle.checked ? "disable" : "enable";
+    const action = toggle.selected ? "enable" : "disable";
 
     const result = await performAction(`--auto-update ${action}`, false);
     if (result) {
@@ -414,7 +405,6 @@ async function toggleDailyUpdate() {
     } else {
         showPrompt(`Failed to toggle daily update`, false);
     }
-    checkBlockStatus();
 }
 
 // Function to export logs
@@ -432,12 +422,12 @@ async function exportLogs() {
 // Function to handle blocking/unblocking different site categories
 function setupCustomBlock() {
     const customBlock = document.querySelector('.custom-block');
-    customBlock.querySelectorAll('.toggle-container').forEach(container => {
-        const toggle = container.querySelector('input[type="checkbox"]');
+    customBlock.querySelectorAll('.list-item').forEach(container => {
+        const toggle = container.querySelector('md-switch');
         const type = container.dataset.type;
 
-        container.addEventListener('click', () => {
-            const action = toggle.checked ? `--block-${type} 0` : `--block-${type}`;
+        toggle.addEventListener('change', () => {
+            const action = toggle.selected ? `--block-${type}` : `--block-${type} 0`;
             performAction(action);
         });
     });
@@ -466,17 +456,16 @@ function handleAdd(fileType) {
         const domInput = document.getElementById('custom-rule-domain');
         const ipValue = ipInput.value.trim();
         const domValue = domInput.value.trim();
-        const box = document.getElementById('custom-rule');
-        const loading = box.querySelector('.loading');
+        const addBtn = document.getElementById('custom-rule-add');
         
-        if (ipValue === "" || domValue === "" || (loading && loading.classList.contains('show'))) return;
+        if (ipValue === "" || domValue === "" || addBtn.disabled) return;
         
-        loading.classList.add('show');
+        addBtn.disabled = true;
         const output = [];
         const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue], { env: { WEBUI: 'true' } });
         result.stdout.on('data', (data) => output.push(data));
         result.on('exit', async (code) => {
-            loading.classList.remove('show');
+            addBtn.disabled = false;
             const msg = output.length ? output[output.length - 1].trim() : (code === 0 ? "Success" : "Failed");
             showPrompt(msg, code === 0);
             if (code === 0) {
@@ -489,13 +478,12 @@ function handleAdd(fileType) {
         return;
     }
 
-    const box = document.getElementById(fileType);
+    const addBtn = document.getElementById(`${fileType}-add`);
     const inputElement = document.getElementById(`${fileType}-input`);
     const inputValue = inputElement.value.trim();
-    const loading = box.querySelector('.loading');
     const output = [];
 
-    if (inputValue === "" || (loading && loading.classList.contains('show'))) return;
+    if (inputValue === "" || addBtn.disabled) return;
     console.log(`Input value for ${fileType}: "${inputValue}"`);
 
     if (fileType === "whitelist") {
@@ -504,7 +492,7 @@ function handleAdd(fileType) {
         return;
     }
 
-    loading.classList.add('show');
+    addBtn.disabled = true;
     
     // For custom-source, handle multiple arguments (domain and name)
     const args = [];
@@ -517,11 +505,19 @@ function handleAdd(fileType) {
     const result = spawn('sh', args, { env: { WEBUI: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
-        loading.classList.remove('show');
+        addBtn.disabled = false;
         showPrompt(output[output.length - 1].trim(), code === 0);
         if (code === 0) inputElement.value = "";
         await loadFile(fileType);
         await getStatus();
+    });
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showPrompt("Copied to clipboard", true);
+    }).catch(() => {
+        showPrompt("Failed to copy to clipboard", false);
     });
 }
 
@@ -536,14 +532,20 @@ function handleQuery() {
 
     inputElement.value = "";
     resultText.textContent = "Querying...";
-    resultCard.style.display = 'block';
+    resultCard.classList.add('display-block');
 
     const output = [];
     const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`, `--quiet`], { env: { WEBUI: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.stderr.on('data', (data) => output.push(data));
     result.on('exit', () => {
-        resultText.textContent = output.join("\n").trim();
+        resultText.textContent = "";
+        output.forEach(line => {
+            const div = document.createElement('div');
+            div.textContent = line;
+            div.addEventListener('click', () => copyToClipboard(line));
+            resultText.appendChild(div);
+        })
     });
 }
 
@@ -568,102 +570,28 @@ inputs.forEach(input => {
     });
 });
 
-/**
- * Simulate MD3 ripple animation
- * Usage: class="ripple-element" style="position: relative; overflow: hidden;"
- * Note: Require background-color to work properly
- * @return {void}
- */
-function applyRippleEffect() {
-    document.querySelectorAll('.ripple-element, .reboot').forEach(element => {
-        if (element.dataset.rippleListener !== "true") {
-            element.addEventListener("pointerdown", async (event) => {
-                // Pointer up event
-                const handlePointerUp = () => {
-                    ripple.classList.add("end");
-                    setTimeout(() => {
-                        ripple.classList.remove("end");
-                        ripple.remove();
-                    }, duration * 1000);
-                    element.removeEventListener("pointerup", handlePointerUp);
-                    element.removeEventListener("pointercancel", handlePointerUp);
-                };
-                element.addEventListener("pointerup", () => setTimeout(handlePointerUp, 80));
-                element.addEventListener("pointercancel", () => setTimeout(handlePointerUp, 80));
-
-                const ripple = document.createElement("span");
-                ripple.classList.add("ripple");
-
-                // Calculate ripple size and position
-                const rect = element.getBoundingClientRect();
-                const width = rect.width;
-                const size = Math.max(rect.width, rect.height);
-                const x = event.clientX - rect.left - size / 2;
-                const y = event.clientY - rect.top - size / 2;
-
-                // Determine animation duration
-                let duration = 0.2 + (width / 800) * 0.4;
-                duration = Math.min(0.8, Math.max(0.2, duration));
-
-                // Set ripple styles
-                ripple.style.width = ripple.style.height = `${size}px`;
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                ripple.style.animationDuration = `${duration}s`;
-                ripple.style.transition = `opacity ${duration}s ease`;
-
-                // Get effective background color (traverse up if transparent)
-                const getEffectiveBackgroundColor = (el) => {
-                    while (el && el !== document.documentElement) {
-                        const bg = window.getComputedStyle(el).backgroundColor;
-                        if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
-                            return bg;
-                        }
-                        el = el.parentElement;
-                    }
-                    return "rgba(255, 255, 255, 1)";
-                };
-
-                const bgColor = getEffectiveBackgroundColor(element);
-                const isDarkColor = (color) => {
-                    const rgb = color.match(/\d+/g);
-                    if (!rgb) return false;
-                    const [r, g, b] = rgb.map(Number);
-                    return (r * 0.299 + g * 0.587 + b * 0.114) < 96; // Luma formula
-                };
-                ripple.style.backgroundColor = isDarkColor(bgColor) ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.2)";
-
-                // Append ripple animation
-                await new Promise(resolve => setTimeout(resolve, 80));
-                if (isScrolling || modeActive) return;
-                element.appendChild(ripple);
-            });
-            element.dataset.rippleListener = "true";
-        }
-    });
-}
-
 // Link redirect with am start
 function linkRedirect(url) {
     toast("Redirecting to " + url);
     setTimeout(() => {
-        exec(`am start -a android.intent.action.VIEW -d ${url}`, { env: { PATH: '/system/bin' } })
+        exec(`am start -a android.intent.action.VIEW -d ${url}`)
             .then(({ errno }) => {
-                if (errno !== 0) toast("Failed to open link");
+                if (errno !== 0) window.open(url, "_blank");
             });
     }, 100);
 }
 
 // Function to setup listener control button
-function setupControlListListeners(listElement) {
+function setupControlListListeners(listElement, fileType) {
     const controlList = listElement.previousElementSibling;
     if (!controlList || !controlList.classList.contains('control-list')) return;
 
     const backBtn = controlList.querySelector('.back');
     const selectAllBtn = controlList.querySelector('.select-all');
     const deleteBtn = controlList.querySelector('.delete');
-    const editBtn = controlList.querySelector('.edit');
-    const fileType = listElement.id.replace('-list', '');
+    const enableBtn = controlList.querySelector('.enable');
+    const disableBtn = controlList.querySelector('.disable');
+    const checkboxes = listElement.querySelectorAll('md-checkbox');
 
     if (listElement.controlListeners) {
         listElement.controlListeners.abort();
@@ -673,13 +601,9 @@ function setupControlListListeners(listElement) {
 
     const hideControls = () => {
         controlList.classList.remove('show');
-        const checkboxes = listElement.querySelectorAll('.checkbox-wrapper');
         checkboxes.forEach(cb => {
             cb.classList.remove('show');
-            const input = cb.querySelector('.checkbox');
-            if (input) {
-                input.checked = false;
-            }
+            cb.checked = false;
         });
         controller.abort();
     };
@@ -687,7 +611,6 @@ function setupControlListListeners(listElement) {
     const backAction = () => hideControls();
 
     const selectAllAction = () => {
-        const checkboxes = listElement.querySelectorAll('.checkbox-wrapper .checkbox');
         const allSelected = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
         checkboxes.forEach(cb => {
             if (cb.checked !== !allSelected) {
@@ -697,84 +620,29 @@ function setupControlListListeners(listElement) {
         });
     };
 
-    const deleteAction = () => {
-        const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
+    const editAction = (action) => {
+        const checkedItems = Array.from(checkboxes).filter(cb => cb.checked);
         if (checkedItems.length === 0) return;
 
-        const lines = Array.from(checkedItems).map(item => {
-            const span = item.closest('li').querySelector('span');
-            return span.getAttribute('data-actual') || span.textContent;
-        });
-        removeLine(fileType, lines);
+        const lines = Array.from(checkedItems).map(item => item.value);
+        editLine(fileType, lines, action);
 
         hideControls();
     };
 
-    if (editBtn) {
-        const updateEditBtn = () => {
-            const checkedCount = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked').length;
-            if (checkedCount === 1) {
-                editBtn.style.opacity = '1';
-                editBtn.style.pointerEvents = 'auto';
-            } else {
-                editBtn.style.opacity = '0.5';
-                editBtn.style.pointerEvents = 'none';
-            }
-        };
-
-        listElement.addEventListener('change', updateEditBtn, { signal: controller.signal });
-        updateEditBtn(); // Initialize state
-
-        const editAction = () => {
-            const checkedItems = listElement.querySelectorAll('.checkbox-wrapper .checkbox:checked');
-            if (checkedItems.length !== 1) {
-                if (checkedItems.length > 1) {
-                    showPrompt("You cannot edit multiple hosts sources at once", false, 3500);
-                }
-                return;
-            }
-            
-            const itemSpan = checkedItems[0].closest('li').querySelector('span');
-            const oldUrl = itemSpan.getAttribute('data-actual') || itemSpan.textContent;
-            let oldName = itemSpan.textContent;
-            if (oldName === oldUrl) oldName = "";
-
-            let newUrl = prompt("Enter new URL:", oldUrl);
-            if (newUrl === null) return;
-            newUrl = newUrl.trim();
-            if (!newUrl) return;
-
-            let newName = prompt("Enter new name (optional):", oldName);
-            if (newName === null) return;
-            newName = newName.trim();
-
-            showPrompt(`Editing...`, true);
-            const args = [`${modulePath}/rmlwk.sh`, `--${fileType}`, 'edit', oldUrl, newUrl];
-            if (newName) {
-                args.push(...newName.split(/\s+/));
-            }
-            
-            const result = spawn('sh', args, { env: { WEBUI: 'true' } });
-            result.on('exit', async (code) => {
-                showPrompt(code === 0 ? "Edited successfully" : "Failed to edit", code === 0);
-                await loadFile(fileType);
-                await getStatus();
-            });
-            hideControls();
-        };
-        editBtn.addEventListener('click', editAction, { signal: controller.signal });
-    }
-
     backBtn.addEventListener('click', backAction, { signal: controller.signal });
     selectAllBtn.addEventListener('click', selectAllAction, { signal: controller.signal });
-    deleteBtn.addEventListener('click', deleteAction, { signal: controller.signal });
+    deleteBtn.addEventListener('click', () => editAction("remove"), { signal: controller.signal });
+    if (enableBtn) enableBtn.addEventListener('click', () => editAction("enable"), { signal: controller.signal });
+    if (disableBtn) disableBtn.addEventListener('click', () => editAction("disable"), { signal: controller.signal });
 }
 
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
-        const response = await fetch('link/persistent_dir/' + filePaths[fileType]);
-        if (!response.ok) throw new Error('File not found');
+        const filePath = 'link/persistent_dir/' + filePaths[fileType];
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error(filePath + ' not found');
         const content = await response.text();
         const lines = content
             .split("\n")
@@ -799,98 +667,85 @@ async function loadFile(fileType) {
             }
         }
 
+        let skipDivider = true;
+        const now = new Date();
+        const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
         const listElement = document.getElementById(`${fileType}-list`);
         listElement.innerHTML = "";
-        lines.forEach((line, index) => {
-            // skip commented lines
+
+        // Function to create list items
+        lines.forEach(line => {
+            const rawLine = line;
+            // Free favicon provided by GitHub@twentyhq/favicon
+            const isDisabled = line.startsWith("# OFF # ");
+            if (isDisabled) line = line.replace("# OFF # ", "");
             if (line.startsWith("#")) return;
-            
-            let displayName = line;
-            let actualData = line; // What we use for removal
-            let countBadge = '';
-            let isEnabled = true;
-            let spanStyle = '';
+            const item = line.split('#');
+            const url = item[0].trim();
+            const name = item.slice(1).join('#').trim();
 
-            if (fileType === "custom-rule") {
-                const parts = line.split(/\s+/);
-                actualData = parts[1] || parts[0];
-                displayName = `<span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${parts[0]}</span><span style="flex: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${parts[1] || ''}</span>`;
-                spanStyle = ' style="display: flex; gap: 8px; width: 100%; align-items: center;"';
+            let domain = url.split(/\s+/).pop();
+            try {
+                if (!domain.startsWith("http")) domain = "http://" + domain;
+                domain = new URL(domain).hostname;
+            } catch {
+                domain = domain.split(/[/:?#]/)[0];
             }
+            const faviconUrl = `https://twenty-icons.com/${domain}`;
 
-            if (fileType === "custom-source") {
-                if (line.startsWith("# OFF # ")) {
-                    isEnabled = false;
-                    line = line.replace("# OFF # ", "");
-                }
-
-                const parts = line.split('#');
-                const url = parts[0].trim();
-                actualData = url;
-                displayName = parts.length > 1 && parts[1].trim() !== "" ? parts[1].trim() : url;
-                
-                if (displayName !== url) {
-                    displayName = `<b>${displayName}</b>`;
-                }
-
-                // show count badge if available and source is enabled
-                if (sourceCounts[url] && isEnabled) {
-                    const now = new Date();
-                    const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
-                    countBadge = `<span class="source-count badge">${formatNumber(sourceCounts[url], isApril1st, true)}</span>`;
-                }
-            }
-
-            const listItem = document.createElement("li");
-            const checkboxId = `${fileType}-checkbox-${index}`;
-            const toggleId = `${fileType}-toggle-${index}`;
-            
-            let toggleHtml = '';
-            if (fileType === "custom-source") {
-                toggleHtml = `
-                    <label class="toggle-switch toggle-switch-small">
-                        <input type="checkbox" id="${toggleId}" ${isEnabled ? 'checked' : ''}>
-                        <span class="slider slider-small round"></span>
-                    </label>
-                `;
-            }
-
+            const listItem = document.createElement("div");
             listItem.innerHTML = `
-                <span data-actual="${actualData}" ${!isEnabled ? 'class="disabled-source"' : ''}${spanStyle}>${displayName}</span>
-                ${countBadge}
-                ${toggleHtml}
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" class="checkbox" id="${checkboxId}" disabled />
-                    <label for="${checkboxId}" class="custom-checkbox">
-                        <span class="tick-symbol">
-                            <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -3 26 26" width="16px" height="16px" fill="#fff"><path d="M 22.566406 4.730469 L 20.773438 3.511719 C 20.277344 3.175781 19.597656 3.304688 19.265625 3.796875 L 10.476563 16.757813 L 6.4375 12.71875 C 6.015625 12.296875 5.328125 12.296875 4.90625 12.71875 L 3.371094 14.253906 C 2.949219 14.675781 2.949219 15.363281 3.371094 15.789063 L 9.582031 22 C 9.929688 22.347656 10.476563 22.613281 10.96875 22.613281 C 11.460938 22.613281 11.957031 22.304688 12.277344 21.839844 L 22.855469 6.234375 C 23.191406 5.742188 23.0625 5.066406 22.566406 4.730469 Z"/></svg>
-                        </span>
-                    </label>
+                <div class="host-item">
+                    <div class="favicon-wrapper ${isDisabled ? 'disabled' : ''}">
+                        <md-circular-progress indeterminate></md-circular-progress>
+                        <img class="favicon-img favicon" src="${faviconUrl}" />
+                    </div>
+                    <div class="host-item-content ${isDisabled ? 'disabled' : ''}">
+                        <div class="host-item-name">${name || url}</div>
+                        ${fileType === "custom-source" ? `
+                            <span class="badge blocklist-badge"></span>
+                        ` : ''}
+                    </div>
+                    <div class="spacer"></div>
+                    <md-checkbox value="${url}"></md-checkbox>
                 </div>
             `;
 
-            if (fileType === "custom-source") {
-                const toggle = listItem.querySelector(`#${toggleId}`);
-                toggle.addEventListener('change', async (e) => {
-                    e.stopPropagation();
-                    const action = toggle.checked ? 'enable' : 'disable';
-                    const span = listItem.querySelector('span');
-                    span.classList.toggle('disabled-source', !toggle.checked);
-                    await performAction(`--custom-source ${action} ${actualData}`, false);
-                    loadFile("custom-source");
-                });
+            const img = listItem.querySelector(".favicon-img");
+            if (img) {
+                const loader = listItem.querySelector("md-circular-progress");
+                img.onload = () => {
+                    loader.style.display = "none";
+                    img.style.display = "block";
+                };
+                img.onerror = () => {
+                    loader.style.display = "none";
+                    listItem.querySelector(".favicon-wrapper").innerHTML = `<md-icon>domain</md-icon>`
+                };
+            }
+
+            const badge = listItem.querySelector('.badge');
+            if (badge) {
+                badge.textContent = formatNumber(sourceCounts[url] || 0, isApril1st, true);
+                badge.classList.toggle('display-flex', !isDisabled);
             }
 
             listItem.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                const list = listItem.closest('ul');
+                const list = listItem.parentElement;
                 if (list) {
                     const controlList = list.previousElementSibling;
-                    const checkboxes = list.querySelectorAll('.checkbox-wrapper');
+                    const isControlListShowing = controlList.classList.contains('show');
+                    
+                    if (isControlListShowing) {
+                        openEditDialog(fileType, rawLine);
+                        return;
+                    }
+                    const checkboxes = list.querySelectorAll('md-checkbox');
                     checkboxes.forEach(cb => cb.classList.add('show'));
-                    if (controlList) controlList.classList.add('show');
-                    setupControlListListeners(list);
-                    const checkbox = listItem.querySelector('.checkbox');
+                    controlList.classList.add('show');
+                    setupControlListListeners(list, fileType);
+                    const checkbox = listItem.querySelector('md-checkbox');
                     if (checkbox) {
                         checkbox.checked = true;
                         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
@@ -899,34 +754,77 @@ async function loadFile(fileType) {
             });
 
             listItem.addEventListener('click', () => {
-                if (!listItem.querySelector('.checkbox-wrapper').classList.contains('show')) return;
-                const checkbox = listItem.querySelector('.checkbox');
+                const checkbox = listItem.querySelector('md-checkbox');
+                if (checkbox.classList.contains('hidden')) return;
                 checkbox.checked = !checkbox.checked;
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             });
+
+            if (!skipDivider) {
+                listElement.appendChild(document.createElement("md-divider"));
+            }
+            skipDivider = false;
             listElement.appendChild(listItem);
         });
-        applyRippleEffect();
-    } catch (error) {
-        console.log(`File ${filePaths[fileType]} not found`);
+    } catch (e) {
+        console.warn(e);
     }
 }
 
 // Function to remove a line from whitelist/blacklist/custom-source
-function removeLine(fileType, lines) {
+function editLine(fileType, lines, action = "remove") {
     const line = lines.join(' ');
-    showPrompt(`Removing ${line}`, false);
-    const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} remove ${line}`);
+    const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} ${action} ${line}`);
     result.on('exit', (code) => {
-        if (code === 0) {
-            showPrompt(`Removed ${line} from ${fileType}`, true);
-        } else {
-            console.error(`Failed to remove line from ${fileType}:`, result.stderr);
-            showPrompt(`Failed to remove ${line} from ${fileType}`, false);
+        if (code !== 0) {
+            console.error(`Failed to ${action} line from ${fileType}:`, result.stderr);
+            showPrompt(`Failed to ${action} line from ${fileType}`, false);
         }
         loadFile(fileType);
         getStatus();
     });
+}
+
+function openEditDialog(fileType, currentLine) {
+    const editDialog = document.getElementById('edit-dialog');
+    const editName = document.getElementById('edit-name');
+    const editDomain = document.getElementById('edit-domain');
+    const cancelBtn = document.getElementById('cancel-edit');
+    const confirmBtn = document.getElementById('confirm-edit');
+
+    const isDisabled = currentLine.startsWith('# OFF # ');
+    const entry = isDisabled ? currentLine.replace('# OFF # ', '') : currentLine;
+    const enrtyParts = entry.split('#');
+    const domain = enrtyParts[0].trim();
+    const name = enrtyParts.slice(1).join('#').trim() || '';
+
+    editName.value = name;
+    editDomain.value = domain;
+    editDialog.show();
+
+    const closeDialog = () => editDialog.close();
+
+    cancelBtn.onclick = closeDialog;
+    confirmBtn.onclick = async () => {
+        const newDomain = editDomain.value.trim();
+        const newName = editName.value.trim();
+        if (!newDomain || newDomain === domain || newName === name) {
+            closeDialog();
+            return;
+        }
+
+        const newLine = `${isDisabled ? '# OFF # ' : ''}${newDomain}${newName ? ' # ' + newName : ''}`
+        const targetFile = `${basePath}/${filePaths[fileType]}`;
+        const escapeLine = (line) => line.replace(/[\/&]/g, '\\$&');
+
+        const result = await exec(`sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`);
+        if (result.errno === 0) {
+            await loadFile(fileType);
+        } else {
+            showPrompt('Failed to update line', false);
+        }
+        closeDialog();
+    };
 }
 
 // Function to link file
@@ -966,30 +864,10 @@ function setupPrank() {
         logoElement.src = ReMalwareIcon;
     }
 
-    const warningOverlay = document.getElementById('security-warning');
-    const closeButton = document.getElementById('understood');
-    const lastPrank = localStorage.getItem('lastPrank');
-
-    const toggleOverlay = (show) => {
-        document.body.style.overflow = show ? 'hidden' : 'auto';
-        warningOverlay.classList.toggle('show', show);
-    }
-
     // Make sure this won't be triggered in a row for user experience
     if (lastPrank !== '1') {
-        toggleOverlay(true);
         // Set flag in localStorage to prevent it from happening next time
         localStorage.setItem('lastPrank', '1');
-    }
-
-    closeButton.addEventListener('click', () => redirectRr());
-    warningOverlay.addEventListener('dblclick', (e) => {
-        if (e.target === warningOverlay) toggleOverlay(false);
-    });
-
-    const redirectRr = () => {
-        toggleOverlay(false);
-        linkRedirect('https://youtu.be/dQw4w9WgXcQ');
     }
 }
 
@@ -1034,9 +912,13 @@ async function loadTheme(themeName) {
  * @return {Promise<void>}
  */
 async function setupTheme() {
+    const themeAnchor = document.getElementById('theme-toggle');
     const themeSelect = document.getElementById('theme-select');
-    if (!themeSelect) return;
 
+    themeAnchor.onclick = (e) => {
+        e.stopImmediatePropagation();
+        themeSelect.open = !themeSelect.open
+    }
     try {
         if (!cachedThemeData) {
             const response = await fetch('theme.json');
@@ -1045,31 +927,32 @@ async function setupTheme() {
 
         // Clear and populate theme-select
         themeSelect.innerHTML = '';
-        const systemOption = document.createElement('option');
-        systemOption.value = 'system';
-        systemOption.textContent = 'System';
-        themeSelect.appendChild(systemOption);
+        
+        const options = [...Object.keys(cachedThemeData.schemes), 'system'];
 
-        Object.keys(cachedThemeData.schemes).forEach(key => {
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        options.forEach(key => {
+            const option = document.createElement('md-menu-item');
+            option.innerHTML = `
+                <div slot="headline">${key.charAt(0).toUpperCase() + key.slice(1)}</div>
+            `;
+            option.onclick = (e) => {
+                e.stopImmediatePropagation();
+                setNewTheme(key);
+            }
             themeSelect.appendChild(option);
         });
 
         const savedTheme = localStorage.getItem('remalwack_theme') || 'system';
-        themeSelect.value = savedTheme;
         await loadTheme(savedTheme);
 
-        themeSelect.addEventListener('change', async () => {
-            const newTheme = themeSelect.value;
-            if (newTheme === 'system') {
+        const setNewTheme = async (themeName) => {
+            if (themeName === 'system') {
                 localStorage.removeItem('remalwack_theme');
             } else {
-                localStorage.setItem('remalwack_theme', newTheme);
+                localStorage.setItem('remalwack_theme', themeName);
             }
-            await loadTheme(newTheme);
-        });
+            await loadTheme(themeName);
+        }
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
             if (themeSelect.value === 'system') {
@@ -1086,8 +969,8 @@ async function updateAdblockSwtich() {
     const play = document.getElementById('play-icon');
     const pause = document.getElementById('pause-icon');
     const protection = await isPaused();
-    play.style.display = protection ? 'block' : 'none';
-    pause.style.display = !protection ? 'block' : 'none';
+    play.classList.toggle('display-block', protection);
+    pause.classList.toggle('display-block', !protection);
 }
 
 function initCredit() {
@@ -1098,19 +981,18 @@ function initCredit() {
             data.forEach(contributor => {
                 const creditBox = document.createElement('div');
                 creditBox.className = 'credit-box';
-                creditBox.classList.add('ripple-element');
                 creditBox.innerHTML = `
                     <img src="https://github.com/${contributor.username}.png" alt="${contributor.username}">
                     <h3>${contributor.username}</h3>
                     <h4>${contributor.type}</h4>
                     <p>${contributor.description}</p>
+                    <md-ripple></md-ripple>
                 `;
                 credit.appendChild(creditBox);
                 creditBox.addEventListener('click', () => {
                     linkRedirect(`https://github.com/${contributor.username}`);
                 });
             });
-            applyRippleEffect();
         })
         .catch(error => {
             console.error('Error loading contributors:', error);
@@ -1154,9 +1036,9 @@ document.querySelector('.credit').addEventListener('scroll', () => {
 });
 
 function setupEventListener() {
-    document.getElementById("about-button").addEventListener("click", aboutMenu);
+    document.getElementById("info-box").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", () => performAction("--update-hosts"));
-    document.getElementById("daily-update").addEventListener("click", toggleDailyUpdate);
+    document.getElementById("daily-update-toggle").addEventListener("change", toggleDailyUpdate);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
 
@@ -1175,8 +1057,7 @@ function setupEventListener() {
 
     // Adblock switch
     document.getElementById('adblock-switch').addEventListener("click", async () => {
-        const result = await performAction('--adblock-switch', actionMode === 0);
-        if (actionMode === 0) return;
+        const result = await performAction('--adblock-switch', false);
         showPrompt(result ? "Success" : "Failed", result);
     });
 
@@ -1241,17 +1122,70 @@ function setupFestivalThemes() {
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([setupTheme()]);
+    document.querySelectorAll('[unresolved]').forEach(el => el.removeAttribute('unresolved'));
     checkMMRL();
     setupPrank();
     setupFestivalThemes();
     setupEventListener();
-    applyRippleEffect();
     getVersion();
+    getStatus();
     checkMount();
     loadActionMode();
     updateAdblockSwtich();
-    initCredit();
     floatBtn.classList.add('show');
     await checkBlockStatus();
     ["custom-source", "custom-rule", "blacklist", "whitelist"].forEach(loadFile);
+});
+
+// Overwrite default dialog animation
+document.querySelectorAll('md-dialog').forEach(dialog => {
+    const defaultOpenAnim = dialog.getOpenAnimation;
+    const defaultCloseAnim = dialog.getCloseAnimation;
+
+    dialog.getOpenAnimation = () => {
+        const defaultAnim = defaultOpenAnim.call(dialog);
+        const customAnim = {};
+        Object.keys(defaultAnim).forEach(key => customAnim[key] = defaultAnim[key]);
+
+        customAnim.dialog = [
+            [
+                [{ opacity: 0, transform: 'translateY(50px)' }, { opacity: 1, transform: 'translateY(0)' }],
+                { duration: 240, easing: 'ease' }
+            ]
+        ];
+        customAnim.scrim = [
+            [
+                [{'opacity': 0}, {'opacity': 0.32}],
+                {duration: 240, easing: 'linear'},
+            ],
+        ];
+        customAnim.container = [];
+
+        return customAnim;
+    };
+
+    dialog.getCloseAnimation = () => {
+        const defaultAnim = defaultCloseAnim.call(dialog);
+        const customAnim = {};
+        Object.keys(defaultAnim).forEach(key => customAnim[key] = defaultAnim[key]);
+
+        customAnim.dialog = [
+            [
+                [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-50px)' }],
+                { duration: 240, easing: 'ease' }
+            ]
+        ];
+        customAnim.scrim = [
+            [
+                [{'opacity': 0.32}, {'opacity': 0}],
+                {duration: 240, easing: 'linear'},
+            ],
+        ];
+        customAnim.container = [];
+
+        return customAnim;
+    };
+
+    dialog.addEventListener('opened', () => document.body.classList.add('noscroll'));
+    dialog.addEventListener('closed', () => document.body.classList.remove('noscroll'));
 });
