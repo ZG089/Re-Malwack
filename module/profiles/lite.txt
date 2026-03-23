@@ -1,0 +1,5 @@
+# Lite Profile Hosts Sources
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/light.txt # Hagezi Light hosts
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt # Adguard Mobile Ads
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt # Adguard Mobile Spyware
