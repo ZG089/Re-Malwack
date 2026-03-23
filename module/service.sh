@@ -183,37 +183,55 @@ if [ "$mount_failed" -eq 1 ]; then
     status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
 elif [ -f "$persist_dir/mode_ready" ]; then
     status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
+    [ -z "$profile" ] && profile="default"
+    status_msg="$status_msg | Profile: $profile"
 elif is_protection_paused; then
     status_msg="Status: Protection is paused ⏸️"
+    [ -z "$profile" ] && profile="default"
+    status_msg="$status_msg | Profile: $profile"
 elif is_default_hosts; then
     if [ "$blacklist_count" -gt 0 ]; then
         plural="entries are active"
         [ "$blacklist_count" -eq 1 ] && plural="entry is active"
         status_msg="Status: Protection is reset ❌ | Only $blacklist_count blacklist $plural"
+        [ -z "$profile" ] && profile="default"
+        status_msg="$status_msg | Profile: $profile"
     else
         status_msg="Status: Protection is reset ❌"
+        [ -z "$profile" ] && profile="default"
+        status_msg="$status_msg | Profile: $profile"
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
     # Set success message if not set to error
     if [ -z "$status_msg" ]; then
         if [ "$(date +%m%d)" = "0401" ]; then
-            status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
-            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
-            status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
+            if [ "$(date +%m%d)" = "0401" ]; then
+                status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
+                [ -z "$profile" ] && profile="default"
+                status_msg="$status_msg | Profile: $profile"
+                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                [ -z "$profile" ] && profile="default"
+                status_msg="$status_msg | Profile: $profile"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
+                status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
 
-            sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
-            sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
-        else
-            status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-            [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
-            status_msg="$status_msg | Last updated: $last_mod | $mode"
+                sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
+            else
+                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+                [ -z "$profile" ] && profile="default"
+                status_msg="$status_msg | Profile: $profile"
+                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                [ -z "$profile" ] && profile="default"
+                status_msg="$status_msg | Profile: $profile"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+                status_msg="$status_msg | Last updated: $last_mod | $mode"
 
-            sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
-            sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+                sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+            fi
         fi
     fi
 fi

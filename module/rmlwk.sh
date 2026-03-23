@@ -753,6 +753,7 @@ update_status() {
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
+    log_message "Selected profile: $profile"
     log_message INFO "Updating module status"
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
@@ -800,9 +801,11 @@ update_status() {
 
     # Here goes the part where we actually determine module status
     if [ -f "$persist_dir/mode_ready" ]; then
-        status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
+    status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
+    status_msg="$status_msg | Profile: $profile"
     elif is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️"
+        status_msg="$status_msg | Profile: $profile"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
@@ -812,8 +815,10 @@ update_status() {
             plural="entries are active"
             [ "$blacklist_count" -eq 1 ] && plural="entry is active"
             status_msg="Status: Protection is disabled due to reset ❌ | Only $blacklist_count blacklist $plural"
+            status_msg="$status_msg | Profile: $profile"
         else
             status_msg="Status: Protection is disabled due to reset ❌"
+            status_msg="$status_msg | Profile: $profile"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
         system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
@@ -836,7 +841,9 @@ update_status() {
             [ -f "$persist_dir/mode_ready" ] && rm -f "$persist_dir/mode_ready"
             if [ "$(date +%m%d)" = "0401" ]; then
                 status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
+                status_msg="$status_msg | Profile: $profile"
                 [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                status_msg="$status_msg | Profile: $profile"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
                 status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
@@ -845,7 +852,9 @@ update_status() {
                 sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
             else
                 status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
+                status_msg="$status_msg | Profile: $profile"
                 [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                status_msg="$status_msg | Profile: $profile"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
                 status_msg="$status_msg | Last updated: $last_mod | $mode"
@@ -1083,6 +1092,27 @@ log_message INFO "========== End of pre-main logic =========="
 
 # ====== Main Logic ======
 case "$(tolower "$1")" in
+    --profile|-p)
+        profile_name="$2"
+        if [ -z "$profile_name" ] || { [ ! -f "$MODDIR/profiles/${profile_name}.txt" ] && [ "$profile_name" != "custom" ]; }; then
+            echo "[!] Invalid profile or missing argument."
+            echo "[i] Available profiles: default, lite, balanced, aggressive, custom"
+            exit 1
+        fi
+
+        if [ "$profile_name" = "custom" ]; then
+            echo "[*] Switched to custom profile."
+            sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
+            log_message SUCCESS "Profile switched to custom."
+            echo "[✓] Switched to custom profile."
+        else
+            echo "[*] Switching to $profile_name profile..."
+            cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
+            sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
+            log_message SUCCESS "Profile switched to $profile_name."
+            echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
+        fi
+        ;;
     --adblock-switch|-as)
         pause_protections
         ;;
@@ -1694,6 +1724,9 @@ case "$(tolower "$1")" in
                 exit 1
             fi
         fi
+        if [ "$option" = "add" ] || [ "$option" = "edit" ] || [ "$option" = "remove" ]; then
+            sed -i '/^profile=/profile=custom/d' "$persist_dir/config.sh"
+        fi
         ;;
 
     --custom-rule|-cr)
@@ -1924,6 +1957,7 @@ case "$(tolower "$1")" in
         echo ""
         echo "[i] Usage: rmlwk [--argument] OPTIONAL: [--quiet]"
         echo "--update-hosts, -u: Update the hosts file."
+        echo "--profile, -p <default|lite|balanced|aggressive|custom>: Switch adblock level profile."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
         echo "--custom-source, -c <add|remove|edit> ...: Add/remove/edit custom hosts sources."
         echo "--custom-rule, -cr <add|remove> <IP> <domain>: Add or remove custom hosts rules."
