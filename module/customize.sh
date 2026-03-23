@@ -113,15 +113,6 @@ rm -rf $persistent_dir/logs/* 2>/dev/null
 rm -rf $persistent_dir/cache/* 2>/dev/null
 
 
-# Handle hosts sources file
-# Function to add URL only if it doesn't exist
-add_url_if_not_exists() {
-    local url="$1"
-    if ! grep -q "$url" "$persistent_dir/sources.txt"; then
-        echo "$url" >> "$persistent_dir/sources.txt"
-    fi
-}
-
 compare_sources() {
     awk '!/^#|^$/ {print $1}' "$1" | sort > "$persistent_dir/tmp_cmp1"
     awk '!/^#|^$/ {print $1}' "$2" | sort > "$persistent_dir/tmp_cmp2"
@@ -176,8 +167,7 @@ else
             else
                 ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
                 cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                sed -i '/^profile=/d' "$config_file"
-                echo "profile=$detected_profile" >> "$config_file"
+                sed -i "/^profile=/profile=$detected_profile/d" "$config_file"
             fi
         fi
     fi
