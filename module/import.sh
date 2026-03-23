@@ -37,29 +37,32 @@ bindhosts_import() {
     sources_count=0
     whitelist_count=0
     blacklist_count=0
+    custom_count=0
 
     case "$choice" in
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            sources_count=$(grep -c "$dest_sources")
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$dest_sources" 2>/dev/null || echo 0)
             bindhosts_import_helper whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
+            bindhosts_import_helper custom replace && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" 2>/dev/null || echo 0)
             bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
+            bindhosts_import_helper custom merge && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
             ;;
         3|255) ui_print "[i] Skipped bindhosts import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped bindhosts import."; return ;;
     esac
 
     ui_print "[✓] Bindhosts setup imported successfully."
-    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
+    ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries, $custom_count custom rules."
 }
 
 # 2.1 - bindhosts import helper
@@ -67,8 +70,14 @@ bindhosts_import_helper() {
     list_type="$1"
     mode="$2"
     bindhosts="/data/adb/bindhosts"
-    src="$bindhosts/$list_type.txt"
-    dest="$persistent_dir/$list_type.txt"
+
+    if [ "$list_type" = "custom" ]; then
+        src="$bindhosts/custom.sh"
+        dest="$persistent_dir/custom_rules.txt"
+    else
+        src="$bindhosts/$list_type.txt"
+        dest="$persistent_dir/$list_type.txt"
+    fi
 
     [ ! -f "$src" ] && return
     if grep -vq '^[[:space:]]*#' "$src" && grep -vq '^[[:space:]]*$' "$src"; then
