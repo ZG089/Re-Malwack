@@ -1,0 +1,9 @@
+# Aggressive Profile Hosts Sources
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt # Hagezi Pro
+https://badmojr.github.io/1Hosts/Lite/hosts.txt # 1Hosts Lite
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt # Adguard DNS
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt # Adguard Mobile Ads
+https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt # Adguard Mobile Spyware
+https://hosts.rem01gaming.dev/adblock # Rem01Gaming AdBlock
+https://blocklistproject.github.io/Lists/ads.txt # BlocklistProject - Ads

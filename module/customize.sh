@@ -121,16 +121,66 @@ add_url_if_not_exists() {
         echo "$url" >> "$persistent_dir/sources.txt"
     fi
 }
-if [ ! -s "$persistent_dir/sources.txt" ]; then
-    mv -f $MODPATH/common/sources.txt $persistent_dir/sources.txt
+
+compare_sources() {
+    awk '!/^#|^$/ {print $1}' "$1" | sort > "$persistent_dir/tmp_cmp1"
+    awk '!/^#|^$/ {print $1}' "$2" | sort > "$persistent_dir/tmp_cmp2"
+    cmp -s "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
+    res=$?
+    rm -f "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
+    return $res
+}
+
+mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+if [ -z "$mem_kb" ]; then
+    mem_kb=4000000
+fi
+
+if [ "$mem_kb" -lt 3145728 ]; then
+    detected_profile="lite"
+elif [ "$mem_kb" -lt 6291456 ]; then
+    detected_profile="balanced"
 else
-    rm -f $MODPATH/common/sources.txt
-    # update sources
-    sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus-compressed.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|' $persistent_dir/sources.txt
-    sed -i 's|https://o0.pages.dev/Pro/hosts.txt|https://badmojr.github.io/1Hosts/Lite/hosts.txt|' $persistent_dir/sources.txt
-    add_url_if_not_exists "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt"
-    add_url_if_not_exists "https://hosts.rem01gaming.dev/adblock"
-    add_url_if_not_exists "https://blocklistproject.github.io/Lists/ads.txt"
+    detected_profile="aggressive"
+fi
+
+current_profile=""
+if [ -f "$config_file" ]; then
+    current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
+fi
+
+if [ ! -s "$persistent_dir/sources.txt" ]; then
+    cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+    sed -i '/^profile=/d' "$config_file"
+    echo "profile=$detected_profile" >> "$config_file"
+    ui_print "[*] Auto-selected profile: $detected_profile"
+else
+    if [ -z "$current_profile" ]; then
+        if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
+            cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+            sed -i '/^profile=/d' "$config_file"
+            echo "profile=$detected_profile" >> "$config_file"
+            ui_print "[*] Auto-selected profile: $detected_profile"
+        else
+            sed -i '/^profile=/d' "$config_file"
+            echo "profile=custom" >> "$config_file"
+            ui_print "[*] Customized hosts sources detected, profile has been set to custom."
+        fi
+    else
+        if [ "$current_profile" = "custom" ]; then
+            ui_print "[*] Custom profile detected, keeping hosts sources as is."
+        else
+            if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
+                cp -f "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+                ui_print "[*] Updating hosts sources for your $current_profile profile."
+            else
+                ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
+                cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+                sed -i '/^profile=/d' "$config_file"
+                echo "profile=$detected_profile" >> "$config_file"
+            fi
+        fi
+    fi
 fi
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)

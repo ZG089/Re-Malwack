@@ -8,5 +8,3 @@ https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMo
 https://hosts.rem01gaming.dev/adblock # Rem01Gaming AdBlock
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.tiktok.txt # Hagezi TikTok Native
 https://blocklistproject.github.io/Lists/ads.txt # BlocklistProject - Ads
-
-# User Custom Hosts Sources (Add your own below)
