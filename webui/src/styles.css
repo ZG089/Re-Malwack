@@ -720,6 +720,30 @@ md-dialog.input-dialog {
     position: relative;
 }
 
+md-menu {
+    --md-menu-container-elevation: 0;
+    --md-menu-top-space: 0;
+    --md-menu-bottom-space: 0;
+    --md-menu-container-color: transparent;
+    --md-menu-item-container-color: var(--md-sys-color-surface-container);
+    --md-menu-container-shape: 20px;
+}
+
+md-menu-item {
+    border-radius: 4px;
+    margin-bottom: 2px;
+    transition: border-radius 0.2s ease;
+}
+
+md-menu-item:last-child {
+    margin-bottom: 0;
+}
+
+md-menu-item:active,
+md-menu-item.selected {
+    border-radius: 20px;
+}
+
 .spacer {
     flex: 1;
 }

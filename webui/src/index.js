@@ -929,20 +929,28 @@ async function setupTheme() {
         themeSelect.innerHTML = '';
         
         const options = [...Object.keys(cachedThemeData.schemes), 'system'];
+        const savedTheme = localStorage.getItem('remalwack_theme') || 'system';
 
         options.forEach(key => {
             const option = document.createElement('md-menu-item');
+            option.selected = (key === savedTheme);
+            if (key === savedTheme) option.classList.add('selected');
             option.innerHTML = `
                 <div slot="headline">${key.charAt(0).toUpperCase() + key.slice(1)}</div>
             `;
             option.onclick = (e) => {
                 e.stopImmediatePropagation();
+                themeSelect.querySelectorAll('md-menu-item').forEach(item => {
+                    item.classList.remove('selected')
+                    item.selected = false
+                });
+                option.classList.add('selected');
+                option.selected = true;
                 setNewTheme(key);
             }
             themeSelect.appendChild(option);
         });
 
-        const savedTheme = localStorage.getItem('remalwack_theme') || 'system';
         await loadTheme(savedTheme);
 
         const setNewTheme = async (themeName) => {
