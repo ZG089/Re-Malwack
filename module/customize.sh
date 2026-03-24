@@ -122,6 +122,48 @@ compare_sources() {
     return $res
 }
 
+update_profile() {
+    local prof_file="$1"
+    local dest_file="$2"
+    
+    if [ ! -s "$dest_file" ]; then
+        cp -f "$prof_file" "$dest_file"
+        return
+    fi
+    
+    awk '
+    NR==FNR {
+        if (/^# OFF # /) {
+            off_urls[$4] = 1
+        }
+        next
+    }
+    {
+        if (/^# OFF # /) {
+            url = $4
+        } else if ($1 !~ /^#/) {
+            url = $1
+            if (off_urls[url] == 1) {
+                $0 = "# OFF # " $0
+            }
+        } else {
+            url = ""
+        }
+        
+        if (url == "") {
+            print $0
+            next
+        }
+        
+        if (!seen[url]++) {
+            print $0
+        }
+    }
+    ' "$dest_file" "$prof_file" > "${dest_file}.tmp"
+    
+    mv -f "${dest_file}.tmp" "$dest_file"
+}
+
 mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 if [ -z "$mem_kb" ]; then
     mem_kb=4000000
@@ -141,14 +183,14 @@ if [ -f "$config_file" ]; then
 fi
 
 if [ ! -s "$persistent_dir/sources.txt" ]; then
-    cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+    update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
     sed -i '/^profile=/d' "$config_file"
     echo "profile=$detected_profile" >> "$config_file"
     ui_print "[*] Auto-selected profile: $detected_profile"
 else
     if [ -z "$current_profile" ]; then
         if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
-            cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+            update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
             sed -i '/^profile=/d' "$config_file"
             echo "profile=$detected_profile" >> "$config_file"
             ui_print "[*] Auto-selected profile: $detected_profile"
@@ -162,11 +204,11 @@ else
             ui_print "[*] Custom profile detected, keeping hosts sources as is."
         else
             if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
-                cp -f "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+                update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
                 ui_print "[*] Updating hosts sources for your $current_profile profile."
             else
                 ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
-                cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+                update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
                 sed -i "/^profile=/profile=$detected_profile/d" "$config_file"
             fi
         fi
@@ -175,6 +217,27 @@ fi
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
+
+awk '
+{
+    if (/^# OFF # /) {
+        url = $4
+    } else if ($1 !~ /^#/) {
+        url = $1
+    } else {
+        url = ""
+    }
+    
+    if (url == "") {
+        print $0
+        next
+    }
+    
+    if (!seen[url]++) {
+        print $0
+    }
+}' "$persistent_dir/sources.txt" > "$persistent_dir/sources.txt.tmp"
+mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
 
 if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
     # Initialize
