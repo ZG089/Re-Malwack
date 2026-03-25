@@ -79,8 +79,11 @@ body.input-focused {
     gap: 4px;
 }
 
+.info-card-container {
+    display: none !important;
+}
+
 .info-card {
-    display: none;
     background-color: var(--md-sys-color-outline-variant) !important;
     color: var(--md-sys-color-on-surface-variant) !important;
     font-size: 0.9em !important;
@@ -94,7 +97,7 @@ body.input-focused {
     font-size: 0.7em;
 }
 
-#broken-mount-box {
+#broken-mount-box .info-card {
     background-color: var(--md-sys-color-on-primary) !important;
     color: var(--md-sys-color-primary) !important;
 }
@@ -708,7 +711,7 @@ md-dialog.input-dialog {
     color: var(--md-sys-color-inverse-on-surface);
     border-radius: 4px;
     font-size: 0.9em;
-    padding: 12px;
+    padding: 16px;
     width: calc(100% - 32px);
     max-width: 600px;
     box-sizing: border-box;
@@ -773,7 +776,7 @@ md-menu-item[selected] {
 }
 
 .display-flex {
-    display: flex;
+    display: flex !important;
 }
 
 .display-block {

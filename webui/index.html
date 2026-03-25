@@ -47,24 +47,24 @@
         </div>
 
         <!-- Disabled block -->
-        <div class="list-container">
-            <div class="list-item info-card" id="disabled-box">
+        <div class="list-container info-card-container" id="disabled-box">
+            <div class="list-item info-card">
                 <md-icon>warning</md-icon>
                 <div id="disable-text"></div>
             </div>
         </div>
 
         <!-- Test version block -->
-        <div class="list-container">
-            <div class="list-item info-card" id="test-version-box">
+        <div class="list-container info-card-container" id="test-version-box">
+            <div class="list-item info-card">
                 <md-icon>info</md-icon>
                 <div id="test-version-text"></div>
             </div>
         </div>
 
         <!-- Broken mount block -->
-         <div class="list-container">
-            <div class="list-item info-card" id="broken-mount-box">
+         <div class="list-container info-card-container" id="broken-mount-box">
+            <div class="list-item info-card">
                 <md-icon>close</md-icon>
                 <div>
                     Critical Error: Broken hosts mount
@@ -103,17 +103,17 @@
     
         <div class="list-title">Host Operation</div>
         <div class="list-container">
-            <!-- reset -->
-            <div class="list-item" id="reset">
-                <md-icon>history</md-icon>
-                <div class="toggle-text">Reset hosts file</div>
-                <md-ripple></md-ripple>
-            </div>
-
             <!-- update -->
             <div class="list-item" id="update">
                 <md-icon>cloud_download</md-icon>
                 <div class="toggle-text">Update hosts file</div>
+                <md-ripple></md-ripple>
+            </div>
+
+            <!-- reset -->
+            <div class="list-item" id="reset">
+                <md-icon>history</md-icon>
+                <div class="toggle-text">Reset hosts file</div>
                 <md-ripple></md-ripple>
             </div>
 
@@ -195,7 +195,7 @@
         <div class="list-title">Query</div>
         <div class="box" id="query">
             <div class="category-container">
-                <md-outlined-text-field id="query-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="query-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
                 <md-filled-icon-button id="query-search"><md-icon>search</md-icon></md-filled-icon-button>
             </div>
             <div class="card" id="query-result-card">
@@ -207,7 +207,7 @@
         <div class="list-title">Whitelist</div>
         <div class="box" id="whitelist">
             <div class="category-container">
-                <md-outlined-text-field id="whitelist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="whitelist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
                 <md-filled-icon-button id="whitelist-add"><md-icon>verified_user</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
@@ -223,7 +223,7 @@
         <div class="list-title">Blacklist</div>
         <div class="box" id="blacklist">
             <div class="category-container">
-                <md-outlined-text-field id="blacklist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="blacklist-input" label="Domain" placeholder="www.example.com"></md-outlined-text-field>
                 <md-filled-icon-button id="blacklist-add"><md-icon>block</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
@@ -239,7 +239,7 @@
         <div class="list-title">Sources</div>
         <div class="box" id="custom-source">
             <div class="category-container">
-                <md-outlined-text-field id="custom-source-input" label="URL" placeholder="https://example.com/hosts.txt"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="custom-source-input" label="URL" placeholder="https://example.com/hosts.txt"></md-outlined-text-field>
                 <md-filled-icon-button id="custom-source-add"><md-icon>note_add</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
@@ -257,8 +257,8 @@
         <div class="list-title">Custom Rules</div>
         <div class="box" id="custom-rule">
             <div class="category-container">
-                <md-outlined-text-field id="custom-rule-ip" label="IP" placeholder="0.0.0.0"></md-outlined-text-field>
-                <md-outlined-text-field id="custom-rule-domain" label="Domain" placeholder="example.com"></md-outlined-text-field>
+                <md-outlined-text-field type="number" id="custom-rule-ip" label="IP" placeholder="0.0.0.0"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="custom-rule-domain" label="Domain" placeholder="example.com"></md-outlined-text-field>
                 <md-filled-icon-button id="custom-rule-add"><md-icon>edit_document</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
@@ -365,8 +365,8 @@
         <md-dialog id="edit-dialog" class="input-dialog">
             <div slot="headline">Edit</div>
             <div slot="content" class="edit-dialog-content">
-                <md-outlined-text-field id="edit-name" label="Name (Optional)"></md-outlined-text-field>
-                <md-outlined-text-field id="edit-domain" label="Domain" type="textarea" rows="5"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="edit-name" label="Name (Optional)"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="edit-domain" label="Domain" type="textarea" rows="5"></md-outlined-text-field>
             </div>
             <div slot="actions">
                 <md-outlined-button id="cancel-edit">Cancel</md-outlined-button>
