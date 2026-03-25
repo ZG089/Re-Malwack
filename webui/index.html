@@ -12,48 +12,65 @@
 <body>
     <div class="content" unresolved>
         <!-- Header -->
-        <div class="header" id="info-box">
-            <i class="logo" id="logo">
-                <svg viewBox="0 0 1176.4 145.8" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M0 12v123.5h108L90.6 102a51 51 0 0 0 18.1-39A51 51 0 0 0 59 12zm115.6 0v107.2h.2v16h102.1v-42h-26.2v-4.6h25.7V59.1h-25.7v-5h26V11.8h-26zm113.1 69.1h43.2v15h-43.2zM282.6 9v126h123.2V9l-61.6 45Z" />
-                    <path d="m482.8-.2 77.9 135-156-.1Z" />
-                    <path
-                        d="M557.8 11.7V135h97.7V73h-34.7V11.6Zm138.2.8.1.1h-65.4l76.8 133.2 29.9-51.7-13.3-21.3 5-3.1 43.8 76 77-133.1zM863.9.3l77.8 135h-156Zm187.3 119.9a66 66 0 0 1-93-.2 66 66 0 0 1 .2-93 66 66 0 0 1 93 .2l-46.6 46.4zm76.9-108.4h-73.2v124h73.2v.1h48.3l-45.8-62.1 45.7-62Z" />
-                </svg>
-            </i>
-            <div class="spacer"></div>
-            <span class="menu">
-                <md-icon-button id="theme-toggle"><md-icon>routine</md-icon></md-icon-button>
-                <md-menu id="theme-select" anchor="theme-toggle"></md-menu>
-            </span>
-            <div id="festival-theme">
-                <img class="festival" id="christmas" src="snowflakes.png">
-                <!-- <img class="festival" id="halloween" src="assets/pumpkin.png"> -->
+        <div class="header-box">
+            <div class="header" id="info-box">
+                <i class="logo" id="logo">
+                    <svg viewBox="0 0 1176.4 145.8" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 12v123.5h108L90.6 102a51 51 0 0 0 18.1-39A51 51 0 0 0 59 12zm115.6 0v107.2h.2v16h102.1v-42h-26.2v-4.6h25.7V59.1h-25.7v-5h26V11.8h-26zm113.1 69.1h43.2v15h-43.2zM282.6 9v126h123.2V9l-61.6 45Z" />
+                        <path d="m482.8-.2 77.9 135-156-.1Z" />
+                        <path d="M557.8 11.7V135h97.7V73h-34.7V11.6Zm138.2.8.1.1h-65.4l76.8 133.2 29.9-51.7-13.3-21.3 5-3.1 43.8 76 77-133.1zM863.9.3l77.8 135h-156Zm187.3 119.9a66 66 0 0 1-93-.2 66 66 0 0 1 .2-93 66 66 0 0 1 93 .2l-46.6 46.4zm76.9-108.4h-73.2v124h73.2v.1h48.3l-45.8-62.1 45.7-62Z" />
+                    </svg>
+                </i>
+                <md-ripple></md-ripple>
             </div>
-            <md-ripple></md-ripple>
+            <div class="profile-box">
+                <span class="menu">
+                    <div class="profile-item" id="profile">
+                        <md-icon>trip_origin</md-icon>
+                        Profile: 
+                        <div id="profile-text">Default</div>
+                    </div>
+                    <md-menu id="profile-menu" anchor="profile">
+                        <md-menu-item selected value="default">Default</md-menu-item>
+                        <md-menu-item value="lite">Lite</md-menu-item>
+                        <md-menu-item value="balanced">Balanced</md-menu-item>
+                        <md-menu-item value="aggressive">Aggressive</md-menu-item>
+                        <md-menu-item value="custom">Custom</md-menu-item>
+                    </md-menu>
+                </span>
+                <div class="spacer"></div>
+                <span class="menu">
+                    <md-icon-button id="theme-toggle"><md-icon>routine</md-icon></md-icon-button>
+                    <md-menu id="theme-select" anchor="theme-toggle"></md-menu>
+                </span>
+            </div>
         </div>
 
         <!-- Disabled block -->
-        <div class="header header-disabled" id="disabled-box">
-            <md-icon>warning</md-icon>
-            <div id="disable-text"></div>
+        <div class="list-container">
+            <div class="list-item info-card" id="disabled-box">
+                <md-icon>warning</md-icon>
+                <div id="disable-text"></div>
+            </div>
         </div>
 
         <!-- Test version block -->
-        <div class="header header-disabled" id="test-version-box">
-            <md-icon>info</md-icon>
-            <div id="test-version-text"></div>
+        <div class="list-container">
+            <div class="list-item info-card" id="test-version-box">
+                <md-icon>info</md-icon>
+                <div id="test-version-text"></div>
+            </div>
         </div>
 
         <!-- Broken mount block -->
-        <div class="header header-disabled" id="broken-mount-box">
-            <md-icon>close</md-icon>
-            <div>
-                Critical Error: Broken hosts mount
-                <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your device.</p>
+         <div class="list-container">
+            <div class="list-item info-card" id="broken-mount-box">
+                <md-icon>close</md-icon>
+                <div>
+                    Critical Error: Broken hosts mount
+                    <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your device.</p>
+                </div>
             </div>
-
         </div>
 
         <!-- Dashboard -->
@@ -261,6 +278,11 @@
                 <md-ripple></md-ripple>
             </div>
         </div>
+    </div>
+
+    <div id="festival-theme">
+        <img class="festival" id="christmas" src="snowflakes.png">
+        <!-- <img class="festival" id="halloween" src="assets/pumpkin.png"> -->
     </div>
 
     <!-- Float button -->

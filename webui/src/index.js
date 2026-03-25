@@ -107,7 +107,7 @@ async function checkMMRL() {
 }
 
 async function isPaused() {
-    const result = await exec(`[ -f "${basePath}/hosts.bak" ] && grep -q "^adblock_switch=1" "${basePath}/config.sh"`);
+    const result = await exec(`[ -f "${basePath}/hosts.bak" ] && grep -q "^adblock_switch=1" "${CONFIG_PATH}"`);
     return result.errno === 0;
 }
 
@@ -933,19 +933,16 @@ async function setupTheme() {
 
         options.forEach(key => {
             const option = document.createElement('md-menu-item');
-            option.selected = (key === savedTheme);
-            if (key === savedTheme) option.classList.add('selected');
+            if (key === savedTheme) option.setAttribute('selected', '');
             option.innerHTML = `
                 <div slot="headline">${key.charAt(0).toUpperCase() + key.slice(1)}</div>
             `;
             option.onclick = (e) => {
                 e.stopImmediatePropagation();
                 themeSelect.querySelectorAll('md-menu-item').forEach(item => {
-                    item.classList.remove('selected')
-                    item.selected = false
+                    item.removeAttribute('selected');
                 });
-                option.classList.add('selected');
-                option.selected = true;
+                option.setAttribute('selected', '');
                 setNewTheme(key);
             }
             themeSelect.appendChild(option);
@@ -970,6 +967,46 @@ async function setupTheme() {
     } catch (error) {
         console.error('Error setting up theme:', error);
     }
+}
+
+// setup profile
+function setupProfile() {
+    const profileBox = document.getElementById('profile');
+    const profileMenu = document.getElementById('profile-menu');
+    const profileText = document.getElementById('profile-text');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    profileBox.onclick = (e) => {
+        e.stopImmediatePropagation();
+        profileMenu.open = !profileMenu.open
+    }
+
+    const setActiveProfile = (profileName) => {
+        profileText.textContent = profileName;
+        profileMenu.querySelectorAll('md-menu-item').forEach(item => item.removeAttribute('selected'));
+        profileMenu.querySelector(`md-menu-item[value="${profileName.toLowerCase()}"]`).setAttribute('selected', '');
+    }
+
+    exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 || echo 'default'`).then((result) => {
+        if (result.errno !== 0) return;
+        const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+        setActiveProfile(capitalize(result.stdout.trim()));
+    });
+
+    profileMenu.querySelectorAll('md-menu-item').forEach(item => {
+        item.onclick = () => {
+            loadingOverlay.classList.add('show');
+            const result = spawn(`sh ${modulePath}/rmlwk.sh --profile ${item.textContent.toLowerCase()}`);
+            result.on('exit', (code) => {
+                loadingOverlay.classList.remove('show');
+                if (code !== 0 && !import.meta.env.DEV) {
+                    showPrompt(`Failed to change profile to ${item.textContent}`);
+                    return;
+                }
+                setActiveProfile(item.textContent);
+            });
+        }
+    });
 }
 
 // update adblock swtich
@@ -1136,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupFestivalThemes();
     setupEventListener();
     getVersion();
+    setupProfile();
     getStatus();
     checkMount();
     loadActionMode();
