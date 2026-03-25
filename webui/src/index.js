@@ -712,17 +712,17 @@ async function loadFile(fileType) {
             `;
 
             const img = listItem.querySelector(".favicon-img");
-            if (img) {
-                const loader = listItem.querySelector("md-circular-progress");
-                img.onload = () => {
-                    loader.style.display = "none";
-                    img.style.display = "block";
-                };
-                img.onerror = () => {
-                    loader.style.display = "none";
-                    listItem.querySelector(".favicon-wrapper").innerHTML = `<md-icon>domain</md-icon>`
-                };
-            }
+            const wrapper = listItem.querySelector(".favicon-wrapper");
+            const loader = listItem.querySelector("md-circular-progress");
+            wrapper.onclick = () => linkRedirect(url);
+            img.onload = () => {
+                loader.style.display = "none";
+                img.style.display = "block";
+            };
+            img.onerror = () => {
+                loader.style.display = "none";
+                listItem.querySelector(".favicon-wrapper").innerHTML = `<md-icon>domain</md-icon>`
+            };
 
             const badge = listItem.querySelector('.badge');
             if (badge) {
