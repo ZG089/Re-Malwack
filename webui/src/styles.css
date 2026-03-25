@@ -453,7 +453,7 @@ md-dialog.input-dialog {
     background-color: var(--md-sys-color-surface-container);
     color: var(--md-sys-color-on-surface-container);
     font-size: 1.1em;
-    padding: 16px;
+    padding: 8px 16px;
     user-select: none;
     position: relative;
     border-radius: 4px;
@@ -463,6 +463,16 @@ md-dialog.input-dialog {
 
 .list-item:active {
     border-radius: 20px;
+}
+
+.list-item md-icon {
+    margin: 0 4px;
+}
+
+.list-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 #action-mode-status {

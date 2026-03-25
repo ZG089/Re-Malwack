@@ -291,7 +291,7 @@ async function checkBlockStatus() {
 
             if (badge) {
                 const enabled = isEnabled && blocklistCounts[type] !== undefined;
-                badge.textContent = enabled ? formatNumber(blocklistCounts[type], isApril1st, true) : "0";
+                badge.textContent = formatNumber(blocklistCounts[type] || 0, isApril1st, true);
                 badge.classList.toggle('display-flex', enabled);
             }
         });
