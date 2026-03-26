@@ -11,13 +11,10 @@ jobs:
 
     steps:
       - name: Checkout hosts-update branch only
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: 'hosts-update'
           fetch-depth: 0
-
-      - name: Set up dependencies
-        run: sudo apt update && sudo apt install -y curl
 
       - name: Download Hosts Files
         run: |
