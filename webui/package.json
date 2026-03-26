@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^8.0.1"
+    "vite": "^8.0.2"
   },
   "dependencies": {
     "@material/web": "^2.4.1",
