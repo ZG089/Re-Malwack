@@ -275,25 +275,17 @@ md-dialog.input-dialog {
 }
 
 .about-logo-container {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+    height: 80px;
+    width: 80px;
+    margin: 0 auto;
+    border-radius: 16px;
+    background-color: var(--md-sys-color-primary-container);
 }
 
 .about-logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80px;
-    width: 80px;
-    padding: 12px;
-    border-radius: 15px;
-    box-sizing: border-box;
-    background-color: var(--md-sys-color-on-primary-container);
-
-    svg {
-        fill: var(--md-sys-color-primary-container);
-    }
+    height: 100%;
+    width: 100%;
+    fill: var(--md-sys-color-on-primary-container);
 }
 
 .about-content p {
