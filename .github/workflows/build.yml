@@ -3,8 +3,9 @@ name: build
 on:
   push:
     branches:
-      - main
-      - new_webui
+      - '**'
+    branches-ignore:
+      - hosts-update
     paths:
       - '.github/workflows/build.yml'
       - 'module/**'
