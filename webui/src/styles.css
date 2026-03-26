@@ -758,7 +758,7 @@ md-menu {
     --md-menu-top-space: 0;
     --md-menu-bottom-space: 0;
     --md-menu-container-color: transparent;
-    --md-menu-item-container-color: var(--md-sys-color-surface-container);
+    --md-menu-item-container-color: var(--md-sys-color-surface-container-high);
     --md-menu-container-shape: 20px;
 }
 
