@@ -23,16 +23,14 @@ jobs:
       - name: Set variables
         id: setup
         run: |
-          COMMIT_NUM=$(git rev-list --count HEAD)
           COMMIT_HASH=$(git rev-parse --short HEAD)
-          VERSION=$(jq -r .version update.json)
-          TEST_BUILD_ID="${COMMIT_NUM}-${COMMIT_HASH}"
-          ZIP_NAME="Re-Malwack_${VERSION}-${TEST_BUILD_ID}"
           BRANCH_NAME="${GITHUB_REF_NAME}"
+          VERSION=$(jq -r .version update.json)
+          TEST_BUILD_ID="${COMMIT_HASH}@${BRANCH_NAME}"
+          ZIP_NAME="Re-Malwack_${VERSION}-${TEST_BUILD_ID}"
       
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "COMMIT_NUM=$COMMIT_NUM" >> $GITHUB_ENV
           echo "SHORT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "TEST_BUILD_ID=$TEST_BUILD_ID" >> $GITHUB_ENV
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
