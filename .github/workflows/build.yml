@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - '**'
-    branches-ignore:
-      - hosts-update
+      - '!hosts-update'
     paths:
       - '.github/workflows/build.yml'
       - 'module/**'
