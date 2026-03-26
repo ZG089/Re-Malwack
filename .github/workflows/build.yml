@@ -108,7 +108,7 @@ jobs:
           $COMMIT_MSG
           \`\`\`
           Base Version: \`${VERSION}\`
-          Test Build ID: \`#${TEST_BUILD_ID}\`
+          Test Build ID: \`${TEST_BUILD_ID}\`
           Branch: \`${BRANCH_NAME}\`
           =================================
           [- View Commit -]($COMMIT_URL)
