@@ -2,4 +2,4 @@
 *.DS_Store
 
 # webui debug
-/module/webroot/link
+/module/webroot

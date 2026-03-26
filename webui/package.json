@@ -1,0 +1,18 @@
+{
+  "name": "re-malwack",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --emptyOutDir",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^8.0.2"
+  },
+  "dependencies": {
+    "@material/web": "^2.4.1",
+    "kernelsu-alt": "^3.1.1"
+  }
+}

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -37,6 +37,24 @@ jobs:
           echo "TEST_BUILD_ID=$TEST_BUILD_ID" >> $GITHUB_ENV
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 'latest'
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          cache: 'pnpm'
+          cache-dependency-path: webui/pnpm-lock.yaml
+
+      - name: build webui
+        run: |
+          cd webui
+          pnpm install --frozen-lockfile
+          pnpm run build
+
       - name: Update module.prop version
         run: |
           sed -i "s/^version=.*/version=${VERSION}-test (#${TEST_BUILD_ID})/" module/module.prop
@@ -44,7 +62,7 @@ jobs:
           grep "^version=" module/module.prop
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ZIP_NAME }}
           path: module/

@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -37,6 +37,24 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSIONCODE=$VERSIONCODE" >> $GITHUB_ENV
           echo "DL_URL=$DL_URL" >> $GITHUB_ENV
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 'latest'
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          cache: 'pnpm'
+          cache-dependency-path: webui/pnpm-lock.yaml
+
+      - name: build webui
+        run: |
+          cd webui
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Update module.prop version + versionCode
         run: |
@@ -110,7 +128,7 @@ jobs:
           cd ..
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag }}
           name: "${{ github.event.inputs.releaseName || github.event.inputs.tag }}"
