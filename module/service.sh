@@ -251,14 +251,14 @@ if [ "$daily_update" = 1 ]; then
 
     # Checking crond existance
     elif [ -f "$JOB_FILE" ]; then
-        log_message "Auto update enabled (cron mode), verifying crond."
+        log_message "Auto update enabled (cron mode), verifying crond existence."
         CRON_PROVIDER=$(detect_cron_provider) || {
         log_message "No cron provider detected at boot."
         return
         }
         CROND=$(cron_cmd crond)
-        log_message "Auto update is enabled, starting crond..."
-        log_message "Using $CRON_PROVIDER applets for cron management."
+        log_message "Found crond, initiating auto update..."
+        log_message "Using $CRON_PROVIDER applets."
         $CROND -b -c "$JOB_DIR" -L "$persist_dir/logs/auto_update-cron.log"
         sleep 1.5
         CROND_PID="$(busybox pgrep -f "crond.*$JOB_DIR" | head -n 1 || true)"
