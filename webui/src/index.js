@@ -57,12 +57,16 @@ async function getVersion() {
 
     const result = await exec(`grep '^version=' "${modulePath}/module.prop" | cut -d'=' -f2`);
     if (result.errno === 0) {
-        const [version, ...hashParts] = result.stdout.trim().split('-');
-        const hash = hashParts.join('-');
-
-        versionMain.textContent = version || 'Unknown';
-        if (!hash) return;
-        displayHash = hash.replace(/^test \(/, '').replace(/\)$/, '');
+        const rawVersion = result.stdout.trim();
+        const testMatch = rawVersion.match(/^(.*?)-test \((.*?)\)$/);
+        
+        if (testMatch) {
+            versionMain.textContent = testMatch[1];
+            displayHash = testMatch[2] || '';
+        } else {
+            versionMain.textContent = rawVersion || 'Unknown';
+            return;
+        }
     } else if (import.meta.env.DEV) {
         versionMain.textContent = "DEV";
         displayHash = "DEVELOPMENT STAGE";
