@@ -359,12 +359,13 @@ export_logs() {
     VERSION=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2)
     LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
 
-    if echo "$VERSION" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
+    if echo "$VERSION" | grep -q "\-test.*(.*@.*)"; then
         base_version=$(echo "$VERSION" | sed 's/-test.*//')
-        build_id=$(echo "$VERSION" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
+        build_id=$(echo "$VERSION" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
         tarFileName="Re-Malwack_${base_version}_${build_id}_logs_${LOG_DATE}.tar.gz"
     else
-        tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
+        clean_version=$(echo "$VERSION" | sed 's/\//_/g')
+        tarFileName="Re-Malwack_${clean_version}_logs_${LOG_DATE}.tar.gz"
     fi
     log_message SUCCESS "Logs are going to be saved in: /sdcard/Download/$tarFileName"
     tar -czf "/sdcard/Download/$tarFileName" -C "$persist_dir" logs
