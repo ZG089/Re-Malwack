@@ -651,8 +651,7 @@ fetch_blocklist() {
     case "$bl" in
         porn)
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/porn-only/hosts"
-            fetch "${cache_hosts}2" "https://blocklistproject.github.io/Lists/porn.txt"
-            fetch "${cache_hosts}3" "https://raw.githubusercontent.com/4skinSkywalker/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt"
+            fetch "${cache_hosts}2" "https://raw.githubusercontent.com/4skinSkywalker/Anti-Porn-HOSTS-File/refs/heads/master/HOSTS.txt"
             ;;
         gambling)
             fetch "${cache_hosts}1" "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling-only/hosts"
