@@ -7,3 +7,5 @@ https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMo
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt # Adguard Mobile Spyware
 https://hosts.rem01gaming.dev/adblock # Rem01Gaming AdBlock
 https://blocklistproject.github.io/Lists/ads.txt # BlocklistProject - Ads
+https://blocklistproject.github.io/Lists/redirect.txt # BlocklistProject - Malicious Redirects
+https://blocklistproject.github.io/Lists/malware.txt # BlocklistProject - Malware
