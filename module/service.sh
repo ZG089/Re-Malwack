@@ -12,8 +12,6 @@ FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
 PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
 JOB_DIR="$persist_dir/auto_update"
 JOB_FILE="$JOB_DIR/root"
-SERVICE_DIR="/data/adb/service.d"
-SELF_DELETE="$SERVICE_DIR/rmlwk-auto_app_rm.sh"
 # =========== Functions ===========
 
 # Function to check hosts file reset state
