@@ -706,6 +706,7 @@ md-dialog.input-dialog {
     justify-content: center;
     align-items: flex-end;
     z-index: 3;
+    pointer-events: none;
 }
 
 .prompt {
@@ -732,6 +733,7 @@ md-dialog.input-dialog {
 .prompt.show {
     opacity: 1;
     transform: scale(1);
+    pointer-events: auto;
 }
 
 .footer {
