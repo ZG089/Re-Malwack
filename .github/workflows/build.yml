@@ -55,7 +55,7 @@ jobs:
 
       - name: Update module.prop version
         run: |
-          sed -i "s/^version=.*/version=${VERSION}-test (#${TEST_BUILD_ID})/" module/module.prop
+          sed -i "s/^version=.*/version=${VERSION}-test (${TEST_BUILD_ID})/" module/module.prop
           echo "Updated module.prop:"
           grep "^version=" module/module.prop
 
