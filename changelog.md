@@ -1,3 +1,97 @@
+## v8.0
+
+### Bug Fixes
+
+**Scripts**
+- Fixed missing auto-update handler that was accidentally removed
+- Fixed cache hosts file name pattern issues
+- Fixed trackers brand-specific hosts not being applied
+- Fixed multiple logical bugs related to hosts update process
+- Fixed whitelist handling and entries not being returned properly
+- Fixed social whitelist being applied when it shouldn't be
+- Fixed failed/errored commands not showing up in error messages
+- Fixed syntax errors in multiple module files
+- Fixed runtime errors trap logic
+- Fixed "unexpected `0`" error during host refresh
+
+**WebUI & Core**
+- Fixed module_service crash issue
+- Fixed whitelist/blacklist not showing proper error handling in WebUI
+
+### Features
+
+**Scripts**
+- **Domain status query function**: Query if a domain is blocked, redirected, or not blocked in the hosts file with detailed feedback
+- **Safebrowsing as separate toggle**: Separated safebrowsing from pornography block with its own independent toggle, preventing services like youtube from being broken on enabling pornography blocklist
+- **Entries count per source**: Show blocked entries count for each host source
+- **Hot source names parsing**: Added support for parsing and showing host source names
+- **Dynamic host sources management**: Support for enabling/disabling, editing hosts sources & names
+- **Custom hosts rules**: New feature to add custom blocking/redirecting rules with IP customization
+- **Dynamic multi-sources toggling**: Add backend support for toggling individual host sources dynamically
+- **Custom rules import**: Experimental import of custom rules from bindhosts with safety checks
+- **Adblock profiles management**: New feature to manage and switch between different adblock profiles (Default, lite, balanced, agressive) with auto profile detection on installation based on device performance, Such a good solution for devices that may suffer device performance issues as well.
+- **Action script mode**: Customize the purpose of module action button (pause/resume/update hosts)
+- **Offline installation**: Allow module offline installation with idle protection status
+- **Auto-resume protection**: Auto resume adblock in case of it being paused during installation
+- **Enhanced connection handling**: Wait for internet connection instead of aborting, added retries limit of 6
+- **Dynamic Busybox/Toybox support**: Use busybox crond applet directly without extra checks, added toybox support with full native fallback
+- **Improved auto-update fallback**: Implement fallback when crond/busybox doesn't exist with proper error handling
+- **Enhanced hosts remounting**: Improved hosts file mounting logic, avoiding bootloops and conflicts with metamodules, such as HybridMount
+- **Hosts update parallelism limiting**: Limit parallel hosts update processing to be easier on device resources
+- **Log improvements**: Adjust duration format from h:m:s to m:s:ms, better error logging
+- **April joke feature**: Introducing "Re-Malware" easter egg for April 1st
+
+**WebUI** _(Many thanks to @KOWX712)_
+- **Material Web Components migration**: Full Vite-based build with Material Web Component integration
+- **Theme&Design rework**: Completely reworked theming system using Material Design with dynamically loaded themes from theme.json
+- **Domain query feature**: Query domain blocking status directly from WebUI
+- **Loading indicator for cron toggle**: Visual feedback when enabling/disabling cron protection toggle
+- **Action mode toggle**: Toggle for action script mode (pause/resume/update hosts)
+- **Enhanced entries display**: Show entries count for each host source and enabled blocklist in WebUI
+- **Hosts sources management**: UI improvements for enabling/disabling and editing host sources, alongside displaying host source name + favicon
+_(NOTE: to add a host source with a name, you may enter the url and an inline comment with the host source name such as `https://example.com # Example Hosts`)_
+- **Log exporting refactor**: Include module version in exported log zipfile
+- **Terminal improvements**: Refactored terminal to not show output for play/pause actions
+- **UI/UX improvements**: Multiple styling improvements, cleaner hosts sources box layout, better prompt styling
+
+### General Changes
+
+**Refactoring**
+- Simplified auto update logic with better crond provider detection
+- Remove useless function commands before actual function definitions
+- Rewrite log_duration function for better human-readable execution times
+- Enhanced error handling throughout the main core script
+
+**Architecture Improvements**
+- Set $PATH before checking for tools to ensure proper command availability
+- Improved crond process detection and management
+
+**Performance & Compatibility**
+- Limit hosts update parallelism for easier device resource usage
+- Add 1.5s cooldown after running crond for stability
+- Better performance for blocklist handling logic
+- Convert 127.0.0.1 entries to 0.0.0.0 for consistency
+- Improved blocked entries counting to handle different block methods
+- Limit loading parallelism for better device compatibility
+
+**Code Quality**
+- Drop useless function commands before functions
+- Remove dead pornography hosts source link + extra source due to its large size
+- Remove unused variables for cleaner code
+- Respect user's disabled host sources on updating profiles and avoid duplications
+
+**Workflow & CI/CD**
+- Added Discord alert workflow for push events
+- Improved GitHub Actions for Discord releases
+- Auto changelog truncating on release
+- Auto update module version badge on release
+- Test build ID format changed to commit-hash@branch-name
+
+**Documentation & Credits**
+- Updated contributor usernames
+- Updated hosts source links
+- Whitelist improvements with new domain entries
+
 ## v7.0
 
 ### Please take a look at the notes at the end of the changelog after reading it, thank you.
