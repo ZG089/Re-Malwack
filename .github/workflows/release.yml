@@ -198,7 +198,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           CHANNEL_ID="-1002453262614"
-          VERSION="${{ env.VERSION }}"
+          VERSION="${{ github.event.inputs.releaseName || github.event.inputs.tag }}"
           CHANGELOG="$(cat CHANGELOG_TG.md)"
           TRUNCATED_MSG=""
           if [ "$TG_TRUNCATED" == "true" ]; then
