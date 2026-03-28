@@ -801,24 +801,25 @@ update_status() {
 
     # Here goes the part where we actually determine module status
     if [ -f "$persist_dir/mode_ready" ]; then
-    status_msg="Status: Protection is idle 💤 (Tip: Update hosts in order to activate protections)"
-    status_msg="$status_msg | Profile: $profile"
+        [ -z "$profile" ] && profile="default"
+        status_msg="Status: Protection is idle 💤 | Profile: $profile"
     elif is_protection_paused; then
-        status_msg="Status: Protection is paused ⏸️"
-        status_msg="$status_msg | Profile: $profile"
+        [ -z "$profile" ] && profile="default"
+        status_msg="Status: Protection is paused ⏸️ | Profile: $profile"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update)"
+        [ -z "$profile" ] && profile="default"
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | Profile: $profile"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (First time install)"
+        [ -z "$profile" ] && profile="default"
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | Profile: $profile"
     elif is_default_hosts; then
+        [ -z "$profile" ] && profile="default"
         if [ "$blacklist_count" -gt 0 ]; then
             plural="entries are active"
             [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-            status_msg="Status: Protection is disabled due to reset ❌ | Only $blacklist_count blacklist $plural"
-            status_msg="$status_msg | Profile: $profile"
+            status_msg="Status: Protection is disabled due to reset ❌ | Profile: $profile | $blacklist_count blacklist $plural"
         else
-            status_msg="Status: Protection is disabled due to reset ❌"
-            status_msg="$status_msg | Profile: $profile"
+            status_msg="Status: Protection is disabled due to reset ❌ | Profile: $profile"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
         system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
@@ -839,25 +840,22 @@ update_status() {
         # Set success message if not set to error
         if [ -z "$status_msg" ]; then
             [ -f "$persist_dir/mode_ready" ] && rm -f "$persist_dir/mode_ready"
+            [ -z "$profile" ] && profile="default"
             if [ "$(date +%m%d)" = "0401" ]; then
-                status_msg="Status: Protection is Vulnerable ✅ | Allowing $blocked_mod ads"
-                status_msg="$status_msg | Profile: $profile"
-                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is Vulnerable ✅ | Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-                status_msg="$status_msg | Profile: $profile"
+                blocking_info="Allowing $blocked_mod ads"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                status_msg="Status: Protection is Vulnerable ✅ | Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
-                status_msg="$status_msg | Last updated: $last_mod | $mode :)))"
 
                 sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
                 sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
             else
-                status_msg="Status: Protection is enabled ✅ | Blocking $blocked_mod domains"
-                status_msg="$status_msg | Profile: $profile"
-                [ "$blacklist_count" -gt 0 ] && status_msg="Status: Protection is enabled ✅ | Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-                status_msg="$status_msg | Profile: $profile"
+                blocking_info="Blocking $blocked_mod domains"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                status_msg="Status: Protection is enabled ✅ | Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
-                status_msg="$status_msg | Last updated: $last_mod | $mode"
 
                 sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
                 sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
