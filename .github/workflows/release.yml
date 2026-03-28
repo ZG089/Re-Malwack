@@ -82,7 +82,7 @@ jobs:
 
       - name: Resize banner for Telegram
         run: |
-          mogrify -resize 1280x1280\> module/banner.png
+          mogrify -resize 1280x1280\> assets/update.png
 
       - name: Extract changelog for the new version
         id: changelog
@@ -188,7 +188,7 @@ jobs:
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendPhoto" \
             -F chat_id="$CHAT_ID" \
             -F message_thread_id="$THREAD_ID" \
-            -F photo="@module/banner.png" \
+            -F photo="@assets/update.png" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
 
@@ -217,6 +217,6 @@ jobs:
           ☕ [Support Development](https://buymeacoffee.com/zg089)"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendPhoto" \
             -F chat_id="$CHANNEL_ID" \
-            -F photo="@module/banner.png" \
+            -F photo="@assets/update.png" \
             -F caption="$CAPTION" \
             -F parse_mode="Markdown"
