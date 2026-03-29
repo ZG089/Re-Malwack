@@ -991,7 +991,7 @@ function setupProfile() {
         profileMenu.querySelector(`md-menu-item[value="${profileName.toLowerCase()}"]`).setAttribute('selected', '');
     }
 
-    exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 || echo 'default'`).then((result) => {
+    exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 | head -n 1 || echo 'default'`).then((result) => {
         if (result.errno !== 0) return;
         const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
         setActiveProfile(capitalize(result.stdout.trim()));
