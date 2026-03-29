@@ -1,3 +1,35 @@
+## v8.1
+
+_(This release contains lots of bug fixes that existed in v8. Sorry for the inconveinces.)_
+
+### Bug Fixes
+
+**Core**
+- Fixed profile status not being refreshed
+- Fixed possible visual WebUI issue caused by backend script error
+- Fixed domain URL redirect in link redirect feature in WebUI
+- Fixed protection idle status logic detection
+- Fixed profile parsing into config
+
+### Features
+
+**Scripts**
+- **Better profile switching logic**: Added consideration to prevent re-switching profile to custom when modifying host sources while custom profile is already selected
+
+**UX**
+- Added ⚙️ icon before "Profile" in module status message for better visual indication
+
+### General Changes
+
+**Code Quality & Maintenance**
+- Better profile handling in config file (preventing duplicated entries)
+- Improved module action script cleanup
+- Improved version badge display in module banner
+
+**Workflow & CI/CD**
+- Added KernelSU module repository sync workflow (Still WIP for now)
+- Small adjustment to release workflow for version naming in Telegram projects channel
+
 ## v8.0
 
 ### Bug Fixes
