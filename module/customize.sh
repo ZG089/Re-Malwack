@@ -191,12 +191,10 @@ else
     if [ -z "$current_profile" ]; then
         if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
             update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-            sed -i '/^profile=/d' "$config_file"
-            echo "profile=$detected_profile" >> "$config_file"
+            grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
             ui_print "[*] Auto-selected profile: $detected_profile"
         else
-            sed -i '/^profile=/d' "$config_file"
-            echo "profile=custom" >> "$config_file"
+            sed -i 's/^profile=.*/profile=custom/' "$config_file"
             ui_print "[*] Customized hosts sources detected, profile has been set to custom."
         fi
     else
@@ -209,7 +207,7 @@ else
             else
                 ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
                 update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                sed -i "/^profile=/profile=$detected_profile/d" "$config_file"
+                sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
             fi
         fi
     fi
