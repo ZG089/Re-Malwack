@@ -1104,17 +1104,14 @@ case "$(tolower "$1")" in
         fi
 
         if [ "$profile_name" = "custom" ]; then
-            echo "[*] Switched to custom profile."
             sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
-            log_message SUCCESS "Profile switched to custom."
-            echo "[✓] Switched to custom profile."
         else
-            echo "[*] Switching to $profile_name profile..."
             cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
             sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
-            log_message SUCCESS "Profile switched to $profile_name."
-            echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
         fi
+        log_message SUCCESS "Profile switched to $profile_name."
+        echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
+        update_status
         ;;
     --adblock-switch|-as)
         pause_protections
@@ -1727,9 +1724,12 @@ case "$(tolower "$1")" in
                 exit 1
             fi
         fi
-        if [ "$option" = "add" ] || [ "$option" = "edit" ] || [ "$option" = "remove" ]; then
-            sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
-            log_message SUCCESS "Profile automatically set to custom due to source modification."
+        if [ "$profile" != "custom" ]; then
+            if [ "$option" = "add" ] || [ "$option" = "edit" ] || [ "$option" = "remove" ]; then
+                sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
+                log_message SUCCESS "Profile automatically set to custom due to source modification."
+                update_status
+            fi
         fi
         ;;
 
