@@ -186,19 +186,19 @@ elif [ -f "$persist_dir/mode_ready" ]; then
         log_message "Cleared mode_ready flag, hosts file has $blocked_mod blocked entries"
     else
         [ -z "$profile" ] && profile="default"
-        status_msg="Status: Protection is idle 💤 | ⚙️Profile:  $profile"
+        status_msg="Status: Protection is idle 💤 | ⚙️Profile: $profile"
     fi
 elif is_protection_paused; then
     [ -z "$profile" ] && profile="default"
-    status_msg="Status: Protection is paused ⏸️ | ⚙️Profile:  $profile"
+    status_msg="Status: Protection is paused ⏸️ | ⚙️Profile: $profile"
 elif is_default_hosts; then
     [ -z "$profile" ] && profile="default"
     if [ "$blacklist_count" -gt 0 ]; then
         plural="entries are active"
         [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-        status_msg="Status: Protection is reset ❌ | ⚙️Profile:  $profile | Only $blacklist_count blacklist $plural"
+        status_msg="Status: Protection is reset ❌ | ⚙️Profile: $profile | Only $blacklist_count blacklist $plural"
     else
-        status_msg="Status: Protection is reset ❌ | ⚙️Profile:  $profile"
+        status_msg="Status: Protection is reset ❌ | ⚙️Profile: $profile"
     fi
 elif [ "$blocked_mod" -ge 0 ]; then
     # Set success message if not set to error
@@ -207,7 +207,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
         if [ "$(date +%m%d)" = "0401" ]; then
             blocking_info="Allowing $blocked_mod ads"
             [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-            status_msg="Status: Protection is Vulnerable ✅ | ⚙️Profile:  $profile | $blocking_info"
+            status_msg="Status: Protection is Vulnerable ✅ | ⚙️Profile: $profile | $blocking_info"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
             [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
 
@@ -216,7 +216,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
         else
             blocking_info="Blocking $blocked_mod domains"
             [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-            status_msg="Status: Protection is enabled ✅ | ⚙️Profile:  $profile | $blocking_info"
+            status_msg="Status: Protection is enabled ✅ | ⚙️Profile: $profile | $blocking_info"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
             [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
 
