@@ -4,11 +4,8 @@
 MODDIR="/data/adb/modules/Re-Malwack"
 persist_dir="/data/adb/Re-Malwack"
 
-# Path to config file
-CONFIG="$persist_dir/config.sh"
-
-# Read action_mode
-ACTION_MODE="$(grep '^action_mode=' "$CONFIG" 2>/dev/null | cut -d= -f2)"
+# load config file
+. "$persist_dir/config.sh"
 
 # ====== Functions ======
 
@@ -66,10 +63,10 @@ echo ' / _, _/ / / / / / /| |/ |/ / ,<   '
 echo '/_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '
 echo " "
 echo "==================================="
-if [ "$ACTION_MODE" = "1" ]; then
+if [ "$action_mode" = "1" ]; then
     # Pause & Resume
-    sh "$MODDIR/rmlwk.sh" -as || abort "- Failed to Resume/Pause"
+    sh "$MODDIR/rmlwk.sh" -as || abort "[!] Failed to Resume/Pause"
 else
     # Update Hosts
-    sh "$MODDIR/rmlwk.sh" --update-hosts --quiet || abort "- Failed to update hosts."
+    sh "$MODDIR/rmlwk.sh" --update-hosts --quiet || abort "[!] Failed to update hosts."
 fi
