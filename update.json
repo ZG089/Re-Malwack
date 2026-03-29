@@ -1,6 +1,6 @@
 {
-  "version": "v8",
-  "versionCode": 800,
-  "zipUrl": "https://github.com/ZG089/Re-Malwack/releases/download/v8/Re-Malwack_v8.zip",
+  "version": "v8.1",
+  "versionCode": 810,
+  "zipUrl": "https://github.com/ZG089/Re-Malwack/releases/download/v8.1/Re-Malwack_v8.1.zip",
   "changelog": "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/changelog.md"
 }
