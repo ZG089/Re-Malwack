@@ -576,6 +576,7 @@ inputs.forEach(input => {
 
 // Link redirect with am start
 function linkRedirect(url) {
+    if (!/^[a-zA-Z]+:\/\//.test(url)) url = "https://" + url;
     toast("Redirecting to " + url);
     setTimeout(() => {
         exec(`am start -a android.intent.action.VIEW -d ${url}`)
