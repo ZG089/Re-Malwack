@@ -61,8 +61,12 @@
 - ❤ Made with love and care
 
 > [!CAUTION]
-> **[*]Re-Malwack comes with a pre-configured hosts sources setup in which can be used freely without worrying about configuring everything from scratch. However, in-app ads such as sponsored posts on Facebook or spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, The type of ads that get blocked are those ads that show up in websites and in-app pop-up external ads by Google etc.**
+> **[*]Re-Malwack comes with a pre-configured hosts sources setups in which can be used freely without worrying about configuring everything from scratch. However, in-app ads such as sponsored posts on Facebook or spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, The type of ads that get blocked are those ads that show up in websites and in-app pop-up external ads by Google etc.**
+
+> [!TIP]
 > **[!]A profile is a group of hosts sources in one file, and it's automatically selected - during installation of the module - based on your device resources, which makes sure you will get a perfect adblocking experience yet not sacrificing all your device performance, you may also switch between profiles and even customize everything as you like!**
+
+> [!TIP]
 > **[@] Supported stuff for import: Hosts sources, custom rules (bindhosts only), whitelist and blacklist (bindhosts and AdAway only)**
 
 > [!CAUTION]
