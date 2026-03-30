@@ -61,16 +61,13 @@
 - ❤ Made with love and care
 
 > [!CAUTION]
-> **[*]Re-Malwack comes with a pre-configured hosts sources setups in which can be used freely without worrying about configuring everything from scratch. However, in-app ads such as sponsored posts on Facebook or spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, The type of ads that get blocked are those ads that show up in websites and in-app pop-up external ads by Google etc.**
+> **[*] Re-Malwack comes with a pre-configured hosts sources setups in which can be used freely without worrying about configuring everything from scratch. However, in-app ads such as sponsored posts on Facebook or spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, The type of ads that get blocked are those ads that show up in websites and in-app pop-up external ads by Google etc.**
 
 > [!TIP]
-> **[!]A profile is a group of hosts sources in one file, and it's automatically selected - during installation of the module - based on your device resources, which makes sure you will get a perfect adblocking experience yet not sacrificing all your device performance, you may also switch between profiles and even customize everything as you like!**
+> **[!] A profile is a group of hosts sources in one file, and it's automatically selected - during installation of the module - based on your device resources, which makes sure you will get a perfect adblocking experience yet not sacrificing all your device performance, you may also switch between profiles and even customize everything as you like!**
 
 > [!TIP]
 > **[@] Supported stuff for import: Hosts sources, custom rules (bindhosts only), whitelist and blacklist (bindhosts and AdAway only)**
-
-> [!CAUTION]
-> **Please avoid adding hosts sources that blocks urls via `127.0.0.1` instead of `0.0.0.0`, some critical problems might happen in module basic functionality if you do this**
 
 > [!CAUTION]
 > **Also avoid using other types of adblock files, _only adblock files in hosts format (Linux/Windows) are accepted_** 
@@ -78,19 +75,20 @@
 ## Requirements
 
 > [!IMPORTANT]
-> - Stable internet connection. _(You can also install the module without internet, then setup things later after reboot)_
-> - Mid-Range or high-end device.
+> - **Stable internet connection.** _(You can also install the module without internet, then setup things later after reboot)_
+> - and umm...just a working brain.
 
 > [!CAUTION]
 > - **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
-> - **Also, In case module is activated but ads are not blocked in browsers such as chrome, Please enable superuser mode for target browser app then check again**
+> - **In case module is active but ads are not blocked in browsers such as chrome/chromium-based browsers, Please enable superuser mode in KSU manager app for target browser app then try again*** 
+
 
 ## How to use Re-Malwack
 
 
 ### Option 1 - Via WebUI
 
-- Re-Malwack's WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [5ec1cff's KSUWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)/[KOW's Fork of KSUWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
+- Re-Malwack WebUI can be accesed using [KSU](https://github.com/tiann/KernelSU), [5ec1cff's KSUWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)/[KOW's Fork of KSUWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone), [Apatch](https://github.com/bmax121/APatch) and [MMRL](https://github.com/DerGoogler/MMRL)
 
 ### Option 2 - Terminal
 
@@ -142,25 +140,21 @@
 ## How does it work? - Frequently Asked Questions (FAQ)
 
 > [!TIP]
-> **How does this module block websites and what modifications were made?**
-> - How does it block websites: It modifies `hosts` file to block websites and malware by denying access for your phone to connect to it at all. It will just return a blank page.
+> **How does this module block ads?**
+> - It uses your system's `hosts` file systemlessly to block ads and malware by denying access for your phone to connect to them completely.
 
-
-> [!TIP]
-> **Does it blocks in-app ads and in-game ads as well ?**
-> - Yes, it does.
 
 > [!TIP]
 > **There's a problem when using the module**
-> - Export logs via module WebUI, then create an [issue](https://github.com/ZG089/Re-Malwack/issues) explaining your problem and attach ss of the problem if there is any. You can also report your problem in our [telegram support group](https://t.me/Re_Malwack)
+> - Export logs via module WebUI, then create an [issue](https://github.com/ZG089/Re-Malwack/issues) explaining your problem and attach ss of the problem if there is any. You can also report your problem in our [telegram support group](https://t.me/Re_Malwack) as well.
 
 > [!TIP]
 > **AdBlock doesn't work on some apps (ex: Chrome), or doesn't work completely**
-> - Make sure you have disabled umount for the target app (if you use KernelSU), also make sure you disabled LiteMode (if you use APatch). If nothing works then create an [issue](https://github.com/ZG089/Re-Malwack/issues) about it or report the problem in our [telegram support group](https://t.me/Re_Malwack)
+> - As was said above, Make sure you have disabled umount for the target app (if you use KernelSU), also make sure you disabled LiteMode (if you use APatch). If nothing works then create an [issue](https://github.com/ZG089/Re-Malwack/issues) about it or report the problem in our [telegram support group](https://t.me/Re_Malwack). If you've already done these, and no result then switch to a stronger adblock profile/add more robust host source from your own choice.
 
 > [!TIP]
-> **Can I help in something?**
-> - You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, do your changes and then do a pull request.
+> **Can I contribute in something?**
+> - You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, apply your modifications and then do a pull request explaining the change, and its importance.
 
 > [!NOTE]
 > - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089), I am active there more.
