@@ -1,3 +1,20 @@
+## v8.2
+
+### Bug Fixes
+
+**Core**
+- Fixed idle protection status handling (the stage after un-idling)
+- Fixed emoji placement behind "Profile" text
+
+**WebUI**
+- Fixed logo rendering faliure issue that caused WebUI failing to load
+
+### General Changes
+
+**Code Quality & Maintenance**
+- Create counts directory for storing blocked entries counts when running service.sh
+
+
 ## v8.1
 
 _(This release contains lots of bug fixes that existed in v8. Sorry for the inconveinces.)_
