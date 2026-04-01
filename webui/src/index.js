@@ -1,6 +1,6 @@
 import { spawn, exec, toast } from 'kernelsu-alt';
 import '@material/web/all.js';
-import ReMalwareIcon from './assets/Re-Malware.svg';
+import ReMalwareIcon from './assets/Re-Malware.svg?raw';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
@@ -865,14 +865,7 @@ function setupPrank() {
     // Replace the logo with the Re-Malware SVG
     const logoElement = document.getElementById('logo');
     if (logoElement) {
-        logoElement.innerHTML = ''
-        logoElement.src = ReMalwareIcon;
-    }
-
-    // Make sure this won't be triggered in a row for user experience
-    if (lastPrank !== '1') {
-        // Set flag in localStorage to prevent it from happening next time
-        localStorage.setItem('lastPrank', '1');
+        logoElement.innerHTML = ReMalwareIcon;
     }
 }
 
