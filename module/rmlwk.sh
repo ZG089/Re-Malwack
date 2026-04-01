@@ -753,7 +753,7 @@ update_status() {
     status_msg=""  # Reset status message
     . "$persist_dir/config.sh" # Sourcing config file
     log_message SUCCESS "loaded config file!"
-    log_message "Selected ⚙️Profile: $profile"
+    log_message "Selected profile: $profile"
     log_message INFO "Updating module status"
     log_message "Fetching last hosts file update"
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1) # Checks last modification date for hosts file
@@ -800,32 +800,32 @@ update_status() {
     fi
 
     # Here goes the part where we actually determine module status
-    if [ -f "$persist_dir/mode_ready" ]; then
+    if [ -f "$persist_dir/mode_ready" ] && [ "$blocked_mod" -gt 0 ]; then
         # Clear mode_ready flag if hosts file has blocked entries
-        if [ "$blocked_mod" -gt 0 ]; then
-            rm -f "$persist_dir/mode_ready"
-            log_message "Cleared mode_ready flag, hosts file has $blocked_mod blocked entries"
-        else
-            [ -z "$profile" ] && profile="default"
-            status_msg="Status: Protection is idle 💤 | ⚙️Profile: $profile"
-        fi
+        rm -f "$persist_dir/mode_ready"
+        log_message "Cleared mode_ready flag, hosts file has $blocked_mod blocked entries"
+    fi
+
+    if [ -f "$persist_dir/mode_ready" ]; then
+        [ -z "$profile" ] && profile="default"
+        status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $profile"
     elif is_protection_paused; then
         [ -z "$profile" ] && profile="default"
-        status_msg="Status: Protection is paused ⏸️ | ⚙️Profile: $profile"
+        status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $profile"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
         [ -z "$profile" ] && profile="default"
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | ⚙️Profile: $profile"
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | ⚙️ Profile: $profile"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
         [ -z "$profile" ] && profile="default"
-        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️Profile: $profile"
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $profile"
     elif is_default_hosts; then
         [ -z "$profile" ] && profile="default"
         if [ "$blacklist_count" -gt 0 ]; then
             plural="entries are active"
             [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️Profile: $profile | $blacklist_count blacklist $plural"
+            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $profile | $blacklist_count blacklist $plural"
         else
-            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️Profile: $profile"
+            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $profile"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
         system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
@@ -849,7 +849,7 @@ update_status() {
             if [ "$(date +%m%d)" = "0401" ]; then
                 blocking_info="Allowing $blocked_mod ads"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is Vulnerable ✅ | ⚙️Profile: $profile | $blocking_info"
+                status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
 
@@ -858,7 +858,7 @@ update_status() {
             else
                 blocking_info="Blocking $blocked_mod domains"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is enabled ✅ | ⚙️Profile: $profile | $blocking_info"
+                status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
 
