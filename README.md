@@ -11,7 +11,6 @@
 [![Discord Server](https://img.shields.io/discord/1463971306054881302?style=for-the-badge&logo=discord&label=Re-Malwack%20Community&color=7289da&logoColor=white)](https://discord.gg/6fgQCJWY2F)
 [![Projects Channel on Telegram](https://img.shields.io/badge/Follow_Channel-ZGX_Projects-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/zgx_projects)
 [![Channel](https://img.shields.io/badge/Follow_Channel-ZGTechs-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZGTechs)
-[![Personal acc on TG](https://img.shields.io/badge/Contact_Developer_via-Telegram-252850?style=for-the-badge&color=blue&logo=telegram)](https://t.me/ZG089)
 [![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?style=for-the-badge&color=orange&logo=xdadevelopers)](https://xdaforums.com/m/ZG089.11432109/)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=black&logoSize=auto&color=%23FFDD00&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 ![Built with](https://img.shields.io/badge/Made_with-Love_❤-red?style=for-the-badge)
@@ -36,6 +35,8 @@
   - [4 - Acknowledgment](#4---acknowledgment)
 - [Donations](#donations)
 
+> [!IMPORTANT]
+> ⚠ I'm not available in telegram currently until further notice. This warning will be removed once I return back....someday maybe.
 
 ## Features // What makes this module special?
 
@@ -157,7 +158,6 @@
 > - You may suggest features via [Github Issues](https://github.com/ZG089/Re-Malwack/issues) or in our [Telegram support group](https://t.me/Re_Malwack), You may also create your own fork of this repo, apply your modifications and then do a pull request explaining the change, and its importance.
 
 > [!NOTE]
-> - For any inquiries or assistance, reach out to me at [XDA](https://xdaforums.com/m/ZG089.11432109/) or [Telegram](https://t.me/ZG089), I am active there more.
 > - If you want to reach out to [@person0z](https://github.com/Person0z), contact him using his email: root@person0z.me.
 
 ## Activity
