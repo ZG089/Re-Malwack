@@ -54,8 +54,10 @@ mount_hosts() {
 refresh_blocked_counts() {
     blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
+    custom_entries=$(grep -vEc "0.0.0.0| localhost|#" $hosts_file || true)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+    echo "${custom_entries:-0}" > "$persist_dir/counts/custom_entries.count"
 }
 
 # Detect cron provider
@@ -210,6 +212,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
             [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
             status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $profile | $blocking_info"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
             [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
 
             sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
@@ -219,6 +222,7 @@ elif [ "$blocked_mod" -ge 0 ]; then
             [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
             status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $profile | $blocking_info"
             [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+            [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
             [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
 
             sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"

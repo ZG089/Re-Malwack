@@ -109,8 +109,10 @@ refresh_blocked_counts() {
     log_message INFO "Refreshing blocked entries counts"
     blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
+    custom_entries=$(grep -vEc "0.0.0.0| localhost|#" $hosts_file || true)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
+    echo "${custom_entries:-0}" > "$persist_dir/counts/custom_entries.count"
     log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries"
 }
 
@@ -765,6 +767,9 @@ update_status() {
     # Module hosts count
     blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null)
     blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
+    
+    # Custom rules count
+    [ -s "$persist_dir/custom_rules.txt" ] && custom_entries=$(cat "$persist_dir/counts/custom_entries.count" 2>/dev/null)
 
     # Count blacklisted entries (excluding comments and empty lines)
     [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt") || blacklist_count=0
@@ -773,6 +778,7 @@ update_status() {
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/whitelist.txt") || whitelist_count=0
     log_message "Blacklist entries count: $blacklist_count"
     log_message "Whitelist entries count: $whitelist_count"
+    log_message "Custom rules count: $custom_entries"
 
     # Determine mode based on zn-hostsredirect detection
     if [ "$is_zn_detected" -eq 1 ]; then
@@ -851,6 +857,7 @@ update_status() {
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
                 status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
 
                 sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
@@ -860,6 +867,7 @@ update_status() {
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
                 status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $profile | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
 
                 sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
