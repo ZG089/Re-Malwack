@@ -21,9 +21,9 @@ jobs:
 
           COUNT=$(echo "$COMMITS" | jq length)
 
-          MESSAGE="<b>${PUSHER}</b> (<a href=\"${PUSHER_URL}\">profile</a>) pushed <b>${COUNT} commit(s)</b> to <b>${REPO}</b>\n\n"
-          
-          echo "$COMMITS" | jq -c '.[]' | while read -r commit; do
+          MESSAGE="<b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b>${REPO}</b>\n\n"
+
+          while read -r commit; do
             SHA_FULL=$(echo "$commit" | jq -r '.id')
             SHA_SHORT=${SHA_FULL:0:7}
             URL=$(echo "$commit" | jq -r '.url')
@@ -31,9 +31,11 @@ jobs:
           
             # Escape HTML
             ESC_MSG=$(echo "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          
             FIRST_LINE=$(echo "$ESC_MSG" | head -n1)
             BODY=$(echo "$ESC_MSG" | tail -n +2)
-            MESSAGE="${MESSAGE}<code>${SHA_SHORT}</code> (<a href=\"${URL}\">view</a>) ${FIRST_LINE}\n${BODY}\n"
+          
+            MESSAGE="${MESSAGE}<code>${SHA_SHORT}</code> — <a href=\"${URL}\">${FIRST_LINE}</a>\n${BODY}\n"
           
             # Co-authors
             COAUTHORS=$(echo "$ESC_MSG" | grep -i "Co-authored-by:" || true)
@@ -42,8 +44,9 @@ jobs:
             fi
           
             MESSAGE="${MESSAGE}\n"
-          done
-
+          
+          done <<< "$(echo "$COMMITS" | jq -c '.[]')"
+          
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d message_thread_id="${THREAD_ID}" \
