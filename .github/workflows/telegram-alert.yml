@@ -19,40 +19,35 @@ jobs:
           PUSHER="${{ github.actor }}"
           PUSHER_URL="https://github.com/${{ github.actor }}"
           COMMITS='${{ toJson(github.event.commits) }}'
-          
           COUNT=$(echo "$COMMITS" | jq length)
-          
-          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>\n\n"
-          
+          NL=$'\n'
+      
+          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>${NL}${NL}"
+      
           while read -r commit; do
             SHA_FULL=$(echo "$commit" | jq -r '.id')
             SHA_SHORT=${SHA_FULL:0:7}
             URL=$(echo "$commit" | jq -r '.url')
             MSG=$(echo "$commit" | jq -r '.message')
-          
-            # Escape HTML
-            ESC_MSG=$(printf '%s\n' "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-          
-            TITLE=$(printf '%s\n' "$ESC_MSG" | head -n1)
-            BODY=$(printf '%s\n' "$ESC_MSG" | tail -n +2)
-          
-            # Main line
-            MESSAGE="${MESSAGE}• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>\n"
-          
-            # Body (indented)
+      
+            ESC_MSG=$(printf '%s' "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            TITLE=$(printf '%s' "$ESC_MSG" | head -n1)
+            BODY=$(printf '%s' "$ESC_MSG" | tail -n +2)
+      
+            MESSAGE="${MESSAGE}• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>${NL}"
+      
             if [ -n "$BODY" ]; then
               while IFS= read -r line; do
-                [ -n "$line" ] && MESSAGE="${MESSAGE}  └ ${line}\n"
+                [ -n "$line" ] && MESSAGE="${MESSAGE}  └ ${line}${NL}"
               done <<< "$BODY"
             fi
-          
-            MESSAGE="${MESSAGE}\n"
-          
+      
+            MESSAGE="${MESSAGE}${NL}"
           done <<< "$(echo "$COMMITS" | jq -c '.[]')"
-          
+      
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "text=${MESSAGE}" \
             -d chat_id="${CHAT_ID}" \
             -d message_thread_id="${THREAD_ID}" \
-            -d text="$MESSAGE" \
             -d parse_mode="HTML" \
             -d disable_web_page_preview=true
