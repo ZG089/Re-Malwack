@@ -47,7 +47,7 @@ jobs:
             MESSAGE="${MESSAGE}%0A"
           done
 
-          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_COMMITS_BOT}/sendMessage" \
             -d chat_id="${CHAT_ID}" \
             -d message_thread_id="${THREAD_ID}" \
             -d text="$MESSAGE" \
