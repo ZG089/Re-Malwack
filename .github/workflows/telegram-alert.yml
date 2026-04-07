@@ -15,14 +15,15 @@ jobs:
           THREAD_ID: 215
         run: |
           REPO="${{ github.repository }}"
+          REPO_URL="https://github.com/${REPO}"
           PUSHER="${{ github.actor }}"
           PUSHER_URL="https://github.com/${{ github.actor }}"
           COMMITS='${{ toJson(github.event.commits) }}'
-
+          
           COUNT=$(echo "$COMMITS" | jq length)
-
-          MESSAGE="<b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b>${REPO}</b>\n\n"
-
+          
+          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>\n\n"
+          
           while read -r commit; do
             SHA_FULL=$(echo "$commit" | jq -r '.id')
             SHA_SHORT=${SHA_FULL:0:7}
@@ -30,17 +31,19 @@ jobs:
             MSG=$(echo "$commit" | jq -r '.message')
           
             # Escape HTML
-            ESC_MSG=$(echo "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            ESC_MSG=$(printf '%s\n' "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
           
-            FIRST_LINE=$(echo "$ESC_MSG" | head -n1)
-            BODY=$(echo "$ESC_MSG" | tail -n +2)
+            TITLE=$(printf '%s\n' "$ESC_MSG" | head -n1)
+            BODY=$(printf '%s\n' "$ESC_MSG" | tail -n +2)
           
-            MESSAGE="${MESSAGE}<code>${SHA_SHORT}</code> — <a href=\"${URL}\">${FIRST_LINE}</a>\n${BODY}\n"
+            # Main line
+            MESSAGE="${MESSAGE}• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>\n"
           
-            # Co-authors
-            COAUTHORS=$(echo "$ESC_MSG" | grep -i "Co-authored-by:" || true)
-            if [ -n "$COAUTHORS" ]; then
-              MESSAGE="${MESSAGE}${COAUTHORS}\n"
+            # Body (indented)
+            if [ -n "$BODY" ]; then
+              while IFS= read -r line; do
+                [ -n "$line" ] && MESSAGE="${MESSAGE}  └ ${line}\n"
+              done <<< "$BODY"
             fi
           
             MESSAGE="${MESSAGE}\n"
