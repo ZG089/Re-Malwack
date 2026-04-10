@@ -34,17 +34,17 @@ jobs:
             TITLE=$(printf '%s' "$ESC_MSG" | head -n1)
             BODY=$(printf '%s' "$ESC_MSG" | tail -n +2)
       
-            MESSAGE="${MESSAGE}• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>${NL}"
-      
+            MESSAGE="${MESSAGE}<blockquote>• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>${NL}"
+
             if [ -n "$BODY" ]; then
               while IFS= read -r line; do
                 [ -n "$line" ] && MESSAGE="${MESSAGE}  └ ${line}${NL}"
               done <<< "$BODY"
             fi
-      
-            MESSAGE="${MESSAGE}${NL}"
+            
+            MESSAGE="${MESSAGE}</blockquote>${NL}"
           done <<< "$(echo "$COMMITS" | jq -c '.[]')"
-      
+  
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             --data-urlencode "text=${MESSAGE}" \
             -d chat_id="${CHAT_ID}" \
