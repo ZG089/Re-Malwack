@@ -110,16 +110,14 @@ jobs:
               -F message_thread_id="1314" \
               -F document=@"$ZIP_NAME.zip" \
               -F thumb=@"$THUMB" \
-              -F caption="⚙️ *New test release!*
-          \`\`\`
-          $COMMIT_MSG
-          \`\`\`
-          Author: *[$COMMIT_AUTHOR]($COMMIT_AUTHOR_URL)*
-          Base Version: \`${VERSION}\`
-          Test Build ID: \`${TEST_BUILD_ID}\`
+              -F caption="⚙️ <b>New test release!</b>
+          <code>$COMMIT_MSG</code>
+          Author: <b><a href=\"$COMMIT_AUTHOR_URL\">$COMMIT_AUTHOR</a></b>
+          Base Version: <code>${VERSION}</code>
+          Test Build ID: <code>${TEST_BUILD_ID}</code>
           =================================
-          [- View Commit -]($COMMIT_URL)
-          [- Workflow Run -]($RUN_URL)" \
-              -F parse_mode="Markdown"
+          <a href=\"$COMMIT_URL\">- View Commit -</a>
+          <a href=\"$RUN_URL\">- Workflow Run -</a>" \
+          -F parse_mode="HTML"
           curl -X POST -H "Content-Type: multipart/form-data" -F \
             "payload_json={\"content\": \"$CONTENT\"}" -F "file=@$ZIP_NAME.zip" "$DISCORD_RELEASES"
