@@ -111,10 +111,10 @@ jobs:
               -F document=@"$ZIP_NAME.zip" \
               -F thumb=@"$THUMB" \
               -F caption="⚙️ <b>New test release!</b>
-          <code>$COMMIT_MSG</code>
-          Author: <b><a href=\"$COMMIT_AUTHOR_URL\">$COMMIT_AUTHOR</a></b>
-          Base Version: <code>${VERSION}</code>
-          Test Build ID: <code>${TEST_BUILD_ID}</code>
+          <pre>$COMMIT_MSG</pre>
+          👤 Author: <b><a href=\"$COMMIT_AUTHOR_URL\">$COMMIT_AUTHOR</a></b>
+          ⚙ Base Version: <code>${VERSION}</code>
+          🧪 Test Build ID: <code>${TEST_BUILD_ID}</code>
           =================================
           <a href=\"$COMMIT_URL\">- View Commit -</a>
           <a href=\"$RUN_URL\">- Workflow Run -</a>" \
