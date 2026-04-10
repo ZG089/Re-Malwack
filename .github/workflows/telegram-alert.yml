@@ -34,7 +34,7 @@ jobs:
             TITLE=$(printf '%s' "$ESC_MSG" | head -n1)
             BODY=$(printf '%s' "$ESC_MSG" | tail -n +2)
       
-            MESSAGE="${MESSAGE}<blockquote>• <code>${SHA_SHORT}</code> — <a href=\"${URL}\">${TITLE}</a>${NL}"
+            MESSAGE="${MESSAGE}<blockquote>• <code>${SHA_SHORT}</code> — <a href=\"${URL}\"><b>${TITLE}</b></a>${NL}"
 
             if [ -n "$BODY" ]; then
               while IFS= read -r line; do
