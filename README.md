@@ -43,7 +43,7 @@
 ## Features // What makes this module special?
 
 - ⛔ It blocks ads, malware and trackers By default[*], you can also block porn sites, fake news sites, gambling sites and social sites, and even use safebrowsing! _(note: may break some youtube features, use with caution!)_
-- ⚙ Allows you to modify and manage hosts file (whitelist & blacklist urls, reset hosts, auto update adblock)
+- ⚙ Allows you to modify and manage hosts file (whitelist & blacklist urls, reset hosts, auto update adblock), changes apply ***instantly***
 - 💡 A smart protection status indicator in module description
 - 📦 Shipped with a curated list of adblock profiles [!]
 - 💫 Supports [wildcarded whitelisting](https://github.com/ZG089/Re-Malwack/blob/c09063e46b42ecb36b6b288f6382a2fcb29d4a19/changelog.md?plain=1#L94)
