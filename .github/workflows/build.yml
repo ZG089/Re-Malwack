@@ -111,7 +111,6 @@ jobs:
           Author: \`${COMMIT_AUTHOR}\`
           Base Version: \`${VERSION}\`
           Test Build ID: \`${TEST_BUILD_ID}\`
-          Branch: \`${BRANCH_NAME}\`
           =================================
           [- View Commit -]($COMMIT_URL)
           [- Workflow Run -]($RUN_URL)" \
