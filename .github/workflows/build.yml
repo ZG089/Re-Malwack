@@ -2,9 +2,8 @@ name: build
 
 on:
   push:
-    branches:
-      - '**'
-      - '!hosts-update'
+    branches-ignore:
+      - 'hosts-update'
     paths:
       - '.github/workflows/build.yml'
       - 'module/**'
