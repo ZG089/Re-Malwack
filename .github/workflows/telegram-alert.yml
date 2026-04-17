@@ -21,30 +21,56 @@ jobs:
           COMMITS='${{ toJson(github.event.commits) }}'
           COUNT=$(echo "$COMMITS" | jq length)
           NL=$'\n'
-      
           MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>${NL}${NL}"
-      
+   
           while read -r commit; do
             SHA_FULL=$(echo "$commit" | jq -r '.id')
             SHA_SHORT=${SHA_FULL:0:7}
             URL=$(echo "$commit" | jq -r '.url')
             MSG=$(echo "$commit" | jq -r '.message')
-      
             ESC_MSG=$(printf '%s' "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
             TITLE=$(printf '%s' "$ESC_MSG" | head -n1)
-            BODY=$(printf '%s' "$ESC_MSG" | tail -n +2)
-      
+            BODY=$(printf '%s' "$ESC_MSG" | tail -n +2 | sed '/^[[:space:]]*$/d')
+
+            COAUTHORS=""
+            while IFS= read -r line; do
+              if echo "$line" | grep -iqE '^Co-authored-by:'; then
+                CA_NAME=$(echo "$line" | sed -E 's/^Co-authored-by:[[:space:]]*//' | sed -E 's/[[:space:]]*<.*>//')
+                CA_EMAIL=$(echo "$line" | grep -oE '<[^>]+>' | tr -d '<>')
+                GH_USER=$(echo "$CA_EMAIL" | grep -oP '(?<=\+)[^@]+(?=@users\.noreply\.github\.com)' || true)
+                if [ -z "$GH_USER" ]; then
+                  GH_USER=$(echo "$CA_EMAIL" | grep -oP '^[^@]+(?=@users\.noreply\.github\.com)' || true)
+                fi
+                if [ -n "$GH_USER" ]; then
+                  COAUTHORS="${COAUTHORS}  👥 Co-author: <a href=\"https://github.com/${GH_USER}\">${CA_NAME}</a>${NL}"
+                else
+                  COAUTHORS="${COAUTHORS}  👥 Co-author: ${CA_NAME}${NL}"
+                fi
+              fi
+            done <<< "$MSG"
+
             MESSAGE="${MESSAGE}<blockquote>• <code>${SHA_SHORT}</code> — <a href=\"${URL}\"><b>${TITLE}</b></a>${NL}</blockquote>"
 
             if [ -n "$BODY" ]; then
+              BODY_LINES=()
               while IFS= read -r line; do
-                [ -n "$line" ] && MESSAGE="${MESSAGE}  └ ${line}${NL}"
+                echo "$line" | grep -iqE '^Co-authored-by:' && continue
+                [ -n "$line" ] && BODY_LINES+=("$line")
               done <<< "$BODY"
+              TOTAL=${#BODY_LINES[@]}
+              for i in "${!BODY_LINES[@]}"; do
+                if [ $((i + 1)) -eq "$TOTAL" ]; then
+                  MESSAGE="${MESSAGE}  └ ${BODY_LINES[$i]}${NL}"
+                else
+                  MESSAGE="${MESSAGE}  | ${BODY_LINES[$i]}${NL}"
+                fi
+              done
             fi
 
+            [ -n "$COAUTHORS" ] && MESSAGE="${MESSAGE}${COAUTHORS}"
             MESSAGE="${MESSAGE}${NL}"
           done <<< "$(echo "$COMMITS" | jq -c '.[]')"
-  
+
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
             --data-urlencode "text=${MESSAGE}" \
             -d chat_id="${CHAT_ID}" \
