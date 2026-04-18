@@ -89,7 +89,45 @@ host_process() {
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
     # Unified filtration: remove comments, empty lines, trim whitespaces, handles windows-formatted hosts, collapses all multiple spaces/tabs into a single space and converts 127.0.0.1 to 0.0.0.0
     log_message "Filtering $file..."
-    sed -i '/^[[:space:]]*#/d; s/[[:space:]]*#.*$//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//; s/\r$//; s/[[:space:]]\+/ /g; s/127.0.0.1/0.0.0.0/g' "$file"
+	awk '
+    BEGIN { OFS=" " }
+
+    {
+        # Remove CR (Windows files)
+        sub(/\r$/, "")
+
+        # Remove comments
+        sub(/[[:space:]]*#.*/, "")
+
+        # Trim leading/trailing whitespace
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+
+        # Skip empty lines
+        if ($0 == "") next
+
+        # Normalize whitespace
+        gsub(/[[:space:]]+/, " ")
+
+        # Split into fields
+        ip = $1
+        host = $2
+
+        # Skip invalid lines
+        if (host == "" || ip == "") next
+
+        # Preserve localhost
+        if (host ~ /localhost/) {
+            print "127.0.0.1", host
+            next
+        }
+
+        # Normalize IP
+        if (ip == "127.0.0.1")
+            ip = "0.0.0.0"
+
+        print ip, host
+    }
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 }
 
 # Function to apply custom rules
@@ -97,8 +135,13 @@ apply_custom_rules() {
     if [ -s "$persist_dir/custom_rules.txt" ]; then
         log_message "Re-Applying custom rules..."
         echo "[*] Re-Applying custom rules..."
-        # Add a newline just in case
-        [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+        # Ensure hosts file ends with a newline before appending
+        if [ -s "$hosts_file" ]; then
+            last_line=$(tail -n 1 "$hosts_file")
+            if [ -n "$last_line" ]; then
+                echo "" >> "$hosts_file"
+            fi
+        fi
         cat "$persist_dir/custom_rules.txt" >> "$hosts_file"
     fi
 }
@@ -109,7 +152,6 @@ refresh_blocked_counts() {
     log_message INFO "Refreshing blocked entries counts"
     blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
-    custom_entries=$(grep -vEc "0.0.0.0| localhost|#" $hosts_file || true)
     echo "${blocked_sys:-0}" > "$persist_dir/counts/blocked_sys.count"
     echo "${blocked_mod:-0}" > "$persist_dir/counts/blocked_mod.count"
     echo "${custom_entries:-0}" > "$persist_dir/counts/custom_entries.count"
@@ -484,7 +526,7 @@ remove_hosts() {
         echo "[!] Hosts file is empty. Restoring default entries."
         log_message WARN "Detected empty hosts file"
         log_message "Restoring default entries..."
-        echo -e "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
+        printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
     fi
 
     # Clean up
@@ -769,7 +811,7 @@ update_status() {
     blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null)
     
     # Custom rules count
-    [ -s "$persist_dir/custom_rules.txt" ] && custom_entries=$(cat "$persist_dir/counts/custom_entries.count" 2>/dev/null)
+    [ -s "$persist_dir/custom_rules.txt" ] && custom_entries=$(grep -c '^[^#[:space:]]' "$persist_dir/custom_rules.txt" ) || custom_entries=0
 
     # Count blacklisted entries (excluding comments and empty lines)
     [ -s "$persist_dir/blacklist.txt" ] && blacklist_count=$(grep -c '^[^#[:space:]]' "$persist_dir/blacklist.txt") || blacklist_count=0
@@ -812,26 +854,27 @@ update_status() {
         log_message "Cleared mode_ready flag, hosts file has $blocked_mod blocked entries"
     fi
 
-    if [ -f "$persist_dir/mode_ready" ]; then
-        [ -z "$profile" ] && profile="default"
-        status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $profile"
+    [ -z "$profile" ] && profile="default"
+    capitalized_profile="$(echo "$profile" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
+    [ "$dns_logging" = "1" ] && dns_status=" | 🔍 DNS Logging: ON" || dns_status=""
+
+    if [ -f "$persist_dir/reboot_required" ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (DNS Logging) | ⚙️ Profile: $capitalized_profile${dns_status}"
+	elif [ -f "$persist_dir/mode_ready" ]; then
+        status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_protection_paused; then
-        [ -z "$profile" ] && profile="default"
-        status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $profile"
+        status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-        [ -z "$profile" ] && profile="default"
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | ⚙️ Profile: $profile"
+        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
-        [ -z "$profile" ] && profile="default"
-        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $profile"
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_default_hosts; then
-        [ -z "$profile" ] && profile="default"
         if [ "$blacklist_count" -gt 0 ]; then
             plural="entries are active"
             [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $profile | $blacklist_count blacklist $plural"
+            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status} | $blacklist_count blacklist $plural"
         else
-            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $profile"
+            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status}"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
         system_hosts_lines=$(cat "$system_hosts" 2>/dev/null | wc -l)
@@ -851,11 +894,10 @@ update_status() {
         fi
         # Set success message if not set to error
         if [ -z "$status_msg" ]; then
-            [ -z "$profile" ] && profile="default"
             if [ "$(date +%m%d)" = "0401" ]; then
                 blocking_info="Allowing $blocked_mod ads"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $profile | $blocking_info"
+                status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
@@ -865,7 +907,7 @@ update_status() {
             else
                 blocking_info="Blocking $blocked_mod domains"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $profile | $blocking_info"
+                status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
@@ -1112,10 +1154,10 @@ case "$(tolower "$1")" in
         fi
 
         if [ "$profile_name" = "custom" ]; then
-            sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
+            grep -q "^profile=" "$persist_dir/config.sh" && sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh" || echo "profile=custom" >> "$persist_dir/config.sh"
         else
             cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
-            sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
+            grep -q "^profile=" "$persist_dir/config.sh" && sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh" || echo "profile=$profile_name" >> "$persist_dir/config.sh"
         fi
         log_message SUCCESS "Profile switched to $profile_name."
         echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
@@ -1147,8 +1189,6 @@ case "$(tolower "$1")" in
 
         # Reset blocklist values to 0
         sed -i 's/^block_\(.*\)=.*/block_\1=0/' "$persist_dir/config.sh"
-        ndc resolver clearnetdns 2>/dev/null
-        ndc resolver flushdefaultif 2>/dev/null
         refresh_blocked_counts
         update_status
         log_message SUCCESS "Successfully reset hosts."
@@ -1158,6 +1198,45 @@ case "$(tolower "$1")" in
         ;;
     --export-logs|-e)
         export_logs
+        ;;
+    --dns-logging|-dl)
+        status="$2"
+        if [ "$status" = "enable" ]; then
+            if [ "$dns_logging" = "1" ]; then
+                echo "[i] DNS logging is already enabled"
+                exit 0
+            fi
+            echo "[*] Enabling DNS Logging..."
+            log_message "Enabling DNS Logging"
+            grep -q "^dns_logging=" "$persist_dir/config.sh" && sed -i 's/^dns_logging=.*/dns_logging=1/' "$persist_dir/config.sh"
+            if [ -d "/data/adb/modules/Re-Malwack/zygisk_opt" ]; then
+                mv "/data/adb/modules/Re-Malwack/zygisk_opt" "/data/adb/modules/Re-Malwack/zygisk"
+            fi
+            touch "$persist_dir/logs/dns.log"
+            chmod 666 "$persist_dir/logs/dns.log"
+            touch "$persist_dir/reboot_required"
+            echo "[✓] DNS logging enabled. Please reboot your device."
+            log_message SUCCESS "DNS logging enabled, zygisk setup complete."
+            update_status
+        elif [ "$status" = "disable" ]; then
+            if [ "$dns_logging" = "0" ]; then
+                echo "[i] DNS logging is already disabled"
+                exit 0
+            fi
+            echo "[*] Disabling DNS Logging..."
+            log_message "Disabling DNS Logging"
+            grep -q "^dns_logging=" "$persist_dir/config.sh" && sed -i 's/^dns_logging=.*/dns_logging=0/' "$persist_dir/config.sh"
+            if [ -d "/data/adb/modules/Re-Malwack/zygisk" ]; then
+                mv "/data/adb/modules/Re-Malwack/zygisk" "/data/adb/modules/Re-Malwack/zygisk_opt"
+            fi
+            touch "$persist_dir/reboot_required"
+            echo "[✓] DNS logging disabled. Please reboot your device."
+            log_message SUCCESS "DNS logging disabled, zygisk components removed."
+            update_status
+        else
+            echo "[!] Invalid argument for --dns-logging. Please use 'enable' or 'disable'."
+            exit 1
+        fi
         ;;
     --query-domain|-q)
         start_time=$(get_current_time)
@@ -1219,165 +1298,130 @@ case "$(tolower "$1")" in
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         action="$2"
-        raw_input="$3"
-        if [ -z "$action" ] || [ -z "$raw_input" ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
+        shift 2
+        if [ -z "$action" ] || [ $# -eq 0 ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
             echo "[!] Invalid arguments for --whitelist|-w"
-            echo "[i] Usage: rmlwk --whitelist|-w <add|remove> [domain2] [domain3] ..."
+            echo "[i] Usage: rmlwk --whitelist|-w <add|remove> [domain1] [domain2] ..."
             echo "[i] Examples:"
             echo "  rmlwk -w add example.com           # Add domain to the whitelist"
             echo "  rmlwk --whitelist add *.example.com # Add subdomain wildcard to whitelist"
             echo "  rmlwk -w add *something            # Add suffix wildcard to whitelist"
             echo "  rmlwk --whitelist add something*   # Add prefix wildcard to whitelist"
             echo "  rmlwk --whitelist remove example.com # Remove domain from whitelist"
-            echo "  rmlwk -w remove domain1.com domain2.com domain3.com # Remove multiple domains from whitelist"
+            echo "  rmlwk -w add domain1.com domain2.com domain3.com # Add multiple domains to whitelist"
             display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null || true )
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
         fi
 
-        # Extract host if a URL was passed
-        if printf '%s' "$raw_input" | grep -qE '^https?://'; then
-            host=$(printf '%s' "$raw_input" | awk -F[/:] '{print $4}')
-        else
-            host="$raw_input"
-        fi
-
-        # Validate domain format (Special cases for wildcards)
-        if ! printf '%s' "$host" | grep -qE '(\*|\.)'; then
-            echo "[!] Invalid domain input: $raw_input"
-            echo "[i] Valid domain input examples: 'domain.com', '*.domain.com', '*something', 'something*'"
-            exit 1
-        fi
-
-        # Ensure the domain is not already blacklisted
-        if grep -Fxq "$host" "$persist_dir/blacklist.txt"; then
-            echo "[!] Cannot whitelist $raw_input, it already exists in blacklist."
-            exit 1
-        fi
-
-        # Determine wildcard mode
-        # - suffix wildcard if starts with "*.something" or ".something"
-        # - glob mode if contains '*' anywhere (over entire domain)
-        suffix_wildcard=0
-        glob_mode=0
-        if printf '%s' "$host" | grep -qE '^\*\.|^\.'; then
-            suffix_wildcard=1
-        elif printf '%s' "$host" | grep -q '\*'; then
-            glob_mode=1
-        fi
-
-        # Normalize the base domain/pattern
-        base="$host"
-        if [ "$suffix_wildcard" -eq 1 ]; then
-            # strip leading "*." or "." (one label or the dot)
-            base="${base#*.}"
-        fi
-
-        # Build a domain-only ERE for matching the 2nd field in hosts
-        # 1) escape regex metachars except '*' (handled separately for glob mode)
-        esc_base=$(printf '%s' "$base" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
-
-        if [ "$suffix_wildcard" -eq 1 ]; then
-            # match example.com or any subdomain of it
-            dom_re="(^|.*\.)${esc_base}$"
-        elif [ "$glob_mode" -eq 1 ]; then
-            # treat '*' as glob over the whole domain
-            esc_glob=$(printf '%s' "$esc_base" | sed 's/\*/.*/g')
-            dom_re="^${esc_glob}$"
-        else
-            # exact domain
-            dom_re="^${esc_base}$"
-        fi
-        # Prepare whitelist file
-        touch "$persist_dir/whitelist.txt"
         if [ "$action" = "add" ]; then
-            # Detect input type
-            case "$raw_input" in
-                \*\.*) # Subdomain: *.domain.com
-                    domain="${raw_input#*.}"
-                    esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
-                    pattern="^0\.0\.0\.0 [^.]+\\.${esc_domain}\$"
-                    match_type="subdomain"
-                    ;;
-                \**) # Suffix: *something
-                    suffix="${raw_input#\*}"
-                    esc_suffix=$(printf '%s' "$suffix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
-                    pattern="^0\.0\.0\.0 .*${esc_suffix}\$"
-                    match_type="suffix"
-                    ;;
-                *\*) # Prefix: something*
-                    prefix="${raw_input%\*}"
-                    esc_prefix=$(printf '%s' "$prefix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
-                    pattern="^0\.0\.0\.0 ${esc_prefix}.*\$"
-                    match_type="prefix"
-                    ;;
-                *) # Exact
-                    domain="$raw_input"
-                    esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
-                    pattern="^0\.0\.0\.0 ${esc_domain}\$"
-                    match_type="exact"
-                    ;;
-            esac
-
-            # Ensure whitelist file exists
-            touch "$persist_dir/whitelist.txt"
-
-            # Check if already whitelisted
-            if grep -qxF "$raw_input" "$persist_dir/whitelist.txt"; then
-                echo "[i] $raw_input is already whitelisted"
-                exit 1
-            fi
-
-            # Collect matches
-            matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
-            if [ -z "$matched_domains" ]; then
-                echo "[!] No matches found for $raw_input"
-                exit 1
-            fi
-
-            # Remove blacklisted entries from the match set
-            if [ -s "$persist_dir/blacklist.txt" ]; then
-                matched_domains=$(printf '%s\n' "$matched_domains" | grep -Fvxf "$persist_dir/blacklist.txt")
-            fi
-
-            # If nothing left, bail out
-            # This code may be removed in the future?
-            # I only wrote it just in case a very rare chance that all matched domains are blacklisted
-            # Like, someone tries to whitelist the whole blacklisted domains list in one wildcard :sob:
-            # idk who's going to do such a thing like this, but uhmmmmmm
-            if [ -z "$matched_domains" ]; then
-                echo "[!] All matched domains are already blacklisted, nothing to whitelist."
-                exit 1
-            fi
-
-            # Add matched domains to whitelist file
-            log_message "Whitelisting ($match_type): $raw_input. Domains: $matched_domains"
-            echo "[*] Whitelisting ($match_type): $raw_input"
-            for md in $matched_domains; do
-                if ! grep -qxF "$md" "$persist_dir/whitelist.txt"; then
-                    echo "$md" >> "$persist_dir/whitelist.txt"
+            added_total=""
+            for raw_input in "$@"; do
+                # Extract host if a URL was passed
+                if printf '%s' "$raw_input" | grep -qE '^https?://'; then
+                    host=$(printf '%s' "$raw_input" | awk -F[/:] '{print $4}')
+                else
+                    host="$raw_input"
                 fi
+
+                # Validate domain format (Special cases for wildcards)
+                if ! printf '%s' "$host" | grep -qE '(\*|\.)'; then
+                    echo "[!] Invalid domain input: $raw_input"
+                    echo "[i] Valid domain input examples: 'domain.com', '*.domain.com', '*something', 'something*'"
+                    continue
+                fi
+
+                # Ensure the domain is not already blacklisted
+                if grep -Fxq "$host" "$persist_dir/blacklist.txt"; then
+                    echo "[!] Cannot whitelist $raw_input, it already exists in blacklist."
+                    continue
+                fi
+
+                # Check if already whitelisted
+                if grep -qxF "$raw_input" "$persist_dir/whitelist.txt"; then
+                    echo "[i] $raw_input is already whitelisted"
+                    continue
+                fi
+
+                # Detect input type
+                case "$raw_input" in
+                    \*\.*) # Subdomain: *.domain.com
+                        domain="${raw_input#*.}"
+                        esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                        pattern="^0\.0\.0\.0 [^.]+\\.${esc_domain}\$"
+                        match_type="subdomain"
+                        ;;
+                    \**) # Suffix: *something
+                        suffix="${raw_input#\*}"
+                        esc_suffix=$(printf '%s' "$suffix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                        pattern="^0\.0\.0\.0 .*${esc_suffix}\$"
+                        match_type="suffix"
+                        ;;
+                    *\*) # Prefix: something*
+                        prefix="${raw_input%\*}"
+                        esc_prefix=$(printf '%s' "$prefix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                        pattern="^0\.0\.0\.0 ${esc_prefix}.*\$"
+                        match_type="prefix"
+                        ;;
+                    *) # Exact
+                        domain="$raw_input"
+                        esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
+                        pattern="^0\.0\.0\.0 ${esc_domain}\$"
+                        match_type="exact"
+                        ;;
+                esac
+
+                # Collect matches
+                matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
+                if [ -z "$matched_domains" ]; then
+                    echo "[i] No matches found for $raw_input"
+                    continue
+                fi
+
+                # Remove blacklisted entries from the match set
+                if [ -s "$persist_dir/blacklist.txt" ]; then
+                    matched_domains=$(printf '%s\n' "$matched_domains" | grep -Fvxf "$persist_dir/blacklist.txt")
+                fi
+
+                if [ -z "$matched_domains" ]; then
+                    echo "[i] All matched domains are already blacklisted, nothing to whitelist."
+                    continue
+                fi
+
+                # Add matched domains to whitelist file
+                echo "[*] Whitelisting ($match_type): $raw_input"
+                for md in $matched_domains; do
+                    if ! grep -qxF "$md" "$persist_dir/whitelist.txt"; then
+                        echo "$md" >> "$persist_dir/whitelist.txt"
+                    fi
+                done
+
+                # Rewrite hosts file excluding matched domains
+                tmp_hosts="$persist_dir/tmp.hosts.$$"
+                grep -Ev "$pattern" "$hosts_file" > "$tmp_hosts"
+                cat "$tmp_hosts" > "$hosts_file"
+                rm -f "$tmp_hosts"
+
+                added_total="$added_total $raw_input"
+                log_message "Whitelisted ($match_type): $raw_input. Domains: $matched_domains"
+                echo "[✓] Whitelisted ($match_type): $raw_input"
+                echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
+                printf " - %s\n" $matched_domains
             done
 
-            # Rewrite hosts file excluding matched domains
-            tmp_hosts="$persist_dir/tmp.hosts.$$"
-            grep -Ev "$pattern" "$hosts_file" > "$tmp_hosts"
-            cat "$tmp_hosts" > "$hosts_file"
-            rm -f "$tmp_hosts"
+            if [ -z "$added_total" ]; then
+                abort "Nothing was whitelisted."
+            fi
 
             # Deduplicate whitelist file
             tmpf="$persist_dir/.whitelist.sorted.$$"
             sort -u "$persist_dir/whitelist.txt" > "$tmpf" && mv "$tmpf" "$persist_dir/whitelist.txt"
 
             # Finalize
-            echo "[✓] Whitelisted ($match_type): $raw_input"
-            echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
-            printf " - %s\n" $matched_domains
-            log_message SUCCESS "Whitelisted $raw_input ($match_type)."
-            refresh_blocked_counts
+            log_message SUCCESS "Whitelisted multiple entries:$added_total"
             update_status
             end_time=$(get_current_time)
-            log_duration "Adding to whitelist: $raw_input (type: $match_type)" "$start_time" "$end_time"
+            log_duration "Adding to whitelist bulk" "$start_time" "$end_time"
         else  # remove
             shift 2  # move past: --whitelist remove
             if [ $# -lt 1 ]; then
@@ -1452,7 +1496,6 @@ case "$(tolower "$1")" in
             done
             log_message SUCCESS "Whitelist multi-remove: $removed_total"
             echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
-            refresh_blocked_counts
             update_status
             end_time=$(get_current_time)
             log_duration "Removing from whitelist: $raw_input" "$start_time" "$end_time"
@@ -1471,49 +1514,53 @@ case "$(tolower "$1")" in
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
             exit 1
         fi
-        touch "$persist_dir/blacklist.txt"
         if [ "$option" = "add" ]; then
-            # Process multiple domains for addition (but only first one for now to maintain compatibility)
-            raw_input="$1"
+            added_total=""
+            for raw_input in "$@"; do
+                # Sanitize input
+                if printf "%s" "$raw_input" | grep -qE '^https?://'; then
+                    domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
+                else
+                    domain="$raw_input"
+                fi
 
-            # Sanitize input
-            if printf "%s" "$raw_input" | grep -qE '^https?://'; then
-                domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
-            else
-                domain="$raw_input"
-            fi
+                # Validate domain format
+                if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
+                    echo "[!] Invalid domain: $domain"
+                    echo "Example valid domain: example.com"
+                    continue
+                fi
 
-            # Validate domain format
-            if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
-                echo "[!] Invalid domain: $domain"
-                echo "Example valid domain: example.com"
+                # Ensure domain not already whitelisted
+                if grep -Fxq "$domain" "$persist_dir/whitelist.txt"; then
+                    echo "[!] Cannot blacklist $domain, it already exists in whitelist."
+                    continue
+                fi
+
+                # Add to hosts file if not already present
+                if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
+                    echo "[i] $domain is already blocked."
+                    continue
+                else
+                    echo "[*] Blacklisting $domain..."
+                    log_message "Blacklisting $domain..."
+                    # Add to blacklist.txt if not already there
+                    grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+                    # Ensure newline at end before appending
+                    [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+                    echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
+                    added_total="$added_total $domain"
+                fi
+            done
+
+            if [ -z "$added_total" ]; then
+                echo "[!] No domains were blacklisted."
                 exit 1
             fi
-
-            # Ensure domain not already whitelisted
-            if grep -Fxq "$domain" "$persist_dir/whitelist.txt"; then
-                echo "[!] Cannot blacklist $domain, it already exists in whitelist."
-                exit 1
-            fi
-
-            # Add to hosts file if not already present
-            if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
-                echo "[!] $domain is already blocked."
-                exit 1
-            else
-                echo "[*] Blacklisting $domain..."
-                log_message "Blacklisting $domain..."
-                # Add to blacklist.txt if not already there
-                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
-                # Ensure newline at end before appending
-                [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
-                echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
-                log_message SUCCESS "Done added $domain to hosts file and blacklist."
-            fi
-            refresh_blocked_counts
+            log_message SUCCESS "Done added$added_total to hosts file and blacklist."
             update_status
             end_time=$(get_current_time)
-            log_duration "Adding to blacklist: $domain" "$start_time" "$end_time"
+            log_duration "Adding to blacklist bulk" "$start_time" "$end_time"
         else
             # Remove multiple domains from blacklist
             log_message "Removing multiple domains from blacklist: $*"
@@ -1551,7 +1598,6 @@ case "$(tolower "$1")" in
             if [ $total_removed -gt 0 ]; then
                 echo "[i] Successfully removed $total_removed domain(s) from blacklist"
                 log_message SUCCESS "Successfully removed $total_removed domains from blacklist"
-                refresh_blocked_counts
                 update_status
                 end_time=$(get_current_time)
                 log_duration "Removing from blacklist: $*" "$start_time" "$end_time"
@@ -1561,7 +1607,7 @@ case "$(tolower "$1")" in
                 echo "[i] Failed to remove:$failed_removals"
                 log_message WARN "Failed to remove domains:$failed_removals"
             fi
-            
+
             if [ $total_removed -eq 0 ]; then
                 echo "[!] No domains were removed from blacklist"
                 exit 1
@@ -1580,9 +1626,9 @@ case "$(tolower "$1")" in
             exit 1
         fi
 
-        if [ "$option" != "add" ] && [ "$option" != "remove" ] && [ "$option" != "edit" ] && [ "$option" != "enable" ] && [ "$option" != "disable" ]; then
-            echo "[!] Invalid option: Use 'add', 'remove', 'edit', 'enable', or 'disable'."
-            echo "Usage: rmlwk --custom-source <add/remove/edit/enable/disable> <domain1> [domain2] [domain3] ..."
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] && [ "$option" != "enable" ] && [ "$option" != "disable" ]; then
+            echo "[!] Invalid option: Use 'add', 'remove', 'enable', or 'disable'."
+            echo "Usage: rmlwk --custom-source <add/remove/enable/disable> <domain1> [domain2] [domain3] ..."
             exit 1
         fi
         touch "$persist_dir/sources.txt"
@@ -1591,6 +1637,9 @@ case "$(tolower "$1")" in
             domain="$1"
             shift
             name="$*"
+
+            # Clean up the name by removing any leading '#' characters and spaces coming from WebUI
+            name=$(printf '%s' "$name" | sed 's/^#[[:space:]]*//')
             
             # Validate URL format (accept http/https)
             if ! printf '%s' "$domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
@@ -1612,35 +1661,6 @@ case "$(tolower "$1")" in
                     log_message SUCCESS "Added $domain to sources."
                     echo "[✓] Added $domain to sources."
                 fi
-            fi
-        elif [ "$option" = "edit" ]; then
-            old_domain="$1"
-            new_domain="$2"
-            shift 2
-            new_name="$*"
-
-            # Validate URL format
-            if ! printf '%s' "$new_domain" | grep -qiE '^(https?://[a-z0-9.-]+\.[a-z]{2,}(/.*)?|[a-z0-9.-]+\.[a-z]{2,})' ; then
-                echo "[!] Invalid new domain: $new_domain"
-                echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
-                exit 1
-            fi
-
-            if awk '{print $1}' "$persist_dir/sources.txt" 2>/dev/null | grep -qx "$old_domain"; then
-                awk -v dom="$old_domain" '$1 != dom' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
-                if [ -n "$new_name" ]; then
-                    echo "$new_domain # $new_name" >> "$persist_dir/sources.tmp"
-                    log_message SUCCESS "Edited $old_domain to $new_domain ($new_name)."
-                    echo "[✓] Edited $old_domain to $new_domain ($new_name)."
-                else
-                    echo "$new_domain" >> "$persist_dir/sources.tmp"
-                    log_message SUCCESS "Edited $old_domain to $new_domain."
-                    echo "[✓] Edited $old_domain to $new_domain."
-                fi
-                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
-            else
-                echo "[!] $old_domain was not found in sources."
-                exit 1
             fi
         elif [ "$option" = "enable" ] || [ "$option" = "disable" ]; then
             total_processed=0
@@ -1793,7 +1813,12 @@ case "$(tolower "$1")" in
                 echo "[✓] Added custom rule: $ip $domain"
 
                 # Append to active hosts immediately if not present
-                [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+                if [ -s "$hosts_file" ]; then
+                    last_line=$(tail -n 1 "$hosts_file")
+                    if [ -n "$last_line" ]; then
+                        echo "" >> "$hosts_file"
+                    fi
+                fi
                 echo "$ip $domain" >> "$hosts_file"
             fi
 
@@ -1834,7 +1859,6 @@ case "$(tolower "$1")" in
             fi
         fi
 
-        refresh_blocked_counts
         update_status
         end_time=$(get_current_time)
         log_duration "Custom rule action: $option" "$start_time" "$end_time"
@@ -1914,7 +1938,7 @@ case "$(tolower "$1")" in
             [ "$job_count" -ge "$job_limit" ] && { wait; job_count=0; sleep 0.25; }
         done
         wait
-        log_message "Completed processing of all source files"
+        log_message "Completed processing of all base source files"
 
         # 2 - Download & process blocklists with small delays to prevent resource starvation
         > "$persist_dir/counts/blocklists.counts"
@@ -1946,7 +1970,6 @@ case "$(tolower "$1")" in
 
             # 2.5 - Append to combined file
             cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
-            echo "[✓] Fetched $bl blocklist"
             log_message "Added $bl ($bl_count) hosts entries to combined hosts"
         done
 
@@ -1971,11 +1994,12 @@ case "$(tolower "$1")" in
         echo "--update-hosts, -u: Update the hosts file."
         echo "--profile, -p <default|lite|balanced|aggressive|custom>: Switch adblock level profile."
         echo "--auto-update, -a <enable|disable>: Toggle auto hosts update."
-        echo "--custom-source, -c <add|remove|edit> ...: Add/remove/edit custom hosts sources."
+        echo "--custom-source, -c <add|remove|enable|disable> ...: Add/remove/enable/disable custom hosts sources."
         echo "--custom-rule, -cr <add|remove> <IP> <domain>: Add or remove custom hosts rules."
         echo "--reset, -r: Reset hosts file to default."
         echo "--query-domain, -q <domain>: Query if a domain is blocked, redirected, or not blocked."
         echo "--adblock-switch, -as: Toggle protections on/off."
+        echo "--dns-logging, -dl <enable|disable>: Enable or disable DNS logging."
         echo "--block-trackers, -bt <disable>, block trackers, use disable to unblock."
         echo "--block-porn, -bp <disable>: Block pornographic sites, use disable to unblock."
         echo "--block-gambling, -bg <disable>: Block gambling sites, use disable to unblock."

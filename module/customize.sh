@@ -58,7 +58,7 @@ persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
 mkdir -p "$persistent_dir"
 touch "$config_file"
-for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode; do
+for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode dns_logging; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
     touch "$persistent_dir/blacklist.txt"
     touch "$persistent_dir/whitelist.txt"
@@ -186,20 +186,20 @@ if [ ! -s "$persistent_dir/sources.txt" ]; then
     update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
     sed -i '/^profile=/d' "$config_file"
     echo "profile=$detected_profile" >> "$config_file"
-    ui_print "[*] Auto-selected profile: $detected_profile"
+    ui_print "[✓] Auto-selected profile: $detected_profile"
 else
     if [ -z "$current_profile" ]; then
         if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
             update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
             grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
-            ui_print "[*] Auto-selected profile: $detected_profile"
+            ui_print "[✓] Auto-selected profile: $detected_profile"
         else
             sed -i 's/^profile=.*/profile=custom/' "$config_file"
-            ui_print "[*] Customized hosts sources detected, profile has been set to custom."
+            ui_print "[i] Customized hosts sources detected, profile has been set to custom."
         fi
     else
         if [ "$current_profile" = "custom" ]; then
-            ui_print "[*] Custom profile detected, keeping hosts sources as is."
+            ui_print "[i] Custom profile detected, keeping hosts sources as is."
         else
             if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
                 update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
@@ -289,6 +289,13 @@ fi
 for i in /data/adb/ap/bin /data/adb/ksu/bin; do
     [ -d "$i" ] && ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
 done
+
+# Zygisk Setup
+. "$config_file"
+if [ "$dns_logging" = "1" ] && [ -d "$MODPATH/zygisk_opt" ]; then
+    ui_print "[*] Preparing Zygisk binaries..."
+    mv "$MODPATH/zygisk_opt" "$MODPATH/zygisk"
+fi
 
 # Cleanup
 rm -f $MODPATH/import.sh && rm -rf $MODPATH/bin
