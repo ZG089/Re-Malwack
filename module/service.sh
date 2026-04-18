@@ -105,8 +105,8 @@ fi
 
 # 2 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
-# 3 - Remove previous logs
-rm -rf "$persist_dir/logs/"*
+# 3 - Remove previous logs (preserve dns.log, Zygisk companion may already have it open)
+find "$persist_dir/logs" -maxdepth 1 -type f ! -name 'dns.log' -delete 2>/dev/null
 
 # 4 - Log errors
 exec 2>>"$persist_dir/logs/service.log"
@@ -179,7 +179,17 @@ else
     ln -sf "$MODDIR/rmlwk.sh" "$magisktmp/rmlwk" && log_message "symlink created at $magisktmp/rmlwk"
 fi
 
+if [ "$dns_logging" = "1" ]; then
+    # Ensure log file exists with proper permissions before Zygisk hooks init
+    touch "$persist_dir/logs/dns.log"
+    chmod 0666 "$persist_dir/logs/dns.log"
+    log_message "DNS logger initialized successfully."
+else
+    [ -f "$persist_dir/logs/dns.log" ] && rm -f "$persist_dir/logs/dns.log" 2>/dev/null
+fi
+
 # Here goes the part where we actually determine module status
+rm -f "$persist_dir/reboot_required"
 if [ -f "$persist_dir/mode_ready" ] && [ "$blocked_mod" -gt 0 ]; then
     # Clear mode_ready flag if hosts file has blocked entries
     rm -f "$persist_dir/mode_ready"
@@ -188,45 +198,47 @@ fi
 
 if [ "$mount_failed" -eq 1 ]; then
     status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
-elif [ -f "$persist_dir/mode_ready" ]; then
+else
     [ -z "$profile" ] && profile="default"
-    status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $profile"
-elif is_protection_paused; then
-    [ -z "$profile" ] && profile="default"
-    status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $profile"
-elif is_default_hosts; then
-    [ -z "$profile" ] && profile="default"
-    if [ "$blacklist_count" -gt 0 ]; then
-        plural="entries are active"
-        [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-        status_msg="Status: Protection is reset ❌ | ⚙️ Profile: $profile | Only $blacklist_count blacklist $plural"
-    else
-        status_msg="Status: Protection is reset ❌ | ⚙️ Profile: $profile"
-    fi
-elif [ "$blocked_mod" -ge 0 ]; then
-    # Set success message if not set to error
-    if [ -z "$status_msg" ]; then
-        [ -z "$profile" ] && profile="default"
-        if [ "$(date +%m%d)" = "0401" ]; then
-            blocking_info="Allowing $blocked_mod ads"
-            [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
-            status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $profile | $blocking_info"
-            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
+    capitalized_profile="$(echo "$profile" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
+    [ "$dns_logging" = "1" ] && dns_status=" | 🔍 DNS Logging: ON" || dns_status=""
 
-            sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
-            sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
+    if [ -f "$persist_dir/mode_ready" ]; then
+        status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
+    elif is_protection_paused; then
+        status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $capitalized_profile${dns_status}"
+    elif is_default_hosts; then
+        if [ "$blacklist_count" -gt 0 ]; then
+            plural="entries are active"
+            [ "$blacklist_count" -eq 1 ] && plural="entry is active"
+            status_msg="Status: Protection is reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status} | Only $blacklist_count blacklist $plural"
         else
-            blocking_info="Blocking $blocked_mod domains"
-            [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
-            status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $profile | $blocking_info"
-            [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
-            [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
-            [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+            status_msg="Status: Protection is reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status}"
+        fi
+    elif [ "$blocked_mod" -ge 0 ]; then
+        # Set success message if not set to error
+        if [ -z "$status_msg" ]; then
+            if [ "$(date +%m%d)" = "0401" ]; then
+                blocking_info="Allowing $blocked_mod ads"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
 
-            sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
-            sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+                sed -i 's/^name=.*/name=Re-Malware | Not just a normal malware module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner_alt.png/' "$MODDIR/module.prop"
+            else
+                blocking_info="Blocking $blocked_mod domains"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
+                [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
+                [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
+                [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
+
+                sed -i 's/^name=.*/name=Re-Malwack | Not just a normal ad-blocker module ✨/' "$MODDIR/module.prop"
+                sed -i 's/^banner=.*/banner=banner.png/' "$MODDIR/module.prop"
+            fi
         fi
     fi
 fi
@@ -266,4 +278,5 @@ fi
 # Apply module status into module description
 sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 log_message "$status_msg"
+
 log_message "service.sh Finished."
