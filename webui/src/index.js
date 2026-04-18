@@ -1,10 +1,10 @@
-import { spawn, exec, toast } from 'kernelsu-alt';
+import { spawn, exec, toast, getPackagesInfo } from 'kernelsu-alt';
 import '@material/web/all.js';
 import ReMalwareIcon from './assets/Re-Malware.svg?raw';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
-const CONFIG_PATH =`${basePath}/config.sh`;
+const CONFIG_PATH = `${basePath}/config.sh`;
 
 const filePaths = {
     blacklist: 'blacklist.txt',
@@ -59,7 +59,7 @@ async function getVersion() {
     if (result.errno === 0) {
         const rawVersion = result.stdout.trim();
         const testMatch = rawVersion.match(/^(.*?)-test \((.*?)\)$/);
-        
+
         if (testMatch) {
             versionMain.textContent = testMatch[1];
             displayHash = testMatch[2] || '';
@@ -118,7 +118,7 @@ async function isPaused() {
 function formatNumber(numStr, isApril1st = false, includeLabel = false) {
     let num = parseInt(numStr, 10);
     if (isNaN(num)) return numStr;
-    
+
     let formattedNum = num.toString();
     if (num > 999999) {
         formattedNum = (num / 1000000).toFixed(1) + 'M';
@@ -138,7 +138,7 @@ async function getStatus() {
     const disableBox = document.getElementById('disabled-box');
     const disableText = document.getElementById('disable-text');
     const result = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
-    
+
     // Check if it's april 1st
     const now = new Date();
     const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
@@ -286,7 +286,7 @@ async function checkBlockStatus() {
             const toggle = container.querySelector('md-switch');
             const badge = document.getElementById(`badge-${type}`);
             const blockLine = lines.find(line => line.trim().startsWith(`block_${type}=`));
-            
+
             let isEnabled = false;
             if (blockLine) {
                 isEnabled = blockLine.split('=')[1].trim() === '1';
@@ -308,6 +308,16 @@ async function checkBlockStatus() {
             dailyUpdateToggle.selected = value === '1';
         } else {
             dailyUpdateToggle.selected = false;
+        }
+
+        // Check DNS logging status
+        const dnsLoggingToggle = document.getElementById('dns-logging-toggle');
+        const dnsLoggingLine = lines.find(line => line.trim().startsWith('dns_logging='));
+        if (dnsLoggingLine) {
+            const value = dnsLoggingLine.split('=')[1].trim();
+            dnsLoggingToggle.selected = value === '1';
+        } else {
+            dnsLoggingToggle.selected = false;
         }
     } catch (error) {
         if (error.message === 'Config file not found') {
@@ -411,6 +421,26 @@ async function toggleDailyUpdate() {
     }
 }
 
+// Function to enable/disable DNS logging
+async function toggleDnsLogging() {
+    const toggle = document.getElementById('dns-logging-toggle');
+    const action = toggle.selected ? "enable" : "disable";
+
+    const result = await performAction(`--dns-logging ${action}`, false);
+    if (result) {
+        await checkRebootRequired();
+        showPrompt(
+            toggle.selected ? "DNS Logging enabled, Reboot to apply changes." : "DNS Logging disabled, Reboot to apply changes.",
+            true,
+            5000,
+            () => { exec("reboot"); },
+            "Reboot"
+        );
+    } else {
+        showPrompt("Failed to toggle DNS logging", false);
+    }
+}
+
 // Function to export logs
 async function exportLogs() {
     const result = await exec(`sh ${modulePath}/rmlwk.sh --export-logs --quiet`);
@@ -438,9 +468,24 @@ function setupCustomBlock() {
 }
 
 // Function to show prompt
-function showPrompt(message, isSuccess = true, duration = 2000) {
+function showPrompt(message, isSuccess = true, duration = 2000, actionCallback = null, actionText = null) {
     const prompt = document.getElementById('prompt');
     prompt.textContent = message;
+    
+    if (actionCallback && actionText) {
+        const btn = document.createElement('md-text-button');
+        btn.textContent = actionText;
+        btn.onclick = actionCallback;
+        btn.style.marginLeft = "12px";
+        btn.style.flexShrink = "0";
+        prompt.style.display = "flex";
+        prompt.style.justifyContent = "space-between";
+        prompt.style.alignItems = "center";
+        prompt.appendChild(btn);
+    } else {
+        prompt.style.display = "";
+    }
+
     prompt.classList.toggle('error', !isSuccess);
     if (window.promptTimeout) {
         clearTimeout(window.promptTimeout);
@@ -461,12 +506,13 @@ function handleAdd(fileType) {
         const ipValue = ipInput.value.trim();
         const domValue = domInput.value.trim();
         const addBtn = document.getElementById('custom-rule-add');
-        
+
         if (ipValue === "" || domValue === "" || addBtn.disabled) return;
-        
+
         addBtn.disabled = true;
+        showPrompt(`Adding rule…`, true, 3000);
         const output = [];
-        const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue], { env: { WEBUI: 'true' } });
+        const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue]);
         result.stdout.on('data', (data) => output.push(data));
         result.on('exit', async (code) => {
             addBtn.disabled = false;
@@ -490,23 +536,14 @@ function handleAdd(fileType) {
     if (inputValue === "" || addBtn.disabled) return;
     console.log(`Input value for ${fileType}: "${inputValue}"`);
 
-    if (fileType === "whitelist") {
-        performAction(`--whitelist add ${inputValue}`);
-        inputElement.value = "";
-        return;
-    }
-
     addBtn.disabled = true;
-    
-    // For custom-source, handle multiple arguments (domain and name)
-    const args = [];
-    if (fileType === "custom-source") {
-        args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', ...inputValue.split(/\s+/));
-    } else {
-        args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', `${inputValue}`);
-    }
+    showPrompt(`Adding to ${fileType}…`, true, 3000);
 
-    const result = spawn('sh', args, { env: { WEBUI: 'true' } });
+    // Split inputValue by spaces for all fileTypes so that multiple items are passed as separate arguments
+    const args = [];
+    args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', ...inputValue.split(/\s+/));
+
+    const result = spawn('sh', args);
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         addBtn.disabled = false;
@@ -539,7 +576,7 @@ function handleQuery() {
     resultCard.classList.add('display-block');
 
     const output = [];
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`, `--quiet`], { env: { WEBUI: 'true' } });
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`, `--quiet`]);
     result.stdout.on('data', (data) => output.push(data));
     result.stderr.on('data', (data) => output.push(data));
     result.on('exit', () => {
@@ -653,7 +690,7 @@ async function loadFile(fileType) {
             .split("\n")
             .map(line => line.trim())
             .filter(line => line);
-        
+
         let sourceCounts = {};
         if (fileType === "custom-source") {
             try {
@@ -741,9 +778,13 @@ async function loadFile(fileType) {
                 if (list) {
                     const controlList = list.previousElementSibling;
                     const isControlListShowing = controlList.classList.contains('show');
-                    
+
                     if (isControlListShowing) {
-                        openEditDialog(fileType, rawLine);
+                        const hideControls = () => {
+                            controlList.classList.remove('show');
+                            if (list.controlListeners) list.controlListeners.abort();
+                        };
+                        openEditDialog(fileType, rawLine, hideControls);
                         return;
                     }
                     const checkboxes = list.querySelectorAll('md-checkbox');
@@ -778,19 +819,33 @@ async function loadFile(fileType) {
 
 // Function to remove a line from whitelist/blacklist/custom-source
 function editLine(fileType, lines, action = "remove") {
-    const line = lines.join(' ');
-    const result = spawn(`sh ${modulePath}/rmlwk.sh --${fileType} ${action} ${line}`);
+    showPrompt(`${action === 'remove' ? 'Removing' : action === 'enable' ? 'Enabling' : 'Disabling'} entries…`, true, 3000);
+    const output = [];
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, action, ...lines]);
+    result.stdout.on('data', (data) => output.push(data));
     result.on('exit', (code) => {
-        if (code !== 0) {
-            console.error(`Failed to ${action} line from ${fileType}:`, result.stderr);
-            showPrompt(`Failed to ${action} line from ${fileType}`, false);
+        if (code === 0) {
+            const count = lines.length;
+            const actionStr = action === 'remove' ? 'Removed' : action === 'enable' ? 'Enabled' : 'Disabled';
+            const typeMap = {
+                'whitelist': 'domain',
+                'blacklist': 'domain',
+                'custom-source': 'source',
+                'custom-rule': 'rule'
+            };
+            const itemName = typeMap[fileType] || 'entry';
+            showPrompt(`${actionStr} ${count} ${itemName}${count > 1 ? 's' : ''}`, true);
+        } else {
+            const allText = output.join('').trim().split('\n');
+            const msg = allText.length ? allText[allText.length - 1] : `Failed to ${action} entries`;
+            showPrompt(msg, false);
         }
         loadFile(fileType);
         getStatus();
     });
 }
 
-function openEditDialog(fileType, currentLine) {
+function openEditDialog(fileType, currentLine, onSuccess) {
     const editDialog = document.getElementById('edit-dialog');
     const editName = document.getElementById('edit-name');
     const editDomain = document.getElementById('edit-domain');
@@ -813,7 +868,7 @@ function openEditDialog(fileType, currentLine) {
     confirmBtn.onclick = async () => {
         const newDomain = editDomain.value.trim();
         const newName = editName.value.trim();
-        if (!newDomain || newDomain === domain || newName === name) {
+        if (!newDomain || (newDomain === domain && newName === name)) {
             closeDialog();
             return;
         }
@@ -824,6 +879,7 @@ function openEditDialog(fileType, currentLine) {
 
         const result = await exec(`sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`);
         if (result.errno === 0) {
+            if (onSuccess) onSuccess();
             await loadFile(fileType);
         } else {
             showPrompt('Failed to update line', false);
@@ -855,7 +911,7 @@ function setupPrank() {
 
     // April 1st Easter Egg
     document.getElementById('module-name').textContent = "Re-Malware";
-    
+
     // Change Blocked Entries to Allowed Ads
     const statusText = document.getElementById('status-text');
     if (statusText && statusText.previousElementSibling) {
@@ -925,7 +981,7 @@ async function setupTheme() {
 
         // Clear and populate theme-select
         themeSelect.innerHTML = '';
-        
+
         const options = [...Object.keys(cachedThemeData.schemes), 'system'];
         const savedTheme = localStorage.getItem('remalwack_theme') || 'system';
 
@@ -1162,6 +1218,13 @@ function setupFestivalThemes() {
     });
 }
 
+async function checkRebootRequired() {
+    const result = await exec(`[ -f "${basePath}/reboot_required" ] && echo "true" || echo "false"`);
+    if (result.stdout.trim() === "true") {
+        document.getElementById('reboot-required-box').classList.add('display-flex');
+    }
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([setupTheme()]);
@@ -1177,8 +1240,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadActionMode();
     updateAdblockSwtich();
     floatBtn.classList.add('show');
+    checkRebootRequired();
     await checkBlockStatus();
     ["custom-source", "custom-rule", "blacklist", "whitelist"].forEach(loadFile);
+    loadDnsLogs();
+
+    // Bind listeners since setupEventListener is likely hoisted
+    document.getElementById('dns-logging-toggle').addEventListener('change', toggleDnsLogging);
+    document.getElementById('refresh-dns-logs').addEventListener('click', () => {
+        const tbBack = document.getElementById('dns-tb-back');
+        if (tbBack) tbBack.click();
+        loadDnsLogs();
+        showPrompt("DNS Logs refreshed", true);
+    });
+    document.getElementById('clear-dns-logs').addEventListener('click', async () => {
+        const tbBack = document.getElementById('dns-tb-back');
+        if (tbBack) tbBack.click();
+        await exec(`rm ${basePath}/logs/dns.log`);
+        showPrompt("DNS Logs cleared", true);
+        loadDnsLogs();
+    });
+    document.getElementById('reboot-card-click')?.addEventListener('click', () => {
+        const rebootDialog = document.getElementById('reboot-dialog');
+        rebootDialog.show();
+        document.getElementById('cancel-reboot').onclick = () => rebootDialog.close();
+        document.getElementById('confirm-reboot').onclick = () => {
+            rebootDialog.close();
+            exec('reboot');
+        };
+    });
 });
 
 // Overwrite default dialog animation
@@ -1199,8 +1289,8 @@ document.querySelectorAll('md-dialog').forEach(dialog => {
         ];
         customAnim.scrim = [
             [
-                [{'opacity': 0}, {'opacity': 0.32}],
-                {duration: 240, easing: 'linear'},
+                [{ 'opacity': 0 }, { 'opacity': 0.32 }],
+                { duration: 240, easing: 'linear' },
             ],
         ];
         customAnim.container = [];
@@ -1221,8 +1311,8 @@ document.querySelectorAll('md-dialog').forEach(dialog => {
         ];
         customAnim.scrim = [
             [
-                [{'opacity': 0.32}, {'opacity': 0}],
-                {duration: 240, easing: 'linear'},
+                [{ 'opacity': 0.32 }, { 'opacity': 0 }],
+                { duration: 240, easing: 'linear' },
             ],
         ];
         customAnim.container = [];
@@ -1233,3 +1323,433 @@ document.querySelectorAll('md-dialog').forEach(dialog => {
     dialog.addEventListener('opened', () => document.body.classList.add('noscroll'));
     dialog.addEventListener('closed', () => document.body.classList.remove('noscroll'));
 });
+
+// Load DNS logs natively
+let dnsViewMode = 'domain';
+let _domainCounts = null;
+let _appMap = null;
+
+async function loadDnsLogs() {
+    const listElement = document.getElementById('logged-dns-list');
+    try {
+        const response = await fetch('link/persistent_dir/logs/dns.log');
+        if (!response.ok) throw new Error('dns.log not found');
+        const content = await response.text();
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+        _domainCounts = {};
+        _appMap = {};
+
+        lines.forEach(line => {
+            const sep = line.indexOf('|');
+            if (sep === -1) return;
+            const pkg = line.slice(0, sep).trim();
+            const domain = line.slice(sep + 1).trim();
+            if (!pkg || !domain) return;
+            _domainCounts[domain] = (_domainCounts[domain] || 0) + 1;
+            if (!_appMap[pkg]) _appMap[pkg] = {};
+            _appMap[pkg][domain] = (_appMap[pkg][domain] || 0) + 1;
+        });
+
+        // inject toggle once
+        if (!document.getElementById('dns-view-toggle')) {
+            const toggleRow = document.createElement('div');
+            toggleRow.id = 'dns-view-toggle';
+            toggleRow.style.cssText = 'display:flex;padding:12px 16px 4px;';
+            toggleRow.innerHTML = `
+                <div style="display:flex;background:var(--md-sys-color-surface-container-high);border-radius:100px;padding:4px;gap:4px;width:100%;">
+                    <button id="dns-btn-domain" style="flex:1;border:none;border-radius:100px;padding:8px 16px;cursor:pointer;font-size:0.875rem;font-family:inherit;outline:none;-webkit-tap-highlight-color:transparent;transition:background 0.2s,color 0.2s;">Per Domain</button>
+                    <button id="dns-btn-app"    style="flex:1;border:none;border-radius:100px;padding:8px 16px;cursor:pointer;font-size:0.875rem;font-family:inherit;outline:none;-webkit-tap-highlight-color:transparent;transition:background 0.2s,color 0.2s;">Per App</button>
+                </div>
+            `;
+            listElement.parentElement.insertBefore(toggleRow, listElement);
+
+            document.getElementById('dns-btn-domain').addEventListener('click', () => {
+                if (dnsViewMode === 'domain') return;
+                const tbBack = document.getElementById('dns-tb-back');
+                if (tbBack) tbBack.click();
+                dnsViewMode = 'domain';
+                dnsUpdateToggle();
+                renderDnsView(document.getElementById('logged-dns-list'));
+            });
+            document.getElementById('dns-btn-app').addEventListener('click', () => {
+                if (dnsViewMode === 'app') return;
+                const tbBack = document.getElementById('dns-tb-back');
+                if (tbBack) tbBack.click();
+                dnsViewMode = 'app';
+                dnsUpdateToggle();
+                renderDnsView(document.getElementById('logged-dns-list'));
+            });
+        }
+
+        dnsUpdateToggle();
+        renderDnsView(listElement);
+
+    } catch (e) {
+        listElement.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.5;">No logs recorded yet.</div>`;
+    }
+}
+
+function dnsUpdateToggle() {
+    const domBtn = document.getElementById('dns-btn-domain');
+    const appBtn = document.getElementById('dns-btn-app');
+    if (!domBtn || !appBtn) return;
+    const primary = `var(--md-sys-color-primary)`;
+    const onPrimary = `var(--md-sys-color-on-primary)`;
+    const none = `transparent`;
+    const muted = `var(--md-sys-color-on-surface-variant)`;
+    domBtn.style.background = dnsViewMode === 'domain' ? primary : none;
+    domBtn.style.color = dnsViewMode === 'domain' ? onPrimary : muted;
+    appBtn.style.background = dnsViewMode === 'app' ? primary : none;
+    appBtn.style.color = dnsViewMode === 'app' ? onPrimary : muted;
+}
+
+async function renderDnsView(listElement) {
+    listElement.innerHTML = '';
+    if (dnsViewMode === 'domain') {
+        renderPerDomain(listElement);
+    } else {
+        await renderPerApp(listElement);
+    }
+}
+
+function renderPerDomain(listElement) {
+    const sorted = Object.entries(_domainCounts).sort((a, b) => b[1] - a[1]);
+    let first = true;
+
+    sorted.forEach(([domain, hits]) => {
+        const item = document.createElement('div');
+        item.innerHTML = `
+            <div class="host-item">
+                <div class="favicon-wrapper">
+                    <md-circular-progress indeterminate></md-circular-progress>
+                    <img class="favicon-img favicon" style="display:none;" src="https://twenty-icons.com/${domain}" />
+                </div>
+                <div class="host-item-content">
+                    <div class="host-item-name">${domain}</div>
+                    <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
+                </div>
+                <div class="spacer"></div>
+                <md-checkbox value="${domain}"></md-checkbox>
+            </div>
+        `;
+
+        const img = item.querySelector('.favicon-img');
+        const wrapper = item.querySelector('.favicon-wrapper');
+        const loader = item.querySelector('md-circular-progress');
+        const cb = item.querySelector('md-checkbox');
+
+        img.onload = () => { loader.style.display = 'none'; img.style.display = 'block'; };
+        img.onerror = () => { loader.style.display = 'none'; wrapper.innerHTML = '<md-icon>domain</md-icon>'; };
+
+        item.addEventListener('click', () => {
+            if (!cb.classList.contains('show')) return;
+            cb.checked = !cb.checked;
+            document.dispatchEvent(new CustomEvent('dns-count-update'));
+        });
+
+        dnsAttachLongPress(item, () => {
+            const allCbs = Array.from(listElement.querySelectorAll('md-checkbox'));
+            allCbs.forEach(c => c.classList.add('show'));
+            cb.checked = true;
+            dnsShowToolbox(allCbs, null);
+        });
+
+        if (!first) listElement.appendChild(document.createElement('md-divider'));
+        first = false;
+        listElement.appendChild(item);
+    });
+}
+
+async function getAppsInfo(pkgs) {
+    const result = {};
+    try {
+        if (typeof globalThis.ksu?.getPackagesInfo === 'function') {
+            const infos = await getPackagesInfo(pkgs);
+            pkgs.forEach((pkg, i) => { result[pkg] = infos[i]?.appLabel || pkg; });
+        } else {
+            pkgs.forEach(pkg => { result[pkg] = pkg; });
+        }
+    } catch {
+        pkgs.forEach(pkg => { result[pkg] = pkg; });
+    }
+    return result;
+}
+
+async function renderPerApp(listElement) {
+    const sortedApps = Object.entries(_appMap)
+        .map(([pkg, domains]) => ({ pkg, domains, total: Object.values(domains).reduce((a, b) => a + b, 0) }))
+        .sort((a, b) => b.total - a.total);
+
+    const labels = await getAppsInfo(sortedApps.map(a => a.pkg));
+    let first = true;
+
+    sortedApps.forEach(({ pkg, domains, total }) => {
+        const label = labels[pkg] || pkg;
+        const sortedDomains = Object.entries(domains).sort((a, b) => b[1] - a[1]);
+
+        const card = document.createElement('div');
+        card.dataset.pkg = pkg;
+        card.innerHTML = `
+            <div class="host-item app-card-header" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                <div class="favicon-wrapper">
+                    <div class="loader" data-package="${pkg}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><md-circular-progress indeterminate></md-circular-progress></div>
+                    <img class="app-icon" data-package="${pkg}" style="display:none;width:100%;height:100%;border-radius:8px;object-fit:cover;" />
+                </div>
+                <div class="host-item-content">
+                    <div class="host-item-name" style="font-weight:500;">${label}</div>
+                    <span class="badge blocklist-badge" style="display:inline-flex;">${total} ${total === 1 ? 'hit' : 'hits'}</span>
+                </div>
+                <div class="spacer"></div>
+                <md-checkbox class="app-cb" value="${pkg}" style="display:none;"></md-checkbox>
+                <md-icon class="expand-icon" style="transition:transform 0.2s;">expand_more</md-icon>
+            </div>
+            <div class="app-domains" style="display:none;padding-left:56px;"></div>
+        `;
+
+        const header = card.querySelector('.app-card-header');
+        const domainsEl = card.querySelector('.app-domains');
+        const expandIcon = card.querySelector('.expand-icon');
+        const appCb = card.querySelector('.app-cb');
+        let expanded = false;
+
+        // build domain rows
+        const domCbs = [];
+        sortedDomains.forEach(([domain, hits], i) => {
+            if (i > 0) domainsEl.appendChild(document.createElement('md-divider'));
+            const row = document.createElement('div');
+            row.className = 'host-item';
+            row.style.cssText = 'padding-left:0;-webkit-tap-highlight-color:transparent;';
+            row.innerHTML = `
+                <div class="favicon-wrapper" style="width:28px;height:28px;">
+                    <md-circular-progress indeterminate></md-circular-progress>
+                    <img class="favicon-img" style="display:none;width:100%;height:100%;border-radius:4px;" src="https://twenty-icons.com/${domain}" />
+                </div>
+                <div class="host-item-content">
+                    <div class="host-item-name" style="font-size:0.85em;">${domain}</div>
+                    <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
+                </div>
+                <div class="spacer"></div>
+                <md-checkbox value="${domain}"></md-checkbox>
+            `;
+            const dImg = row.querySelector('.favicon-img');
+            const dLdr = row.querySelector('md-circular-progress');
+            dImg.onload = () => { dLdr.style.display = 'none'; dImg.style.display = 'block'; };
+            dImg.onerror = () => { dLdr.style.display = 'none'; row.querySelector('.favicon-wrapper').innerHTML = '<md-icon>domain</md-icon>'; };
+
+            const domCb = row.querySelector('md-checkbox');
+            domCbs.push(domCb);
+
+            row.addEventListener('click', () => {
+                if (!domCb.classList.contains('show')) return;
+                domCb.checked = !domCb.checked;
+                // update toolbox count
+                document.dispatchEvent(new CustomEvent('dns-count-update'));
+            });
+
+            domainsEl.appendChild(row);
+        });
+
+        expandIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            expanded = !expanded;
+            domainsEl.style.display = expanded ? 'block' : 'none';
+            expandIcon.style.transform = expanded ? 'rotate(180deg)' : '';
+            if (appCb.style.display !== 'none') {
+                domCbs.forEach(cb => {
+                    if (expanded) cb.classList.add('show');
+                    else cb.classList.remove('show');
+                    cb.checked = expanded ? appCb.checked : cb.checked;
+                });
+            }
+        });
+
+        header.addEventListener('click', (e) => {
+            if (e.target === expandIcon || expandIcon.contains(e.target)) return;
+            if (appCb.style.display === 'none') return;
+            appCb.checked = !appCb.checked;
+            domCbs.forEach(cb => { cb.checked = appCb.checked; });
+            document.dispatchEvent(new CustomEvent('dns-count-update'));
+        });
+
+        dnsAttachLongPress(header, () => {
+            const allAppCbs = Array.from(listElement.querySelectorAll('.app-cb'));
+            allAppCbs.forEach(c => {
+                c.style.display = 'inline-flex';
+                requestAnimationFrame(() => c.classList.add('show'));
+            });
+            appCb.checked = true;
+            domCbs.forEach(cb => { cb.checked = true; });
+            listElement.querySelectorAll('.app-domains').forEach(domList => {
+                if (domList.style.display !== 'none') {
+                    domList.querySelectorAll('md-checkbox').forEach(c => c.classList.add('show'));
+                }
+            });
+            dnsShowToolbox(allAppCbs, listElement);
+        });
+
+        if (!first) listElement.appendChild(document.createElement('md-divider'));
+        first = false;
+        listElement.appendChild(card);
+    });
+
+    const useKsu = typeof globalThis.ksu?.getPackagesInfo === 'function';
+    const usePm = typeof $packageManager !== 'undefined';
+
+    if (!useKsu && !usePm) {
+        listElement.querySelectorAll('.loader').forEach(l => { l.parentElement.innerHTML = '<md-icon>android</md-icon>'; });
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const wrapper = entry.target;
+            const pkg2 = wrapper.querySelector('.app-icon')?.getAttribute('data-package');
+            if (!pkg2) return;
+            observer.unobserve(wrapper);
+            const imgEl = wrapper.querySelector('.app-icon');
+            const loaderEl = wrapper.querySelector('.loader');
+            imgEl.onload = () => { loaderEl.style.display = 'none'; imgEl.style.display = 'block'; };
+            imgEl.onerror = () => { loaderEl.style.display = 'none'; wrapper.innerHTML = '<md-icon>android</md-icon>'; };
+            if (usePm) {
+                import('webuix').then(({ wrapInputStream }) => {
+                    const stream = $packageManager.getApplicationIcon(pkg2, 0, 0);
+                    wrapInputStream(stream).then(r => r.arrayBuffer()).then(buffer => {
+                        imgEl.src = 'data:image/png;base64,' + btoa(new Uint8Array(buffer).reduce((d, b) => d + String.fromCharCode(b), ''));
+                    });
+                });
+            } else {
+                imgEl.src = 'ksu://icon/' + pkg2;
+            }
+        });
+    }, { rootMargin: '100px', threshold: 0.1 });
+
+    listElement.querySelectorAll('.favicon-wrapper').forEach(w => {
+        if (w.querySelector('.app-icon')) observer.observe(w);
+    });
+}
+
+function dnsAttachLongPress(el, cb) {
+    let timer = null;
+    el.addEventListener('pointerdown', () => { timer = setTimeout(cb, 500); });
+    el.addEventListener('pointerup', () => clearTimeout(timer));
+    el.addEventListener('pointerleave', () => clearTimeout(timer));
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+function dnsShowToolbox(appCbs, listRoot) {
+    document.getElementById('dns-toolbox')?.remove();
+
+    const isDomainView = listRoot === null;
+
+    const toolbox = document.createElement('div');
+    toolbox.id = 'dns-toolbox';
+    toolbox.style.cssText = `
+        position:fixed;bottom:0;left:0;right:0;z-index:999;
+        display:flex;align-items:center;gap:4px;
+        padding:12px 12px calc(12px + var(--bottom-inset, 0px)) 12px;
+        background:var(--md-sys-color-surface-container-high);
+        box-shadow:0 -2px 12px rgba(0,0,0,0.15);
+        border-radius:16px 16px 0 0;
+    `;
+    toolbox.innerHTML = `
+        <md-icon-button id="dns-tb-back"><md-icon>arrow_back</md-icon></md-icon-button>
+        <span id="dns-tb-count" style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+        <div style="flex:1;"></div>
+        <md-text-button id="dns-tb-all" style="flex-shrink:0;">Select All</md-text-button>
+        <md-filled-button id="dns-tb-wl" style="flex-shrink:0;">Whitelist</md-filled-button>
+    `;
+    document.body.appendChild(toolbox);
+
+    const getCheckedDomains = () => {
+        if (isDomainView) {
+            return appCbs.filter(cb => cb.checked).map(cb => cb.value);
+        }
+        const result = [];
+        appCbs.forEach(appCb => {
+            const card = appCb.closest('[data-pkg]');
+            if (!card) return;
+            card.querySelectorAll('.app-domains md-checkbox').forEach(dc => {
+                if (dc.checked) result.push(dc.value);
+            });
+        });
+        return [...new Set(result)];
+    };
+
+    const updateCount = () => {
+        const n = getCheckedDomains().length;
+        toolbox.querySelector('#dns-tb-count').textContent = `${n} domain${n !== 1 ? 's' : ''} selected`;
+
+        let allSelected = false;
+        if (isDomainView) {
+            allSelected = appCbs.length > 0 && appCbs.every(cb => cb.checked);
+        } else if (listRoot) {
+            const allDomCbs = Array.from(listRoot.querySelectorAll('.app-domains md-checkbox'));
+            const allAppsChecked = appCbs.length > 0 && appCbs.every(cb => cb.checked);
+            const allShowingDomsChecked = allDomCbs.filter(dc => dc.classList.contains('show')).every(dc => dc.checked);
+            if (allDomCbs.filter(dc => dc.classList.contains('show')).length > 0) {
+                allSelected = allAppsChecked && allShowingDomsChecked;
+            } else {
+                allSelected = allAppsChecked;
+            }
+        }
+        toolbox.querySelector('#dns-tb-all').textContent = allSelected ? "Unselect All" : "Select All";
+    };
+
+    const onCountUpdate = () => updateCount();
+    document.addEventListener('dns-count-update', onCountUpdate);
+
+    if (!isDomainView && listRoot) {
+        listRoot.querySelectorAll('.app-domains md-checkbox').forEach(dc => {
+            dc.addEventListener('change', updateCount);
+        });
+    }
+
+    updateCount();
+
+    const hide = () => {
+        toolbox.remove();
+        document.removeEventListener('dns-count-update', onCountUpdate);
+        if (isDomainView) {
+            appCbs.forEach(cb => { cb.classList.remove('show'); cb.checked = false; });
+        } else {
+            appCbs.forEach(cb => { 
+                cb.classList.remove('show'); 
+                cb.checked = false; 
+                setTimeout(() => { cb.style.display = 'none'; }, 150);
+            });
+            if (listRoot) {
+                listRoot.querySelectorAll('.app-domains md-checkbox').forEach(dc => {
+                    dc.classList.remove('show'); dc.checked = false;
+                });
+            }
+        }
+    };
+
+    toolbox.querySelector('#dns-tb-back').addEventListener('click', hide);
+
+    toolbox.querySelector('#dns-tb-all').addEventListener('click', () => {
+        const allSelected = toolbox.querySelector('#dns-tb-all').textContent === "Unselect All";
+        
+        if (isDomainView) {
+            appCbs.forEach(cb => { cb.checked = !allSelected; });
+        } else if (listRoot) {
+            appCbs.forEach(cb => { cb.checked = !allSelected; });
+            listRoot.querySelectorAll('.app-domains md-checkbox').forEach(dc => { dc.checked = !allSelected; });
+        }
+        document.dispatchEvent(new CustomEvent('dns-count-update'));
+    });
+
+    toolbox.querySelector('#dns-tb-wl').addEventListener('click', () => {
+        const domains = getCheckedDomains();
+        if (domains.length === 0) {
+            showPrompt('No domains selected', false);
+            return;
+        }
+        hide();
+        exec(`sh ${modulePath}/rmlwk.sh --whitelist add ${domains.join(' ')} > /dev/null 2>&1 &`);
+        showPrompt(`Whitelisting ${domains.length} domain${domains.length > 1 ? 's' : ''}…`, true, 3000);
+        setTimeout(() => { loadFile('whitelist'); getStatus(); }, 1500);
+    });
+}

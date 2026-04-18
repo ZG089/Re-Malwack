@@ -437,6 +437,11 @@ md-dialog.input-dialog {
     overflow: clip;
 }
 
+.custom-rule-list-container {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
 .list-item {
     min-height: 64px;
     display: flex;
@@ -736,6 +741,13 @@ md-dialog.input-dialog {
     pointer-events: auto;
 }
 
+.prompt md-text-button {
+    --md-text-button-label-text-color: var(--md-sys-color-inverse-primary);
+    --md-text-button-hover-label-text-color: var(--md-sys-color-inverse-primary);
+    --md-text-button-pressed-label-text-color: var(--md-sys-color-inverse-primary);
+    --md-text-button-focus-label-text-color: var(--md-sys-color-inverse-primary);
+}
+
 .footer {
     padding: 30px;
     padding-bottom: calc(var(--bottom-inset) + 30px);
@@ -789,4 +801,24 @@ md-menu-item[selected] {
 
 [unresolved] {
     opacity: 0;
+}
+
+/* Fix switch icon visibility and color state in themes (applies to all switches) */
+md-switch {
+    --md-switch-selected-handle-color: var(--md-sys-color-on-primary);
+    --md-switch-selected-icon-color: var(--md-sys-color-primary);
+    
+    --md-switch-selected-hover-handle-color: var(--md-sys-color-on-primary);
+    --md-switch-selected-hover-icon-color: var(--md-sys-color-primary);
+    
+    --md-switch-selected-focus-handle-color: var(--md-sys-color-on-primary);
+    --md-switch-selected-focus-icon-color: var(--md-sys-color-primary);
+    
+    --md-switch-selected-pressed-handle-color: var(--md-sys-color-on-primary);
+    --md-switch-selected-pressed-icon-color: var(--md-sys-color-primary);
+
+    --md-switch-unselected-icon-color: var(--md-sys-color-on-surface-variant);
+    --md-switch-unselected-hover-icon-color: var(--md-sys-color-on-surface-variant);
+    --md-switch-unselected-focus-icon-color: var(--md-sys-color-on-surface-variant);
+    --md-switch-unselected-pressed-icon-color: var(--md-sys-color-on-surface-variant);
 }

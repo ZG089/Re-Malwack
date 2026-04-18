@@ -46,6 +46,18 @@
             </div>
         </div>
 
+        <!-- Reboot Required block -->
+        <div class="list-container info-card-container" id="reboot-required-box">
+            <div class="list-item info-card" id="reboot-card-click" style="cursor: pointer;">
+                <md-icon>restart_alt</md-icon>
+                <div id="reboot-required-text">
+                    Reboot Required
+                    <p>A recent change requires a device reboot to take effect.</p>
+                </div>
+                <md-ripple></md-ripple>
+            </div>
+        </div>
+
         <!-- Disabled block -->
         <div class="list-container info-card-container" id="disabled-box">
             <div class="list-item info-card">
@@ -123,6 +135,15 @@
                 <div class="toggle-text">Daily update hosts file</div>
                 <div class="spacer"></div>
                 <md-switch icons id="daily-update-toggle"></md-switch>
+                <md-ripple></md-ripple>
+            </label>
+
+            <!-- dns logging -->
+            <label class="list-item" id="dns-logging">
+                <md-icon>monitor_heart</md-icon>
+                <div class="toggle-text">Enable DNS logging</div>
+                <div class="spacer"></div>
+                <md-switch icons id="dns-logging-toggle"></md-switch>
                 <md-ripple></md-ripple>
             </label>
         </div>
@@ -251,7 +272,7 @@
         <div class="list-title">Sources</div>
         <div class="box" id="custom-source">
             <div class="category-container">
-                <md-outlined-text-field type="url" id="custom-source-input" label="URL" placeholder="https://example.com/hosts.txt"></md-outlined-text-field>
+                <md-outlined-text-field type="url" id="custom-source-input" label="URL" placeholder="https://example.com/hosts.txt # Optional Name"></md-outlined-text-field>
                 <md-filled-icon-button id="custom-source-add"><md-icon>note_add</md-icon></md-filled-icon-button>
             </div>
             <div class="control-list">
@@ -280,6 +301,24 @@
                 <md-icon-button class="delete"><md-icon>delete</md-icon></md-icon-button>
             </div>
             <div id="custom-rule-list" class="custom-rule-list-container"></div>
+        </div>
+
+        <!-- Logged Domains -->
+        <div class="list-title">Logged Domains</div>
+        <div class="box" id="logged-dns">
+            <div class="category-container">
+                <div class="toggle-text" style="padding-left: 10px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em;">DNS Queries</div>
+                <div class="spacer"></div>
+                <md-icon-button id="refresh-dns-logs"><md-icon>refresh</md-icon></md-icon-button>
+                <md-filled-button id="clear-dns-logs" style="--md-sys-color-primary: var(--md-sys-color-error);"><md-icon slot="icon">delete_sweep</md-icon>Clear logs</md-filled-button>
+            </div>
+            <div class="control-list">
+                <md-icon-button class="back"><md-icon>arrow_back</md-icon></md-icon-button>
+                <div class="spacer"></div>
+                <md-icon-button class="select-all"><md-icon>select_all</md-icon></md-icon-button>
+                <md-icon-button class="whitelist-btn"><md-icon>verified_user</md-icon></md-icon-button>
+            </div>
+            <div id="logged-dns-list" class="custom-rule-list-container"></div>
         </div>
 
         <!-- Export logs -->
@@ -359,6 +398,16 @@
         <div slot="actions">
             <md-outlined-button id="cancel-reset">Cancel</md-outlined-button>
             <md-filled-button id="confirm-reset">Reset</md-filled-button>
+        </div>
+        </md-dialog>
+
+        <!-- Reboot dialog -->
+        <md-dialog id="reboot-dialog">
+        <div slot="headline">Confirm Reboot?</div>
+        <div slot="content">Are you sure you want to reboot the device?</div>
+        <div slot="actions">
+            <md-outlined-button id="cancel-reboot">Cancel</md-outlined-button>
+            <md-filled-button id="confirm-reboot">Reboot</md-filled-button>
         </div>
         </md-dialog>
 
