@@ -1,6 +1,6 @@
 <div align="center">
   
-<img src="./assets/Re-Malwack.png" alt="logo" />
+<img src="./assets/Re-Malwack.gif" alt="logo" />
 </div>
 <h2 align="center">Not just a normal ad-blocker module ✨</h2>
 <div align="center">
