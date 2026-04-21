@@ -1,7 +1,9 @@
 <div align="center">
   
-<img src="./assets/Re-Malwack.gif" alt="logo" width="512" height="512"/>
+<img src="./assets/Re-Malwack.png" alt="Re-Malwack" width="512" height="512"/>
 </div>
+<h2 align="center">Not just a normal ad-blocker module ✨</h2>
+
 <div align="center">
   
 [![Module Version](https://img.shields.io/badge/Module_Version-v8.2-44cc11?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v8.2)
