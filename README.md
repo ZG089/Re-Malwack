@@ -2,7 +2,6 @@
   
 <img src="./assets/Re-Malwack.png" alt="Re-Malwack" width="512" height="512"/>
 </div>
-<h2 align="center">Not just a normal ad-blocker module ✨</h2>
 
 <div align="center">
   
