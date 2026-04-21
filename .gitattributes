@@ -1,3 +1,5 @@
 module/bin/*/* binary
 *.png binary
 *.jpg binary
+
+* text=auto eol=lf
