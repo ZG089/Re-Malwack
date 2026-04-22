@@ -27,12 +27,15 @@ jobs:
           VERSION=$(jq -r .version update.json)
           TEST_BUILD_ID="${COMMIT_HASH}@${BRANCH_NAME}"
           ZIP_NAME="Re-Malwack_${VERSION}-${TEST_BUILD_ID}"
-          COMMIT_AUTHOR_URL="https://github.com/${{ github.event.head_commit.author.username }}"
+          
           COMMIT_USERNAME="${{ github.event.head_commit.author.username }}"
-
-
+          [ -z "$COMMIT_USERNAME" ] && COMMIT_USERNAME="${{ github.actor }}"
+          
+          COMMIT_AUTHOR_URL="https://github.com/$COMMIT_USERNAME"
+          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/$(git rev-parse HEAD)"
           echo "COMMIT_USERNAME=$COMMIT_USERNAME" >> $GITHUB_ENV
           echo "COMMIT_AUTHOR_URL=$COMMIT_AUTHOR_URL" >> $GITHUB_ENV
+          echo "COMMIT_URL=$COMMIT_URL" >> $GITHUB_ENV
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "SHORT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
@@ -92,9 +95,8 @@ jobs:
 
       - name: Check Commit Info
         id: check_commit
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:'%B')
           if printf '%s\n' "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|website|site"; then
             echo "SKIP=true" >> $GITHUB_ENV
             SKIP=true
@@ -111,21 +113,31 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           THUMB: ${{ github.workspace }}/assets/dl.jpg
           COMMIT_HASH: ${{ github.sha }}
-          COMMIT_MSG_RAW: ${{ github.event.head_commit.message }}
-          COMMIT_URL: ${{ github.event.head_commit.url }}
-          COMMIT_AUTHOR: ${{ github.event.head_commit.author.username }}
-          COMMIT_AUTHOR_URL: ${{ env.COMMIT_AUTHOR_URL }}
           DISCORD_RELEASES: ${{ secrets.DISCORD_RELEASES }}
         run: |
-          COMMIT_MSG="$COMMIT_MSG_RAW"
-          CONTENT="⚙️ **New test release**\n\n$COMMIT_MSG\n\n\`Base Version: $VERSION\`\n\`Test Build ID: $TEST_BUILD_ID\`\n\nAuthor: *[$COMMIT_AUTHOR]($COMMIT_AUTHOR_URL)*\n\n[View Commit]($COMMIT_URL)\n[Workflow Run]($RUN_URL)"
+          COMMIT_MSG_RAW=$(git log -1 --pretty=format:'%B')
+          COMMIT_AUTHOR="$COMMIT_USERNAME"
+          # Escape for Telegram HTML
+          COMMIT_MSG_TG=$(printf '%s' "$COMMIT_MSG_RAW" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          
+          # Generate Discord payload using jq to safely handle quotes and newlines
+          PAYLOAD=$(jq -n \
+            --arg msg "$COMMIT_MSG_RAW" \
+            --arg ver "$VERSION" \
+            --arg tid "$TEST_BUILD_ID" \
+            --arg author "$COMMIT_AUTHOR" \
+            --arg authorUrl "$COMMIT_AUTHOR_URL" \
+            --arg commitUrl "$COMMIT_URL" \
+            --arg runUrl "$RUN_URL" \
+            '{content: "⚙️ **New test release**\n\n\($msg)\n\n`Base Version: \($ver)`\n`Test Build ID: \($tid)`\n\nAuthor: *[\($author)](\($authorUrl))*\n\n[View Commit](\($commitUrl))\n[Workflow Run](\($runUrl))"}')
+
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
               -F document=@"$ZIP_NAME.zip" \
               -F thumb=@"$THUMB" \
               -F caption="⚙️ <b>New test release!</b>
-          <pre>$COMMIT_MSG</pre>
+          <pre>$COMMIT_MSG_TG</pre>
           👤 Author: <b><a href=\"$COMMIT_AUTHOR_URL\">$COMMIT_AUTHOR</a></b>
           ⚙ Base Version: <code>${VERSION}</code>
           🧪 Test Build ID: <code>${TEST_BUILD_ID}</code>
@@ -134,4 +146,4 @@ jobs:
           <a href=\"$RUN_URL\">- Workflow Run -</a>" \
           -F parse_mode="HTML"
           curl -X POST -H "Content-Type: multipart/form-data" -F \
-            "payload_json={\"content\": \"$CONTENT\"}" -F "file=@$ZIP_NAME.zip" "$DISCORD_RELEASES"
+            "payload_json=$PAYLOAD" -F "file=@$ZIP_NAME.zip" "$DISCORD_RELEASES"
