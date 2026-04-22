@@ -54,15 +54,35 @@ pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please un
 
 # Add a persistent directory to save configuration
 ui_print "[*] Preparing Re-Malwack environment"
-persistent_dir="/data/adb/Re-Malwack"
-config_file="$persistent_dir/config.sh"
-mkdir -p "$persistent_dir"
-touch "$config_file"
+. "$MODPATH/lib/defs.sh"
+. "$MODPATH/lib/util.sh"
+rmlwk_prepare_runtime
+config_file="$persist_dir/config.sh"
+
 for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode dns_logging; do
-    grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
-    touch "$persistent_dir/blacklist.txt"
-    touch "$persistent_dir/whitelist.txt"
+    get_prop "$type" "$config_file" >/dev/null 2>&1 || set_prop "$type" "0" "$config_file"
 done
+
+touch "$persist_dir/blacklist.txt"
+touch "$persist_dir/whitelist.txt"
+touch "$persist_dir/custom_rules.txt"
+
+# Migration logic: sources.txt -> custom_source.txt
+if [ -f "$persist_dir/sources.txt" ] && [ ! -f "$persist_dir/custom_source.txt" ]; then
+    ui_print "[*] Migrating user custom sources to new format..."
+    awk '
+    /^# OFF # / { url = $4 }
+    $1 !~ /^#/ { url = $1 }
+    {
+        if (url != "") {
+            print $0 >> "'"$persist_dir"'/custom_source.txt"
+        }
+        url = ""
+    }' "$persist_dir/sources.txt"
+    ui_print "[✓] Custom sources migrated to custom_source.txt"
+fi
+
+touch "$persist_dir/custom_source.txt"
 
 detect_key_press() {
     timeout_seconds=10
@@ -105,64 +125,12 @@ detect_key_press() {
 
 # set permissions
 chmod +x $MODPATH/*.sh
-
+chmod +x $MODPATH/lib/*.sh
 
 # Initialize hosts files
 mkdir -p $MODPATH/system/etc
-rm -rf $persistent_dir/logs/* 2>/dev/null
-rm -rf $persistent_dir/cache/* 2>/dev/null
-
-
-compare_sources() {
-    awk '!/^#|^$/ {print $1}' "$1" | sort > "$persistent_dir/tmp_cmp1"
-    awk '!/^#|^$/ {print $1}' "$2" | sort > "$persistent_dir/tmp_cmp2"
-    cmp -s "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
-    res=$?
-    rm -f "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
-    return $res
-}
-
-update_profile() {
-    local prof_file="$1"
-    local dest_file="$2"
-    
-    if [ ! -s "$dest_file" ]; then
-        cp -f "$prof_file" "$dest_file"
-        return
-    fi
-    
-    awk '
-    NR==FNR {
-        if (/^# OFF # /) {
-            off_urls[$4] = 1
-        }
-        next
-    }
-    {
-        if (/^# OFF # /) {
-            url = $4
-        } else if ($1 !~ /^#/) {
-            url = $1
-            if (off_urls[url] == 1) {
-                $0 = "# OFF # " $0
-            }
-        } else {
-            url = ""
-        }
-        
-        if (url == "") {
-            print $0
-            next
-        }
-        
-        if (!seen[url]++) {
-            print $0
-        }
-    }
-    ' "$dest_file" "$prof_file" > "${dest_file}.tmp"
-    
-    mv -f "${dest_file}.tmp" "$dest_file"
-}
+rm -rf $persist_dir/logs/* 2>/dev/null
+rm -rf $persist_dir/cache/* 2>/dev/null
 
 mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 if [ -z "$mem_kb" ]; then
@@ -177,73 +145,25 @@ else
     detected_profile="aggressive"
 fi
 
-current_profile=""
-if [ -f "$config_file" ]; then
-    current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
-fi
+current_profile=$(get_prop profile "$config_file")
 
-if [ ! -s "$persistent_dir/sources.txt" ]; then
-    update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-    sed -i '/^profile=/d' "$config_file"
-    echo "profile=$detected_profile" >> "$config_file"
-    ui_print "[✓] Auto-selected profile: $detected_profile"
+if [ -z "$current_profile" ]; then
+    ui_print "[*] Auto-selected profile: $detected_profile"
+    set_prop profile "$detected_profile" "$config_file"
 else
-    if [ -z "$current_profile" ]; then
-        if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
-            update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-            grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
-            ui_print "[✓] Auto-selected profile: $detected_profile"
-        else
-            sed -i 's/^profile=.*/profile=custom/' "$config_file"
-            ui_print "[i] Customized hosts sources detected, profile has been set to custom."
-        fi
-    else
-        if [ "$current_profile" = "custom" ]; then
-            ui_print "[i] Custom profile detected, keeping hosts sources as is."
-        else
-            if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
-                update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
-                ui_print "[*] Updating hosts sources for your $current_profile profile."
-            else
-                ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
-                update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
-            fi
-        fi
-    fi
+    ui_print "[*] Current profile: $current_profile"
 fi
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
 
-awk '
-{
-    if (/^# OFF # /) {
-        url = $4
-    } else if ($1 !~ /^#/) {
-        url = $1
-    } else {
-        url = ""
-    }
-    
-    if (url == "") {
-        print $0
-        next
-    }
-    
-    if (!seen[url]++) {
-        print $0
-    }
-}' "$persistent_dir/sources.txt" > "$persistent_dir/sources.txt.tmp"
-mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
-
 if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
     # Initialize
-    . $persistent_dir/config.sh
+    . $persist_dir/config.sh
     [ "$adblock_switch" -eq 1 ] && {
         echo "[i] Detected adblock pause, auto resuming before updating hosts..."
-        mv -f "$persistent_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
-        sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
+        mv -f "$persist_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
+        set_prop adblock_switch 0 "$persist_dir/config.sh"
     }
     if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
         ui_print "[✗] Failed to initialize script"
@@ -262,7 +182,7 @@ if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
             tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
         fi
 
-        tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+        tar -czvf ${tarFileName} --exclude="$persist_dir" -C $persist_dir logs
         # cleanup in case of failure (in worst cases on first install)
         [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
         abort "[i] Logs are saved in ${tarFileName}"
@@ -275,7 +195,7 @@ else
     if [ ! -f /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
         printf "127.0.0.1 localhost\n::1 localhost" > $MODPATH/system/etc/hosts
         status_msg="Status: Awaiting reboot 🔃"
-        touch "$persistent_dir/mode_ready"
+        touch "$persist_dir/mode_ready"
     else
         ui_print "[*] migrating existing hosts file to module directory"
         mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts

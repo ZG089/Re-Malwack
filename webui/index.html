@@ -424,6 +424,20 @@
                 <md-filled-button id="confirm-edit">Save</md-filled-button>
             </div>
         </md-dialog>
+        </md-dialog>
+
+        <!-- Create Profile dialog -->
+        <md-dialog id="create-profile-dialog" class="input-dialog">
+            <div slot="headline">Create Profile</div>
+            <div slot="content" class="edit-dialog-content">
+                <md-outlined-text-field type="text" id="create-profile-name" label="Profile Name"></md-outlined-text-field>
+                <md-outlined-text-field type="text" id="create-profile-desc" label="Description (Optional)"></md-outlined-text-field>
+            </div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-create-profile">Cancel</md-outlined-button>
+                <md-filled-button id="confirm-create-profile">Create</md-filled-button>
+            </div>
+        </md-dialog>
     </div>
 
     <!-- Loading overlay -->

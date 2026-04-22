@@ -1045,29 +1045,113 @@ function setupProfile() {
     const setActiveProfile = (profileName) => {
         profileText.textContent = profileName;
         profileMenu.querySelectorAll('md-menu-item').forEach(item => item.removeAttribute('selected'));
-        profileMenu.querySelector(`md-menu-item[value="${profileName.toLowerCase()}"]`).setAttribute('selected', '');
+        const target = profileMenu.querySelector(`md-menu-item[value="${profileName.toLowerCase()}"]`);
+        if (target) target.setAttribute('selected', '');
     }
 
-    exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 | head -n 1 || echo 'default'`).then((result) => {
-        if (result.errno !== 0) return;
-        const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-        setActiveProfile(capitalize(result.stdout.trim()));
-    });
+    const loadProfiles = async () => {
+        profileMenu.innerHTML = '';
+        
+        const builtInResult = await exec(`ls ${modulePath}/profiles/ | sed 's/\\.txt$//'`);
+        const builtInProfiles = builtInResult.stdout.trim().split('\\n').filter(p => p);
+        
+        const userResult = await exec(`ls ${basePath}/profiles/ 2>/dev/null | sed 's/\\.txt$//'`);
+        const userProfiles = userResult.stdout.trim().split('\\n').filter(p => p);
 
-    profileMenu.querySelectorAll('md-menu-item').forEach(item => {
-        item.onclick = () => {
-            loadingOverlay.classList.add('show');
-            const result = spawn(`sh ${modulePath}/rmlwk.sh --profile ${item.textContent.toLowerCase()}`);
-            result.on('exit', (code) => {
-                loadingOverlay.classList.remove('show');
-                if (code !== 0 && !import.meta.env.DEV) {
-                    showPrompt(`Failed to change profile to ${item.textContent}`);
-                    return;
-                }
-                setActiveProfile(item.textContent);
-            });
+        const addMenuItem = (name, isBuiltin) => {
+            const item = document.createElement('md-menu-item');
+            item.setAttribute('value', name.toLowerCase());
+            item.innerHTML = `
+                <div slot="headline">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
+                ${!isBuiltin ? '<md-icon slot="end">person</md-icon>' : ''}
+            `;
+            item.onclick = () => {
+                loadingOverlay.classList.add('show');
+                const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--profile', name.toLowerCase()], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
+                result.on('exit', (code) => {
+                    loadingOverlay.classList.remove('show');
+                    if (code !== 0 && !import.meta.env.DEV) {
+                        showPrompt(`Failed to change profile to ${name}`);
+                        return;
+                    }
+                    setActiveProfile(name.charAt(0).toUpperCase() + name.slice(1));
+                    checkRebootRequired();
+                });
+            };
+            profileMenu.appendChild(item);
+        };
+
+        builtInProfiles.forEach(p => addMenuItem(p, true));
+        
+        if (userProfiles.length > 0) {
+            const divider = document.createElement('md-divider');
+            profileMenu.appendChild(divider);
+            userProfiles.forEach(p => addMenuItem(p, false));
         }
-    });
+
+        const divider2 = document.createElement('md-divider');
+        profileMenu.appendChild(divider2);
+        
+        const createItem = document.createElement('md-menu-item');
+        createItem.setAttribute('value', 'create_profile');
+        createItem.innerHTML = `
+            <div slot="headline">Create Profile...</div>
+            <md-icon slot="end">add</md-icon>
+        `;
+        createItem.onclick = () => {
+            document.getElementById('create-profile-dialog').show();
+        };
+        profileMenu.appendChild(createItem);
+
+        exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 | head -n 1 || echo 'default'`).then((result) => {
+            if (result.errno !== 0) return;
+            const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+            setActiveProfile(capitalize(result.stdout.trim()));
+        });
+    };
+
+    loadProfiles();
+    
+    // Setup create profile dialog if not already setup
+    if (!window.createProfileDialogSetup) {
+        window.createProfileDialogSetup = true;
+        const dialog = document.getElementById('create-profile-dialog');
+        const cancelBtn = document.getElementById('cancel-create-profile');
+        const createBtn = document.getElementById('confirm-create-profile');
+        const nameInput = document.getElementById('create-profile-name');
+        const descInput = document.getElementById('create-profile-desc');
+
+        cancelBtn.onclick = () => {
+            dialog.close();
+            nameInput.value = '';
+            descInput.value = '';
+        };
+
+        createBtn.onclick = async () => {
+            const name = nameInput.value.trim();
+            const desc = descInput.value.trim();
+            
+            if (!name || !/^[a-zA-Z0-9_-]+$/.test(name)) {
+                showPrompt("Invalid profile name. Use only alphanumeric, _, and -", false);
+                return;
+            }
+
+            dialog.close();
+            loadingOverlay.classList.add('show');
+            
+            const result = await exec(`sh ${modulePath}/rmlwk.sh --profile create "${name}" "${desc}"`, { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
+            loadingOverlay.classList.remove('show');
+            
+            if (result.errno === 0) {
+                showPrompt(`Profile ${name} created`, true);
+                loadProfiles(); // reload menu
+            } else {
+                showPrompt(`Failed to create profile: ${result.stderr || result.stdout}`, false);
+            }
+            nameInput.value = '';
+            descInput.value = '';
+        };
+    }
 }
 
 // update adblock swtich
