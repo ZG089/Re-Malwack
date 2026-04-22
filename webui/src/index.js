@@ -73,6 +73,13 @@ async function getVersion() {
     }
     versionText.textContent = `You're using a test release: ${displayHash}`;
     versionBox.classList.add('display-flex');
+
+    const testVersionCard = document.getElementById('test-version-card-click');
+    if (testVersionCard && displayHash) {
+        testVersionCard.onclick = () => {
+            copyToClipboard(displayHash, "Test Build ID has been copied into clipboard");
+        };
+    }
 }
 
 async function isZnhr() {
@@ -554,9 +561,9 @@ function handleAdd(fileType) {
     });
 }
 
-function copyToClipboard(text) {
+function copyToClipboard(text, successMsg = "Copied to clipboard") {
     navigator.clipboard.writeText(text).then(() => {
-        showPrompt("Copied to clipboard", true);
+        showPrompt(successMsg, true);
     }).catch(() => {
         showPrompt("Failed to copy to clipboard", false);
     });
