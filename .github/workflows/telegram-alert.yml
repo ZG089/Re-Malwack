@@ -13,12 +13,13 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_COMMITS_BOT }}
           CHAT_ID: -1002271023118
           THREAD_ID: 215
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
         run: |
           REPO="${{ github.repository }}"
           REPO_URL="https://github.com/${REPO}"
           PUSHER="${{ github.actor }}"
           PUSHER_URL="https://github.com/${{ github.actor }}"
-          COMMITS='${{ toJson(github.event.commits) }}'
+          COMMITS="$COMMITS_JSON"
           COUNT=$(echo "$COMMITS" | jq length)
           NL=$'\n'
           MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>${NL}${NL}"
