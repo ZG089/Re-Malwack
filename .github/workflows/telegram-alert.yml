@@ -13,17 +13,37 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_COMMITS_BOT }}
           CHAT_ID: -1002271023118
           THREAD_ID: 215
-          COMMITS_JSON: ${{ toJson(github.event.commits) }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+          BRANCH_URL: https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}
         run: |
           REPO="${{ github.repository }}"
           REPO_URL="https://github.com/${REPO}"
           PUSHER="${{ github.actor }}"
           PUSHER_URL="https://github.com/${{ github.actor }}"
-          COMMITS="$COMMITS_JSON"
+          COMMITS='${{ toJson(github.event.commits) }}'
           COUNT=$(echo "$COMMITS" | jq length)
           NL=$'\n'
-          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b>${NL}${NL}"
-   
+          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b> on <b><a href=\"${BRANCH_URL}\">${BRANCH}</a></b>${NL}${NL}"   
+          while read -r commit; do- name: Send Telegram notification
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_COMMITS_BOT }}
+          CHAT_ID: -1002271023118
+          THREAD_ID: 215
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PUSHER: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          REPO_URL="https://github.com/${REPO}"
+          PUSHER_URL="https://github.com/${PUSHER}"
+          BRANCH_URL="${REPO_URL}/tree/${BRANCH}"
+          COMMITS='${{ toJson(github.event.commits) }}'
+          COUNT=$(echo "$COMMITS" | jq length)
+          NL=$'\n'
+
+          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b> on <b><a href=\"${BRANCH_URL}\">${BRANCH}</a></b>${NL}${NL}"
+
           while read -r commit; do
             SHA_FULL=$(echo "$commit" | jq -r '.id')
             SHA_SHORT=${SHA_FULL:0:7}
@@ -37,16 +57,7 @@ jobs:
             while IFS= read -r line; do
               if echo "$line" | grep -iqE '^Co-authored-by:'; then
                 CA_NAME=$(echo "$line" | sed -E 's/^Co-authored-by:[[:space:]]*//' | sed -E 's/[[:space:]]*<.*>//')
-                CA_EMAIL=$(echo "$line" | grep -oE '<[^>]+>' | tr -d '<>')
-                GH_USER=$(echo "$CA_EMAIL" | grep -oP '(?<=\+)[^@]+(?=@users\.noreply\.github\.com)' || true)
-                if [ -z "$GH_USER" ]; then
-                  GH_USER=$(echo "$CA_EMAIL" | grep -oP '^[^@]+(?=@users\.noreply\.github\.com)' || true)
-                fi
-                if [ -n "$GH_USER" ]; then
-                  COAUTHORS="${COAUTHORS}  👥 Co-author: <a href=\"https://github.com/${GH_USER}\">${CA_NAME}</a>${NL}"
-                else
-                  COAUTHORS="${COAUTHORS}  👥 Co-author: ${CA_NAME}${NL}"
-                fi
+                COAUTHORS="${COAUTHORS}  👥 Co-author: <a href=\"https://github.com/${CA_NAME}\">${CA_NAME}</a>${NL}"
               fi
             done <<< "$MSG"
 
