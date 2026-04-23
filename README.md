@@ -3,8 +3,9 @@
 <img src="./assets/Re-Malwack.png" alt="Re-Malwack" width="512" height="512"/>
 </div>
 
+---
 <div align="center">
-  
+
 [![Module Version](https://img.shields.io/badge/Module_Version-v8.2-d51200?style=for-the-badge)](https://github.com/ZG089/Re-Malwack/releases/tag/v8.2)
 [![Download](https://img.shields.io/github/downloads/ZG089/Re-Malwack/total?style=for-the-badge&cacheSeconds=2&color=d51200)](https://github.com/ZG089/Re-Malwack/releases)
 [![Telegram Support group](https://img.shields.io/badge/Re--Malwack_Community-252850?style=for-the-badge&color=d51200&logo=telegram&logoColor=white)](https://t.me/Re_Malwack)
@@ -15,7 +16,7 @@
 ![Built with](https://img.shields.io/badge/Made_with-Love_❤-d51200?style=for-the-badge)
 </div>
 
-<b align="center"> If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family.</b>
+<b align="center"> If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family. </b>
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
