@@ -171,10 +171,9 @@ build_whitelist_regex() {
 cmd_whitelist_add() {
     for raw_input in "$@"; do
         if echo "$raw_input" | grep -qE '^https?://'; then
-            host=$(echo "$raw_input" | awk -F[/:] '{print $4}')
-        else
-            host="$raw_input"
+            raw_input=$(echo "$raw_input" | awk -F[/:] '{print $4}')
         fi
+        host="$raw_input"
 
         if ! echo "$host" | grep -qE '(\*|\.)'; then
             echo "[!] Invalid domain input: $raw_input"
@@ -236,10 +235,9 @@ cmd_whitelist_remove() {
     removed_total=""
     for raw in "$@"; do
         if echo "$raw" | grep -qE '^https?://'; then
-            host=$(echo "$raw" | awk -F[/:] '{print $4}')
-        else
-            host="$raw"
+            raw=$(echo "$raw" | awk -F[/:] '{print $4}')
         fi
+        host="$raw"
         [ -n "$host" ] || { echo "[!] Invalid input: $raw"; continue; }
 
         dom_re=$(build_whitelist_regex "$host")
@@ -320,10 +318,9 @@ cmd_blacklist() {
     if [ "$option" = "add" ]; then
         raw_input="$1"
         if echo "$raw_input" | grep -qE '^https?://'; then
-            domain=$(echo "$raw_input" | awk -F[/:] '{print $4}')
-        else
-            domain="$raw_input"
+            raw_input=$(echo "$raw_input" | awk -F[/:] '{print $4}')
         fi
+        domain="$raw_input"
 
         if ! echo "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
             echo "[!] Invalid domain: $domain"
@@ -350,10 +347,9 @@ cmd_blacklist() {
         failed_removals=""
         for domain_to_remove in "$@"; do
             if echo "$domain_to_remove" | grep -qE '^https?://'; then
-                domain=$(echo "$domain_to_remove" | awk -F[/:] '{print $4}')
-            else
-                domain="$domain_to_remove"
+                domain_to_remove=$(echo "$domain_to_remove" | awk -F[/:] '{print $4}')
             fi
+            domain="$domain_to_remove"
 
             echo "[*] Removing $domain from blacklist..."
             log_message "Removing $domain from blacklist..."
@@ -530,6 +526,9 @@ cmd_custom_rule() {
         [ $# -ge 2 ] || { echo "[!] Incomplete input."; exit 1; }
         ip="$1"
         domain="$2"
+        if echo "$domain" | grep -qE '^https?://'; then
+            domain=$(echo "$domain" | awk -F[/:] '{print $4}')
+        fi
         if ! echo "$ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$'; then
             echo "[!] Invalid IP format: $ip"
             exit 1
@@ -550,6 +549,9 @@ cmd_custom_rule() {
         total_removed=0
         failed_removals=""
         for domain_to_remove in "$@"; do
+            if echo "$domain_to_remove" | grep -qE '^https?://'; then
+                domain_to_remove=$(echo "$domain_to_remove" | awk -F[/:] '{print $4}')
+            fi
             if grep -qw "$domain_to_remove" "$persist_dir/custom_rules.txt"; then
                 remove_entry "$domain_to_remove" "$persist_dir/custom_rules.txt" 2
                 tmp_hosts_file="$persist_dir/tmp.hosts.$$"

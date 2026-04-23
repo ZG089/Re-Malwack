@@ -44,7 +44,7 @@ bindhosts_import() {
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
             sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$dest_sources" 2>/dev/null || echo 0)
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$dest_sources" 2>/dev/null || true)
             bindhosts_import_helper whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom replace && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
@@ -52,7 +52,7 @@ bindhosts_import() {
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" 2>/dev/null || echo 0)
+            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" 2>/dev/null || true)
             bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom merge && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")

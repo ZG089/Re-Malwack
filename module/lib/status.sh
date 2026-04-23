@@ -27,12 +27,12 @@ identify_enabled_blocklists() {
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -c "0.0.0.0" "$hosts_file" 2>/dev/null || echo "0")
-    blocked_sys=$(grep -c "0.0.0.0" "$system_hosts" 2>/dev/null || echo "0")
-    custom_entries=$(count_entries "$persist_dir/custom_rules.txt")
-    echo "$blocked_sys" > "$persist_dir/counts/blocked_sys.count"
-    echo "$blocked_mod" > "$persist_dir/counts/blocked_mod.count"
-    echo "$custom_entries" > "$persist_dir/counts/custom_entries.count"
+    blocked_mod=$(count_entries $hosts_file)
+    blocked_sys=$(count_entries $system_hosts)
+    custom_entries=$(count_entries $persist_dir/custom_rules.txt)
+    echo $blocked_sys > "$persist_dir/counts/blocked_sys.count"
+    echo $blocked_mod > "$persist_dir/counts/blocked_mod.count"
+    echo $custom_entries > "$persist_dir/counts/custom_entries.count"
     log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries, Custom rules: $custom_entries"
 }
 
@@ -68,11 +68,11 @@ update_status() {
     log_message INFO "Updating module status"
 
     last_mod=$(stat -c '%y' "$hosts_file" 2>/dev/null | cut -d'.' -f1)
-    blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null || echo 0)
-    blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null || echo 0)
-    blacklist_count=$(count_entries "$persist_dir/blacklist.txt")
-    whitelist_count=$(count_entries "$persist_dir/whitelist.txt")
-    custom_entries=$(count_entries "$persist_dir/custom_rules.txt")
+    blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null || true)
+    blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null || true)
+    blacklist_count=$(count_entries $persist_dir/blacklist.txt)
+    whitelist_count=$(count_entries $persist_dir/whitelist.txt)
+    custom_entries=$(count_entries $persist_dir/custom_rules.txt)
 
     log_message "Last hosts file update was in: $last_mod"
     log_message "Blacklist entries count: $blacklist_count"
@@ -123,14 +123,10 @@ update_status() {
             status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status}"
         fi
     elif [ "$blocked_mod" -ge 0 ]; then
-        system_hosts_lines=$(wc -l < "$system_hosts" 2>/dev/null || echo 0)
-        module_hosts_lines=$(wc -l < "$hosts_file" 2>/dev/null || echo 0)
-        if [ "$module_hosts_lines" -ne "$system_hosts_lines" ] && [ "$is_znhr_detected" -ne 1 ]; then
+        if [ "$blocked_mod" -ne "$blocked_sys" ] && [ "$is_znhr_detected" -ne 1 ]; then
             remount_hosts
             refresh_blocked_counts
-            system_hosts_lines=$(wc -l < "$system_hosts" 2>/dev/null || echo 0)
-            module_hosts_lines=$(wc -l < "$hosts_file" 2>/dev/null || echo 0)
-            if [ "$module_hosts_lines" -ne "$system_hosts_lines" ]; then
+            if [ "$blocked_mod" -ne "$blocked_sys" ]; then
                 status_msg="Status: ❌ Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Critical Error Detected (Hosts Mount Failure). Please check your root manager settings and disable any conflicted module(s)."
                 echo "[!!!] Module hosts blocks $blocked_mod domains, System hosts blocks $blocked_sys domains."

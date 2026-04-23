@@ -70,7 +70,9 @@ remove_entry() {
 count_entries() {
     file="$1"
     [ -f "$file" ] || { echo 0; return 0; }
-    grep -c '^[^#[:space:]]' "$file" 2>/dev/null || echo 0
+    local count
+    count=$(grep -c '^[^#[:space:]]' "$file" 2>/dev/null || true)
+    echo "${count:-0}"
 }
 
 list_source_urls_from_file() {
