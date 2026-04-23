@@ -14,23 +14,6 @@ jobs:
           CHAT_ID: -1002271023118
           THREAD_ID: 215
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ github.ref_name }}
-          BRANCH_URL: https://github.com/${{ github.repository }}/tree/${{ github.ref_name }}
-        run: |
-          REPO="${{ github.repository }}"
-          REPO_URL="https://github.com/${REPO}"
-          PUSHER="${{ github.actor }}"
-          PUSHER_URL="https://github.com/${{ github.actor }}"
-          COMMITS='${{ toJson(github.event.commits) }}'
-          COUNT=$(echo "$COMMITS" | jq length)
-          NL=$'\n'
-          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b> on <b><a href=\"${BRANCH_URL}\">${BRANCH}</a></b>${NL}${NL}"   
-          while read -r commit; do- name: Send Telegram notification
-        env:
-          BOT_TOKEN: ${{ secrets.TELEGRAM_COMMITS_BOT }}
-          CHAT_ID: -1002271023118
-          THREAD_ID: 215
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
