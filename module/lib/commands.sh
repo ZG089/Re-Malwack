@@ -679,6 +679,7 @@ cmd_update_hosts() {
                     echo "${host_url}|${entries_count}" >> "$persist_dir/counts/sources.counts"
                     log_message SUCCESS "Downloaded $entries_count entries from $host_url"
                 fi
+                ensure_trailing_newline "$combined_file"
                 cat "${tmp_hosts}${i}" >> "$combined_file"
             fi
         ) &
@@ -710,6 +711,7 @@ cmd_update_hosts() {
             fi
         done
         echo "${bl}|${bl_count}" >> "$persist_dir/counts/blocklists.counts"
+        ensure_trailing_newline "$combined_file"
         cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
         echo "[✓] Fetched $bl blocklist"
         log_message "Added $bl ($bl_count) hosts entries to combined hosts"

@@ -70,6 +70,7 @@ install_hosts() {
 
     if [ -f "$combined_file" ]; then
         log_message "Detected unified hosts, sorting..."
+        ensure_trailing_newline "$combined_file"
         cat "${tmp_hosts}0" >> "$combined_file"
         awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
     else
