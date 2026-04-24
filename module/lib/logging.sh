@@ -16,8 +16,9 @@ log_message() {
             ;;
     esac
 
+    script="${CURRENT_SCRIPT:-rmlwk.sh}"
     msg="$*"
-    line="[$(timestamp)] - [$level] - $msg"
+    line="[$(timestamp)] - [$level] - $script: $msg"
     echo "$line" >> "$LOGFILE"
 }
 
@@ -40,16 +41,20 @@ rmlwk_banner() {
 }
 
 export_logs() {
+    CURRENT_SCRIPT="logging.sh"; CURRENT_FUNC="export_logs"
     log_message "Exporting logs..."
     VERSION=$(get_prop version "$MODDIR/module.prop")
     LOG_DATE="$(date +%Y-%m-%d__%H%M%S)"
 
-    if echo "$VERSION" | grep -q "\-test.*#[0-9]*-[a-f0-9]*"; then
-        base_version=$(echo "$VERSION" | sed 's/-test.*//')
-        build_id=$(echo "$VERSION" | sed 's/.*#\([0-9]*-[a-f0-9]*\).*/\1/')
-        tarFileName="Re-Malwack_${base_version}_${build_id}_logs_${LOG_DATE}.tar.gz"
+    # Strip any -test suffix for the filename
+    clean_version=$(echo "$VERSION" | sed 's/-test.*//')
+
+    # Check if there is a build id (-test_hash@branch)
+    if echo "$VERSION" | grep -q "\-test_"; then
+        build_id=$(echo "$VERSION" | sed 's/.*-test_\(.*\)/\1/')
+        tarFileName="Re-Malwack_${clean_version}_${build_id}_logs_${LOG_DATE}.tgz"
     else
-        tarFileName="Re-Malwack_${VERSION}_logs_${LOG_DATE}.tar.gz"
+        tarFileName="Re-Malwack_${clean_version}_logs_${LOG_DATE}.tgz"
     fi
 
     log_message SUCCESS "Logs are going to be saved in: /sdcard/Download/$tarFileName"

@@ -25,7 +25,7 @@ get_prop() {
     key="$1"
     file="$2"
     [ -f "$file" ] || return 1
-    grep -m 1 "^${key}=" "$file" 2>/dev/null | cut -d= -f2-
+    grep -m 1 "^${key}=" "$file" 2>/dev/null | cut -d= -f2- | tr -d '\r'
 }
 
 set_prop() {
@@ -118,8 +118,8 @@ resolve_profile_file() {
 }
 
 get_current_time() {
-    time_ns=$(date +%s%N 2>/dev/null)
-    if [ $? -ne 0 ] || [ "$time_ns" = "%s%N" ]; then
+    time_ns=$(date +%s%N 2>/dev/null || echo "FAILED")
+    if [ "$time_ns" = "FAILED" ] || [ "$time_ns" = "%s%N" ] || [ -z "$time_ns" ]; then
         time_ms=$(($(date +%s) * 1000))
     else
         time_ms=$((time_ns / 1000000))

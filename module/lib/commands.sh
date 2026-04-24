@@ -2,6 +2,7 @@
 RMLWK_LIB_COMMANDS=1
 
 cmd_profile() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_profile"
     action="$1"
     
     if [ -z "$action" ]; then
@@ -112,6 +113,7 @@ cmd_profile() {
 }
 
 cmd_reset() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_reset"
     start_time=$(get_current_time)
     is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     is_default_hosts && abort "Hosts has been already reset."
@@ -169,6 +171,7 @@ build_whitelist_regex() {
 }
 
 cmd_whitelist_add() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_whitelist_add"
     for raw_input in "$@"; do
         if echo "$raw_input" | grep -qE '^https?://'; then
             raw_input=$(echo "$raw_input" | awk -F[/:] '{print $4}')
@@ -229,6 +232,7 @@ cmd_whitelist_add() {
 }
 
 cmd_whitelist_remove() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_whitelist_remove"
     shift 2
     [ $# -ge 1 ] || { echo "[!] No domains/patterns provided to remove."; exit 1; }
 
@@ -266,6 +270,7 @@ cmd_whitelist_remove() {
 }
 
 cmd_whitelist() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_whitelist"
     start_time=$(get_current_time)
     is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     is_default_hosts && abort "You cannot whitelist links while hosts is reset."
@@ -297,6 +302,7 @@ cmd_whitelist() {
 }
 
 cmd_blacklist() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_blacklist"
     start_time=$(get_current_time)
     is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     option="$2"
@@ -379,6 +385,7 @@ cmd_blacklist() {
 }
 
 cmd_custom_source() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_custom_source"
     option="$2"
     shift 2
     if [ -z "$option" ] || [ $# -eq 0 ]; then
@@ -499,6 +506,7 @@ cmd_custom_source() {
 }
 
 cmd_custom_rule() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_custom_rule"
     start_time=$(get_current_time)
     is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     option="$2"
@@ -576,6 +584,7 @@ cmd_custom_rule() {
 }
 
 cmd_toggle_blocklist() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_toggle_blocklist"
     is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
     start_time=$(get_current_time)
     case "$1" in
@@ -622,6 +631,7 @@ cmd_toggle_blocklist() {
 }
 
 cmd_update_hosts() {
+    CURRENT_SCRIPT="commands.sh"; CURRENT_FUNC="cmd_update_hosts"
     start_time=$(get_current_time)
     current_profile=$(get_prop profile "$persist_dir/config.sh" || echo "default")
     profile_file=$(resolve_profile_file "$current_profile")

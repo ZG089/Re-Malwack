@@ -2,6 +2,7 @@
 RMLWK_LIB_HOSTS=1
 
 host_process() {
+    CURRENT_SCRIPT="hosts.sh"; CURRENT_FUNC="host_process"
     local file="$1"
     echo "$file" | tr '[:upper:]' '[:lower:]' | grep -q "whitelist" && return 0
     log_message "Filtering $file..."
@@ -9,6 +10,7 @@ host_process() {
 }
 
 apply_custom_rules() {
+    CURRENT_SCRIPT="hosts.sh"; CURRENT_FUNC="apply_custom_rules"
     if [ -s "$persist_dir/custom_rules.txt" ]; then
         log_message "Re-Applying custom rules..."
         echo "[*] Re-Applying custom rules..."
@@ -28,6 +30,7 @@ stage_blocklist_files() {
 }
 
 install_hosts() {
+    CURRENT_SCRIPT="hosts.sh"; CURRENT_FUNC="install_hosts"
     type="$1"
     local start_time
     start_time=$(get_current_time)
@@ -95,6 +98,7 @@ install_hosts() {
 }
 
 remove_hosts() {
+    CURRENT_SCRIPT="hosts.sh"; CURRENT_FUNC="remove_hosts"
     local start_time
     start_time=$(get_current_time)
     log_message "Starting to remove hosts."
@@ -119,6 +123,7 @@ remove_hosts() {
 }
 
 query_domain() {
+    CURRENT_SCRIPT="hosts.sh"; CURRENT_FUNC="query_domain"
     local domain="$1"
 
     if [ -z "$domain" ]; then

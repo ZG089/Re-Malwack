@@ -21,6 +21,7 @@ rmlwk_source_config() {
 }
 
 rmlwk_prepare_runtime() {
+    CURRENT_SCRIPT="defs.sh"; CURRENT_FUNC="rmlwk_prepare_runtime"
     mkdir -p "$persist_dir" "$persist_dir/logs"
     rmlwk_source_config
     version=$(get_prop version "$MODDIR/module.prop")
@@ -28,6 +29,7 @@ rmlwk_prepare_runtime() {
 }
 
 rmlwk_detect_hosts_target() {
+    CURRENT_SCRIPT="defs.sh"; CURRENT_FUNC="rmlwk_detect_hosts_target"
     if [ -d "$znhr" ] && [ ! -f "$znhr/disable" ] && [ ! -f "$znhr/remove" ]; then
         is_znhr_detected=1
         hosts_file="/data/adb/hostsredirect/hosts"
@@ -53,15 +55,25 @@ rmlwk_setup_error_trap() {
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
 
+script="${CURRENT_SCRIPT:-rmlwk.sh}"
+func_ctx=""
+[ -n "$CURRENT_FUNC" ] && func_ctx=" in $CURRENT_FUNC"
+
 case $exit_code in
-    0)   msg="Script ran successfully ✅ - No errors" ;;
-    1)   msg="General error at line $LINENO ❌" ;;
-    126) msg="Command at line $LINENO invoked cannot execute ❌" ;;
-    127) msg="Command at line $LINENO not found ❌" ;;
-    137) msg="Killed (SIGKILL / OOM) ❌" ;;
-    *)   msg="Unknown error at line $LINENO ❌ (code $exit_code)" ;;
+    0)   msg="Script ran successfully ✅ - No errors" ; level="SUCCESS" ;;
+    1)   msg="General error at line $LINENO${func_ctx} ❌" ; level="ERROR" ;;
+    126) msg="Cannot execute command at line $LINENO${func_ctx} ❌" ; level="ERROR" ;;
+    127) msg="Command not found at line $LINENO${func_ctx} ❌" ; level="ERROR" ;;
+    137) msg="Killed (SIGKILL / OOM) ❌" ; level="ERROR" ;;
+    *)   msg="Unknown error (code $exit_code) at line $LINENO${func_ctx} ❌" ; level="ERROR" ;;
 esac
 
-echo "[$timestamp] - [$msg]" >> "$LOGFILE"
+echo "[$timestamp] - [$level] - $script: $msg" >> "$LOGFILE"
+
+if [ "$exit_code" -ne 0 ] && [ "$quiet_mode" -eq 0 ]; then
+    echo "[!] Script aborted unexpectedly."
+    echo "[!] $msg"
+    echo "[i] Please export logs to share with developer"
+fi
 ' EXIT
 }

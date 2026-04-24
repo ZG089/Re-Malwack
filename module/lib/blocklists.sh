@@ -2,6 +2,7 @@
 RMLWK_LIB_BLOCKLISTS=1
 
 block_content() {
+    CURRENT_SCRIPT="blocklists.sh"; CURRENT_FUNC="block_content"
     block_type=$1
     status=$2
     cache_hosts="$persist_dir/cache/$block_type/hosts"
@@ -50,6 +51,7 @@ block_content() {
 }
 
 block_trackers() {
+    CURRENT_SCRIPT="blocklists.sh"; CURRENT_FUNC="block_trackers"
     local start_time
     start_time=$(get_current_time)
     status=$1

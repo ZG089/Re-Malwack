@@ -2,6 +2,7 @@
 RMLWK_LIB_FETCH=1
 
 check_internet() {
+    CURRENT_SCRIPT="fetch.sh"; CURRENT_FUNC="check_internet"
     retry_count=0
     max_retries=6
     while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do
@@ -16,6 +17,7 @@ check_internet() {
 }
 
 fetch() {
+    CURRENT_SCRIPT="fetch.sh"; CURRENT_FUNC="fetch"
     local start_time
     start_time=$(get_current_time)
     local output_file="$1"
@@ -49,6 +51,7 @@ fetch() {
 }
 
 fetch_blocklist() {
+    CURRENT_SCRIPT="fetch.sh"; CURRENT_FUNC="fetch_blocklist"
     bl="$1"
     cache_hosts="$persist_dir/cache/$bl/hosts"
 

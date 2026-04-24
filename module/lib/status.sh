@@ -1,7 +1,25 @@
 [ "${RMLWK_LIB_STATUS:-0}" -eq 1 ] && return 0
 RMLWK_LIB_STATUS=1
 
+refresh_blocked_counts() {
+    CURRENT_SCRIPT="status.sh"; CURRENT_FUNC="refresh_blocked_counts"
+    mkdir -p "$persist_dir/counts"
+    log_message INFO "Refreshing blocked entries counts"
+    blocked_mod=$(count_entries $hosts_file)
+    blocked_sys=$(count_entries $system_hosts)
+    custom_entries=$(count_entries $persist_dir/custom_rules.txt)
+    echo $blocked_sys > "$persist_dir/counts/blocked_sys.count"
+    echo $blocked_mod > "$persist_dir/counts/blocked_mod.count"
+    echo $custom_entries > "$persist_dir/counts/custom_entries.count"
+    log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries, Custom rules: $custom_entries"
+}
+
 is_default_hosts() {
+    # Ensure counts are available even if refresh_blocked_counts hasn't run yet
+    [ -n "$blocked_mod" ] || blocked_mod=$(cat "$persist_dir/counts/blocked_mod.count" 2>/dev/null || count_entries $hosts_file)
+    [ -n "$blocked_sys" ] || blocked_sys=$(cat "$persist_dir/counts/blocked_sys.count" 2>/dev/null || count_entries $system_hosts)
+    [ -n "$blacklist_count" ] || blacklist_count=$(count_entries "$persist_dir/blacklist.txt")
+
     [ "$blocked_mod" -eq 0 ] && [ "$blocked_sys" -eq 0 ] \
     || { [ "$blocked_mod" -eq "$blacklist_count" ] && [ "$blocked_sys" -eq "$blacklist_count" ]; }
 }
@@ -24,19 +42,9 @@ identify_enabled_blocklists() {
     done
 }
 
-refresh_blocked_counts() {
-    mkdir -p "$persist_dir/counts"
-    log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(count_entries $hosts_file)
-    blocked_sys=$(count_entries $system_hosts)
-    custom_entries=$(count_entries $persist_dir/custom_rules.txt)
-    echo $blocked_sys > "$persist_dir/counts/blocked_sys.count"
-    echo $blocked_mod > "$persist_dir/counts/blocked_mod.count"
-    echo $custom_entries > "$persist_dir/counts/custom_entries.count"
-    log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries, Custom rules: $custom_entries"
-}
 
 remount_hosts() {
+    CURRENT_SCRIPT="status.sh"; CURRENT_FUNC="remount_hosts"
     if [ "$is_znhr_detected" -eq 1 ]; then
         log_message "zn-hostsredirect detected, skipping mount operation"
         return 0
@@ -58,6 +66,7 @@ remount_hosts() {
 }
 
 update_status() {
+    CURRENT_SCRIPT="status.sh"; CURRENT_FUNC="update_status"
     local start_time
     start_time=$(get_current_time)
     status_msg=""

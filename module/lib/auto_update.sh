@@ -19,6 +19,7 @@ cron_cmd() {
 }
 
 auto_update_fallback() {
+    CURRENT_SCRIPT="auto_update.sh"; CURRENT_FUNC="auto_update_fallback"
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
     cat > "$FALLBACK_SCRIPT" << 'EOF'
 #!/system/bin/sh
@@ -52,6 +53,7 @@ EOF
 }
 
 enable_auto_update() {
+    CURRENT_SCRIPT="auto_update.sh"; CURRENT_FUNC="enable_auto_update"
     JOB_DIR="$persist_dir/auto_update"
     JOB_FILE="$JOB_DIR/root"
     CRON_JOB='0 */12 * * * ( sh /data/adb/modules/Re-Malwack/rmlwk.sh --update-hosts --quiet 2>&1 || echo "Auto-update failed at $(date)" ) >> /data/adb/Re-Malwack/logs/auto_update-cron.log'
@@ -105,6 +107,7 @@ enable_auto_update() {
 }
 
 disable_auto_update() {
+    CURRENT_SCRIPT="auto_update.sh"; CURRENT_FUNC="disable_auto_update"
     JOB_DIR="$persist_dir/auto_update"
     FALLBACK_SCRIPT="$persist_dir/auto_update_fallback.sh"
     PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH

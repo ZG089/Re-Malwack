@@ -2,6 +2,7 @@
 RMLWK_LIB_PROTECTION=1
 
 pause_protections() {
+    CURRENT_SCRIPT="protection.sh"; CURRENT_FUNC="pause_protections"
     if is_protection_paused; then
         resume_protections
         exit 0
@@ -28,6 +29,7 @@ pause_protections() {
 }
 
 resume_protections() {
+    CURRENT_SCRIPT="protection.sh"; CURRENT_FUNC="resume_protections"
     local start_time
     start_time=$(get_current_time)
     log_message "Resuming protection."
