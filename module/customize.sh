@@ -78,7 +78,8 @@ if [ -f "$persist_dir/sources.txt" ] && [ ! -f "$persist_dir/custom_source.txt" 
             print $0 >> "'"$persist_dir"'/custom_source.txt"
         }
         url = ""
-    }' "$persist_dir/sources.txt"
+    }'"$persist_dir/sources.txt"
+    
     ui_print "[✓] Custom sources migrated to custom_source.txt"
 fi
 
@@ -167,22 +168,20 @@ if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
     }
     if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
         ui_print "[✗] Failed to initialize script"
-        # Extract version from module.prop
-        module_version=$(grep_prop version $MODPATH/module.prop)
+        module_version=$(grep_prop version $MODPATH/module.prop | tr -d '\r')
 
-        # Check if it's a test release and extract PR/commit info
-        if echo "$module_version" | grep -q "\-test.*(.*@.*)"; then
-            # Extract base version commit hash & branch (ex: 5ex77xx@main) from version string
-            base_version=$(echo "$module_version" | sed 's/-test.*//')
-            build_id=$(echo "$module_version" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
-            tarFileName="/sdcard/Download/Re-Malwack_${base_version}-${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+        # Strip any -test suffix for the filename
+        clean_version=$(echo "$module_version" | sed 's/-test.*//')
+
+        # Check if there is a build id (-test_hash@branch)
+        if echo "$module_version" | grep -q "\-test_"; then
+            build_id=$(echo "$module_version" | sed 's/.*-test_\(.*\)/\1/')
+            tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tgz"
         else
-            # Regular release version
-            clean_version=$(echo "$module_version" | sed 's/\//_/g')
-            tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+            tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tgz"
         fi
 
-        tar -czvf ${tarFileName} --exclude="$persist_dir" -C $persist_dir logs
+        tar -czf "$tarFileName" -C "$persist_dir" logs
         # cleanup in case of failure (in worst cases on first install)
         [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
         abort "[i] Logs are saved in ${tarFileName}"
