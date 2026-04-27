@@ -191,8 +191,8 @@
 
 ### 4 - Acknowledgment
 
-- [jqlang/jq](https://github.com/jqlang/jq) - Command-line JSON processor 
-
+- [jqlang/jq](https://github.com/jqlang/jq) - Command-line JSON processor
+- [iqiyi/xHook](https://github.com/iqiyi/xHook) - A PLT hook library for Android native ELF
 
 ## Donations
 As an 11th-grade student who have to study almost all the time, and at the same time taking care of projects like this, your support would mean the world to me. If you find this module useful, please consider making a small donation using the button below, this will make a difference in my life 😁❤️
