@@ -2,16 +2,16 @@ name: build
 
 on:
   push:
-    branches-ignore:
-      - 'hosts-update'
     paths:
       - '.github/workflows/build.yml'
       - 'module/**'
+      - 'webui/**'
       - 'update.json'
   workflow_dispatch:
 
 jobs:
   release:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -93,21 +93,8 @@ jobs:
           zip -r "../$ZIP_NAME.zip" ./*
           cd ..
 
-      - name: Check Commit Info
-        id: check_commit
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=format:'%B')
-          if printf '%s\n' "$COMMIT_MSG" | head -n1 | grep -qiE "release|version|readme|website|site"; then
-            echo "SKIP=true" >> $GITHUB_ENV
-            SKIP=true
-          else
-            echo "SKIP=false" >> $GITHUB_ENV
-            SKIP=false
-          fi
-          echo "SKIP_RELEASE: $SKIP"
-
       - name: Send Release
-        if: env.SKIP == 'false'
+        if: true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
