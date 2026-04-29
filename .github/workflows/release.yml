@@ -138,7 +138,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add module/module.prop update.json README.md
-          git commit -m "module_release: bump version to ${VERSION} [skip ci]
+          git commit -m "module_release: bump version to ${VERSION} [skip build]
 
           Co-authored-by: ZG089 <159061718+ZG089@users.noreply.github.com>"
           git push
