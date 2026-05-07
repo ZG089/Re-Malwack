@@ -3,6 +3,7 @@
 # Thinking that will push adblocking to max, but it only causes conflicts and issues 😭
 for module in /data/adb/modules/*; do
     module_id="$(grep_prop id "${module}/module.prop")"
+    [ -z "$module_id" ] && continue
     [ "$module_id" == "Re-Malwack" ] && continue
     if [ -f "${module}/system/etc/hosts" ]; then
         [ -f "/data/adb/modules/$module_id/disable" ] && continue
