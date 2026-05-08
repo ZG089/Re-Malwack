@@ -30,13 +30,6 @@
                         Profile: 
                         <div id="profile-text">Default</div>
                     </div>
-                    <md-menu id="profile-menu" anchor="profile">
-                        <md-menu-item selected value="default">Default</md-menu-item>
-                        <md-menu-item value="lite">Lite</md-menu-item>
-                        <md-menu-item value="balanced">Balanced</md-menu-item>
-                        <md-menu-item value="aggressive">Aggressive</md-menu-item>
-                        <md-menu-item value="custom">Custom</md-menu-item>
-                    </md-menu>
                 </span>
                 <div class="spacer"></div>
                 <span class="menu">
@@ -347,6 +340,45 @@
 
     <!-- Dialog -->
     <div class="dialog-wrapper" unresolved>
+        <!-- Profile Dialog -->
+        <md-dialog id="profile-dialog" class="profile-dialog-custom">
+            <div slot="headline">Select Profile</div>
+            <div slot="content" class="profile-dialog-content">
+                <div id="profile-list-container" class="profile-list-container" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- profiles rendered here -->
+                </div>
+                <div class="expandable-create-profile" id="expandable-create-profile" style="display: none; flex-direction: column; gap: 12px; margin-top: 16px;">
+                    <md-outlined-text-field id="new-profile-name" label="Profile Name"></md-outlined-text-field>
+                    <md-outlined-text-field id="new-profile-desc" label="Description (Optional)"></md-outlined-text-field>
+                    <md-outlined-select id="base-profile-select" label="Base Profile">
+                    </md-outlined-select>
+                    <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                        <md-circular-progress id="create-profile-spinner" indeterminate style="display: none; --md-circular-progress-size: 24px;"></md-circular-progress>
+                        <md-filled-button id="submit-new-profile">
+                            <md-icon slot="icon">add</md-icon>Create
+                        </md-filled-button>
+                    </div>
+                </div>
+            </div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-profile-dialog">Cancel</md-outlined-button>
+                <md-filled-button id="add-profile-btn">New Profile</md-filled-button>
+            </div>
+        </md-dialog>
+
+        <!-- Edit Profile Dialog -->
+        <md-dialog id="edit-profile-dialog">
+            <div slot="headline">Edit Profile</div>
+            <div slot="content" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+                <md-outlined-text-field id="edit-profile-name" label="Profile Name"></md-outlined-text-field>
+                <md-outlined-text-field id="edit-profile-desc" label="Description (Optional)"></md-outlined-text-field>
+            </div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-edit-profile">Cancel</md-outlined-button>
+                <md-filled-button id="confirm-edit-profile">Save</md-filled-button>
+            </div>
+        </md-dialog>
+
         <!-- About Dialog -->
         <md-dialog id="about-dialog">
         <div slot="content" class="about-content">
