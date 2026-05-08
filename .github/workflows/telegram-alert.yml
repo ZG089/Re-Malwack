@@ -17,11 +17,12 @@ jobs:
           REPO: ${{ github.repository }}
           PUSHER: ${{ github.actor }}
           BRANCH: ${{ github.ref_name }}
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
         run: |
           REPO_URL="https://github.com/${REPO}"
           PUSHER_URL="https://github.com/${PUSHER}"
           BRANCH_URL="${REPO_URL}/tree/${BRANCH}"
-          COMMITS='${{ toJson(github.event.commits) }}'
+          COMMITS="$COMMITS_JSON"
           COUNT=$(echo "$COMMITS" | jq length)
           NL=$'\n'
 
