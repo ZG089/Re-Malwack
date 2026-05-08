@@ -360,7 +360,7 @@ static void xh_core_refresh_impl()
             prev_offset = offset;
             prev_base_addr = base_addr;
             memcpy(prev_perm, perm, sizeof(prev_perm));
-            strcpy(prev_pathname, pathname);
+            snprintf(prev_pathname, sizeof(prev_pathname), "%s", pathname);
             continue;
         }
 
