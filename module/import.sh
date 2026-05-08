@@ -45,7 +45,7 @@ bindhosts_import() {
             echo " " > "$dest_sources"
             sources_to_add=$(grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
             echo "$sources_to_add" > "$dest_sources"
-            sources_count=$(echo "$sources_to_add" | grep -vc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
+            sources_count=$(echo "$sources_to_add" | grep -Evc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
             bindhosts_import_helper whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom replace && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
@@ -53,7 +53,7 @@ bindhosts_import() {
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
             sources_to_add=$(grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
-            sources_count=$(echo "$sources_to_add" | grep -vc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
+            sources_count=$(echo "$sources_to_add" | grep -Evc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
             echo "$sources_to_add" >> "$dest_sources"
             bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
@@ -67,8 +67,9 @@ bindhosts_import() {
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries, $custom_count custom rules."
     
     # Create profile
-    cp -f "$dest_sources" "$MODDIR/profiles/bindhosts.txt"
-    sed -i '1i# DESC: Imported setup from bindhosts' "$MODDIR/profiles/bindhosts.txt"
+    mkdir -p "$persistent_dir/profiles"
+    cp -f "$dest_sources" "$persistent_dir/profiles/bindhosts.txt"
+    sed -i '1i# DESC: Imported setup from bindhosts' "$persistent_dir/profiles/bindhosts.txt"
     ui_print "[i] Created 'bindhosts' profile from imported setup."
 }
 
@@ -145,8 +146,9 @@ EOF
     ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
     
     # Create profile
-    cp -f "$src_file" "$MODDIR/profiles/cubic-adblock.txt"
-    sed -i '1i# DESC: Imported setup from cubic-adblock' "$MODDIR/profiles/cubic-adblock.txt"
+    mkdir -p "$persistent_dir/profiles"
+    cp -f "$src_file" "$persistent_dir/profiles/cubic-adblock.txt"
+    sed -i '1i# DESC: Imported setup from cubic-adblock' "$persistent_dir/profiles/cubic-adblock.txt"
     ui_print "[i] Created 'cubic-adblock' profile from imported setup."
 }
 
@@ -221,8 +223,9 @@ import_adaway_data() {
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
 
     # Create profile
-    cp -f "$src_file" "$MODDIR/profiles/AdAway.txt"
-    sed -i '1i# DESC: Imported setup from AdAway backup' "$MODDIR/profiles/AdAway.txt"
+    mkdir -p "$persistent_dir/profiles"
+    cp -f "$src_file" "$persistent_dir/profiles/AdAway.txt"
+    sed -i '1i# DESC: Imported setup from AdAway backup' "$persistent_dir/profiles/AdAway.txt"
     ui_print "[i] Created 'AdAway' profile from imported setup."
 }
 
