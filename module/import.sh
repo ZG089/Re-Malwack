@@ -43,16 +43,18 @@ bindhosts_import() {
         1)
             ui_print "[*] Replacing Re-Malwack setup with bindhosts setup..."
             echo " " > "$dest_sources"
-            sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$bindhosts_sources" > "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$dest_sources" 2>/dev/null || echo 0)
+            sources_to_add=$(grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
+            echo "$sources_to_add" > "$dest_sources"
+            sources_count=$(echo "$sources_to_add" | grep -vc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
             bindhosts_import_helper whitelist replace && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom replace && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
             ;;
         2)
             ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
-            grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" >> "$dest_sources"
-            sources_count=$(grep -vc '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources" 2>/dev/null || echo 0)
+            sources_to_add=$(grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
+            sources_count=$(echo "$sources_to_add" | grep -vc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
+            echo "$sources_to_add" >> "$dest_sources"
             bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
             bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom merge && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
@@ -63,6 +65,11 @@ bindhosts_import() {
 
     ui_print "[✓] Bindhosts setup imported successfully."
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries, $custom_count custom rules."
+    
+    # Create profile
+    cp -f "$dest_sources" "$MODDIR/profiles/bindhosts.txt"
+    sed -i '1i# DESC: Imported setup from bindhosts' "$MODDIR/profiles/bindhosts.txt"
+    ui_print "[i] Created 'bindhosts' profile from imported setup."
 }
 
 # 2.1 - bindhosts import helper
@@ -136,6 +143,11 @@ https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
 EOF
     ui_print "[✓] Cubic-Adblock sources imported successfully."
     ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
+    
+    # Create profile
+    cp -f "$src_file" "$MODDIR/profiles/cubic-adblock.txt"
+    sed -i '1i# DESC: Imported setup from cubic-adblock' "$MODDIR/profiles/cubic-adblock.txt"
+    ui_print "[i] Created 'cubic-adblock' profile from imported setup."
 }
 
 # 4 - AdAway import
@@ -207,6 +219,11 @@ import_adaway_data() {
 
     ui_print "[✓] AdAway import completed."
     ui_print "[i] Imported: $sources_count sources, $whitelist_count whitelist entries, $blacklist_count blacklist entries."
+
+    # Create profile
+    cp -f "$src_file" "$MODDIR/profiles/AdAway.txt"
+    sed -i '1i# DESC: Imported setup from AdAway backup' "$MODDIR/profiles/AdAway.txt"
+    ui_print "[i] Created 'AdAway' profile from imported setup."
 }
 
 # ====== Main Script ======
@@ -222,6 +239,7 @@ fi
 # Detect other modules and run imports (only if not already imported)
 for module in /data/adb/modules/*; do
     module_id="$(grep_prop id "${module}/module.prop")"
+    [ -z "$module_id" ] && continue
     module_name="$(grep_prop name "${module}/module.prop")"
     # skip if we got into our own module or any other module that 
     # is disabled already.
