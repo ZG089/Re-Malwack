@@ -97,61 +97,6 @@ bindhosts_import_helper() {
     fi
 }
 
-# 3 - cubic-adblock import
-import_cubic_sources() {
-    src_file="$persistent_dir/sources.txt"
-    ui_print "[i] How would you like to import cubic-adblock hosts sources?"
-    ui_print "1 - Replace default"
-    ui_print "2 - Merge with default sources [RECOMMENDED]"
-    ui_print "3 - Skip importing. (Do not Import)"
-
-    detect_key_press 3 2
-    choice=$?
-    sources_added=0
-    skipped=0
-
-    case "$choice" in
-        1) ui_print "[*] Replacing default..."; : > "$src_file" ;;
-        2) ui_print "[*] Merging..." ;;
-        3|255) ui_print "[i] Skipped Cubic-Adblock import."; return ;;
-        *) ui_print "[!] Invalid selection. Skipped Cubic-Adblock import."; return ;;
-    esac
-
-    # replace Hagezi pro with ultimate
-    if grep -q 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt' "$src_file"; then
-        ui_print "[*] Replacing Hagezi Pro Plus hosts with Ultimate version."
-        sed -i 's|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt|https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt|' "$src_file"
-    fi
-
-    # cubic-adblock sources
-    while IFS= read -r url; do
-        [ -z "$url" ] && continue
-        if grep -Fq "$url" "$src_file"; then
-            ui_print "[!] Skipped (already present): $url"
-            skipped=$((skipped + 1))
-        else
-            echo "$url" >> "$src_file"
-            ui_print "[✓] Imported: $url"
-            sources_added=$((sources_added + 1))
-        fi
-    done <<EOF
-https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
-https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/malware.hosts?ref_type=heads
-https://gitlab.com/quidsup/notrack-blocklists/-/raw/master/trackers.hosts?ref_type=heads
-https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
-https://pgl.yoyo.org/adservers/serverlist.php?showintro=0;hostformat=hosts
-https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/ultimate.txt
-EOF
-    ui_print "[✓] Cubic-Adblock sources imported successfully."
-    ui_print "[i] Imported: $sources_added new sources, Skipped: $skipped, Total processed: $((sources_added + skipped))."
-    
-    # Create profile
-    mkdir -p "$persistent_dir/profiles"
-    cp -f "$src_file" "$persistent_dir/profiles/cubic-adblock.txt"
-    sed -i '1i# DESC: Imported setup from cubic-adblock' "$persistent_dir/profiles/cubic-adblock.txt"
-    ui_print "[i] Created 'cubic-adblock' profile from imported setup."
-}
-
 # 4 - AdAway import
 import_adaway_data() {
     src_file="$persistent_dir/sources.txt"
@@ -262,10 +207,6 @@ for module in /data/adb/modules/*; do
                     bindhosts)
                         bindhosts_import
                     ;;
-                    cubic-adblock)
-                        import_cubic_sources
-                    ;;
-
                     *)
                         ui_print "[!] Importing from $module_id unsupported."
                     ;;
