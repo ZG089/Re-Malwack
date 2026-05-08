@@ -80,7 +80,7 @@ bindhosts_import_helper() {
     bindhosts="/data/adb/bindhosts"
 
     if [ "$list_type" = "custom" ]; then
-        src="$bindhosts/custom.sh"
+        src="$bindhosts/custom.txt"
         dest="$persistent_dir/custom_rules.txt"
     else
         src="$bindhosts/$list_type.txt"
