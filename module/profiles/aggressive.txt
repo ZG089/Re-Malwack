@@ -1,4 +1,5 @@
 # Aggressive Profile Hosts Sources
+# DESC: Fortress-level protection, may block some legitimate services.
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.plus.txt # Hagezi Pro
 https://badmojr.github.io/1Hosts/Lite/hosts.txt # 1Hosts Lite
