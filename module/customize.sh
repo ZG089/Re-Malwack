@@ -182,39 +182,44 @@ if [ -f "$config_file" ]; then
     current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
 fi
 
-if [ ! -s "$persistent_dir/sources.txt" ]; then
-    update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-    sed -i '/^profile=/d' "$config_file"
-    echo "profile=$detected_profile" >> "$config_file"
-    ui_print "[✓] Auto-selected profile: $detected_profile"
-else
-    if [ -z "$current_profile" ]; then
-        if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
-            update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-            grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
-            ui_print "[✓] Auto-selected profile: $detected_profile"
-        else
-            sed -i 's/^profile=.*/profile=custom/' "$config_file"
-            ui_print "[i] Customized hosts sources detected, profile has been set to custom."
-        fi
+# Import from other ad-block modules (All respect to other ad-block modules developers)
+. $MODPATH/import.sh
+
+if [ "$import_done" != "1" ]; then
+    if [ ! -s "$persistent_dir/sources.txt" ]; then
+        update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+        sed -i '/^profile=/d' "$config_file"
+        echo "profile=$detected_profile" >> "$config_file"
+        ui_print "[✓] Auto-selected profile: $detected_profile"
     else
-        if [ "$current_profile" = "custom" ]; then
-            ui_print "[i] Custom profile detected, keeping hosts sources as is."
-        else
-            if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
-                update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
-                ui_print "[*] Updating hosts sources for your $current_profile profile."
-            else
-                ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
+        if [ -z "$current_profile" ]; then
+            if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
                 update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
+                grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
+                ui_print "[✓] Auto-selected profile: $detected_profile"
+            else
+                sed -i 's/^profile=.*/profile=custom/' "$config_file"
+                ui_print "[i] Customized hosts sources detected, profile has been set to custom."
+            fi
+        else
+            if [ "$current_profile" = "custom" ]; then
+                ui_print "[i] Custom profile detected, keeping hosts sources as is."
+            else
+                if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
+                    update_profile "$persistent_dir/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+                    ui_print "[*] Updating hosts sources for your $current_profile profile."
+                elif [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
+                    update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+                    ui_print "[*] Updating hosts sources for your $current_profile profile."
+                else
+                    ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
+                    update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+                    sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
+                fi
             fi
         fi
     fi
 fi
-
-# Import from other ad-block modules (All respect to other ad-block modules developers)
-. $MODPATH/import.sh
 
 awk '
 {
