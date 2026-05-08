@@ -36,9 +36,7 @@ function april_fools() {
     sleep 3
     am start -a android.intent.action.VIEW -d "https://youtu.be/dQw4w9WgXcQ" 2>&1
     echo "- Happy April Fools!"
-    echo "- XD"
     exit
-    log_message "Happy April Fools!"
 }
 
 # Trigger April Fools prank :)
