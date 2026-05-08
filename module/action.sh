@@ -40,18 +40,17 @@ function april_fools() {
 }
 
 # Trigger April Fools prank :)
-# Only starts at April 1st
-if [ "$(date +%m%d)" = "0401" ] && [ ! -f "$persist_dir/get_pranked" ]; then
-    if [ "$(shuf -i 0-1 -n 1)" = "0" ]; then # Chance of happening: 50%
-        sleep 2
-        echo ""
-        echo "- FATAL ERROR OCCURED!"
-        sleep 2
-        april_fools
-    fi
-else
-    rm -f $persist_dir/get_pranked 2>/dev/null
+# Only starts at April 1st with 50% chance and if the prank hasn't been triggered yet.
+if [ "$(date +%m%d)" = "0401" ] && [ "$(shuf -i 0-1 -n 1)" = "0" ] && [ ! -f "$persist_dir/get_pranked" ]; then
+    sleep 2
+    echo ""
+    echo "- FATAL ERROR OCCURED!"
+    sleep 2
+    april_fools
 fi
+
+# Clean up the prank flag after April 1st
+[ "$(date +%m%d)" != "0401" ] && rm -f "$persist_dir/get_pranked" 2>/dev/null
 
 # ====== Main Script ======
 echo '    ____            __         __  '
