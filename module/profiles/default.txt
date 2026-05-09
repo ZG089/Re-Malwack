@@ -1,5 +1,5 @@
 # Default Profile Hosts Sources
-# DESC: Standard protection suitable for most devices.
+# DESC: Re-Malwack's OG Default hosts sources list
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/pro.txt # Hagezi Pro
 https://badmojr.github.io/1Hosts/Lite/hosts.txt # 1Hosts Lite
