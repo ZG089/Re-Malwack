@@ -261,19 +261,19 @@ if [ ! -d /data/adb/modules/Re-Malwack ]; then
         printf "127.0.0.1 localhost\n::1 localhost" > $MODPATH/system/etc/hosts
         status_msg="Status: Reboot required [Offline Mode] 🔃"
         touch "$persistent_dir/mode_ready"
-        sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
+        sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
     fi
 else
     ui_print "[*] migrating existing hosts file to module directory"
-    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts
+    mv -f $MODDIR/system/etc/hosts $MODPATH/system/etc/hosts
     status_msg="Status: Reboot required to apply module updates 🔃"
-    sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
+    sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
 fi
 chmod 0644 $MODPATH/system/etc/hosts
 
 # Create symlink on install for ksu/ap
 for i in /data/adb/ap/bin /data/adb/ksu/bin; do
-    [ -d "$i" ] && ln -sf "/data/adb/modules/Re-Malwack/rmlwk.sh" "$i/rmlwk"
+    [ -d "$i" ] && ln -sf "$MODPATH/rmlwk.sh" "$i/rmlwk"
 done
 
 # Zygisk Setup
