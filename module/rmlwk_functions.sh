@@ -82,8 +82,8 @@ apply_custom_rules() {
 refresh_blocked_counts() {
     mkdir -p "$persist_dir/counts"
     log_message INFO "Refreshing blocked entries counts"
-    blocked_mod=$(grep -c "0.0.0.0" $hosts_file)
-    blocked_sys=$(grep -c "0.0.0.0" $system_hosts)
+    blocked_mod=$(grep -c "0.0.0.0" $hosts_file || true)
+    blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
     echo "$blocked_sys" > "$persist_dir/counts/blocked_sys.count"
     echo "$blocked_mod" > "$persist_dir/counts/blocked_mod.count"
     echo "$custom_entries" > "$persist_dir/counts/custom_entries.count"
