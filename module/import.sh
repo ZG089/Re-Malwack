@@ -70,6 +70,7 @@ bindhosts_import() {
     mkdir -p "$persistent_dir/profiles"
     cp -f "$dest_sources" "$persistent_dir/profiles/bindhosts.txt"
     sed -i '1i# DESC: Imported setup from bindhosts' "$persistent_dir/profiles/bindhosts.txt"
+    grep -q '^profile=' "$config_file" || sed -i '$ a\profile="bindhosts"' "$config_file"
     ui_print "[i] Created 'bindhosts' profile from imported setup."
 }
 
@@ -171,6 +172,7 @@ import_adaway_data() {
     mkdir -p "$persistent_dir/profiles"
     cp -f "$src_file" "$persistent_dir/profiles/AdAway.txt"
     sed -i '1i# DESC: Imported setup from AdAway backup' "$persistent_dir/profiles/AdAway.txt"
+    grep -q '^profile=' "$config_file" || sed -i '$ a\profile="AdAway"' "$config_file"
     ui_print "[i] Created 'AdAway' profile from imported setup."
 }
 
