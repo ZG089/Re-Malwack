@@ -340,10 +340,10 @@ export_logs() {
     if echo "$VERSION" | grep -q "\-test.*(.*@.*)"; then
         base_version=$(echo "$VERSION" | sed 's/-test.*//')
         build_id=$(echo "$VERSION" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
-        tarFileName="Re-Malwack_${base_version}-${build_id}_logs_${LOG_DATE}.tar.gz"
+        tarFileName="Re-Malwack_${base_version}-${build_id}_logs_${LOG_DATE}.tgz"
     else
         clean_version=$(echo "$VERSION" | sed 's/\//_/g')
-        tarFileName="Re-Malwack_${clean_version}_logs_${LOG_DATE}.tar.gz"
+        tarFileName="Re-Malwack_${clean_version}_logs_${LOG_DATE}.tgz"
     fi
     log_message SUCCESS "Logs are going to be saved in: /sdcard/Download/$tarFileName"
     tar -czf "/sdcard/Download/$tarFileName" -C "$persist_dir" logs
