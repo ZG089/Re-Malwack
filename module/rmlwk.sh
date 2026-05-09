@@ -32,14 +32,8 @@ rmlwkExec=true
 . $MODDIR/rmlwk_functions.sh
 # 3 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
-# 4 - Refreshing module status
-update_status
-############################### TODOS! DON'T EDIT ANY ONE OF THESE
 
-# 1 - log module version
-log_message "Running Re-Malwack version $version"
-
-# 2 - Check if zygisk host redirect module is enabled
+# 4 - Determine target hosts (zn-hostsredirect / default)
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ] && [ ! -f "$zn_module_dir/remove" ]; then
     is_zn_detected=1
     hosts_file="/data/adb/hostsredirect/hosts"
@@ -48,6 +42,13 @@ else
     hosts_file="$MODDIR/system/etc/hosts"
     log_message "Using standard mount method with $MODDIR/system/etc/hosts"
 fi
+
+# 5 - Refreshing module status
+update_status
+############################### TODOS! DON'T EDIT ANY ONE OF THESE
+
+# 6 - log module version
+log_message "Running Re-Malwack version $version"
 
 # 3 - Trigger force stats refresh on WebUI
 if [ "$WEBUI" = "true" ]; then
