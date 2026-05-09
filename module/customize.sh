@@ -242,14 +242,14 @@ if [ ! -d /data/adb/modules/Re-Malwack ]; then
                 # Extract base version commit hash & branch (ex: 5ex77xx@main) from version string
                 base_version=$(echo "$module_version" | sed 's/-test.*//')
                 build_id=$(echo "$module_version" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
-                tarFileName="/sdcard/Download/Re-Malwack_${base_version}-${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+                tarFileName="/sdcard/Download/Re-Malwack_${base_version}-${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tgz"
             else
                 # Regular release version
                 clean_version=$(echo "$module_version" | sed 's/\//_/g')
-                tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+                tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tgz"
             fi
             # Bundle all logs and zip them
-            tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+            tar -czvf "${tarFileName}" --exclude="$persistent_dir" -C $persistent_dir logs
             # cleanup in case of failure
             rm -rf /data/adb/Re-Malwack 2>/dev/null
             abort "[i] Logs are saved in ${tarFileName}"
