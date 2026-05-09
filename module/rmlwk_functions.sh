@@ -787,8 +787,6 @@ update_status() {
         status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $capitalized_profile${dns_status}"
-    elif [ -d /data/adb/modules_update/Re-Malwack ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (pending module update) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_default_hosts; then
