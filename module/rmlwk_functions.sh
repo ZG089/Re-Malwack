@@ -46,34 +46,22 @@ is_default_hosts() {
 
 # function to process hosts, maybe?
 host_process() {
-    local file="$1"
-    # Unified filtration: remove comments, empty lines, ignores whitespaces,
-    # collapses all multiple spaces/tabs into a single space and converts 127.0.0.1 to 0.0.0.0
+    file="$1"
     log_message "Filtering $file..."
-    while IFS= read -r i; do
-        # fetch things from the file
-        ip="$(printf '%s' "$i" | awk '{print $1}')"
-        host="$(printf '%s' "$i" | awk '{print $2}')"
-
-        # skip if the line is blank
-        [ -z "$ip" ] && continue
-
-        # skip if the line starts with # aka comments:
-        case "$ip" in
-            \#*) continue ;;
-        esac
-
-        # preserve localhost - ZG089
-        case "$host" in
-            *localhost*) printf "127.0.0.1 localhost\n::1 localhost" >> "$file.tmp" ;; 
-        esac
-
-        # set the ip addr to 0.0.0.0:
-        [ "$ip" = "127.0.0.1" ] && ip="0.0.0.0"
-
-        # add the contents:
-        printf '%s %s\n' "$ip" "$host" >> "$file.tmp"
-    done < "$file"
+    awk '
+        /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
+        {
+            ip   = $1
+            host = $2
+            if (host ~ /localhost/) {
+                print "127.0.0.1 localhost"
+                print "::1 localhost"
+                next
+            }
+            if (ip == "127.0.0.1") ip = "0.0.0.0"
+            if (ip != "" && host != "") printf "%s %s\n", ip, host
+        }
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 }
 
 # function to apply custom rules
