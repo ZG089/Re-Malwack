@@ -30,9 +30,8 @@ bindhosts_import() {
     ui_print "[i] How do you want to import your setup?"
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
     ui_print "1 - Use only bindhosts setup (replace)"
-    ui_print "2 - Merge with Re-Malwack's default setup. [RECOMMENDED]"
-    ui_print "3 - Skip importing. (Do not Import)"
-    detect_key_press 3 2
+    ui_print "2 - Skip importing. (Do not Import)"
+    detect_key_press 2 1
     choice=$?
     sources_count=0
     whitelist_count=0
@@ -50,16 +49,7 @@ bindhosts_import() {
             bindhosts_import_helper blacklist replace && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
             bindhosts_import_helper custom replace && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
             ;;
-        2)
-            ui_print "[*] Merging bindhosts setup with Re-Malwack's setup"
-            sources_to_add=$(grep -Ev '^[[:space:]]*#|^[[:space:]]*$' "$bindhosts_sources")
-            sources_count=$(echo "$sources_to_add" | grep -Evc '^[[:space:]]*#|^[[:space:]]*$' 2>/dev/null || true)
-            echo "$sources_to_add" >> "$dest_sources"
-            bindhosts_import_helper whitelist merge && whitelist_count=$(wc -l < "$persistent_dir/whitelist.txt")
-            bindhosts_import_helper blacklist merge && blacklist_count=$(wc -l < "$persistent_dir/blacklist.txt")
-            bindhosts_import_helper custom merge && custom_count=$(wc -l < "$persistent_dir/custom_rules.txt")
-            ;;
-        3|255) ui_print "[i] Skipped bindhosts import."; return ;;
+        2|255) ui_print "[i] Skipped bindhosts import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped bindhosts import."; return ;;
     esac
 
@@ -93,7 +83,6 @@ bindhosts_import_helper() {
         ui_print "[i] Detected $list_type file with entries..."
         case "$mode" in
             replace) sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" > "$dest" ;;
-            merge)   sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' "$src" >> "$dest" ;;
         esac
     fi
 }
@@ -107,11 +96,10 @@ import_adaway_data() {
     ui_print "[i] AdAway Backup file has been detected."
     ui_print "[i] Do you want to import your setup from it?"
     ui_print "[i] Importing whitelist, blacklist, and sources only are supported."
-    ui_print "1 - Yes, But use only AdAway setup (replace)"
-    ui_print "2 - Yes, Also merge AdAway setup with Re-Malwack's [RECOMMENDED]"
-    ui_print "3 - No, Do Not Import."
+    ui_print "1 - Yes, use only AdAway setup (replace)"
+    ui_print "2 - No, Do Not Import."
 
-    detect_key_press 3 2
+    detect_key_press 2 1
     choice=$?
 
     case "$choice" in
@@ -121,8 +109,7 @@ import_adaway_data() {
             : > "$whitelist_file"
             : > "$blacklist_file"
             ;;
-        2) ui_print "[*] Merging AdAway setup..." ;;
-        3|255) ui_print "[i] Skipped AdAway import."; return ;;
+        2|255) ui_print "[i] Skipped AdAway import."; return ;;
         *) ui_print "[!] Invalid selection. Skipped AdAway import."; return ;;
     esac
 
