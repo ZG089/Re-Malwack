@@ -175,7 +175,11 @@ current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
 if [ "$import_done" != "1" ]; then
     if [ ! -s "$persistent_dir/sources.txt" ]; then
         cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-        grep_prop profile "$config_file" || setConfigProperty profile "$detected_profile" "$config_file"
+        if grep -q "^profile=" "$config_file"; then
+            sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
+        else
+            echo "profile=$detected_profile" >> "$config_file"
+        fi
         ui_print "[✓] Auto-selected profile: $detected_profile"
     else
         if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
@@ -187,7 +191,11 @@ if [ "$import_done" != "1" ]; then
         else
             ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
             cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-            [ grep -q "^profile=" "$config_file" ] && sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file" || sed -i '$ a\profile="$detected_profile"' "$config_file"
+            if grep -q "^profile=" "$config_file"; then
+                sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
+            else
+                echo "profile=$detected_profile" >> "$config_file"
+            fi
         fi
     fi
 fi
