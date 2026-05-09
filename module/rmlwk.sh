@@ -829,13 +829,7 @@ case "$(tolower "$1")" in
         awk '!/^#|^$/' $persist_dir/sources.txt | grep http > /dev/null || abort "No hosts sources were found, Aborting."
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
-        if [ -d /data/adb/modules/Re-Malwack ]; then
-            echo "[*] Upgrading Anti-Ads fortress 🏰"
-            log_message "Updating protections..."
-        else
-            echo "[*] Building Anti-Ads fortress 🏰"
-            log_message "Installing protection for the first time"
-        fi
+        [ -d /data/adb/modules/Re-Malwack ] && echo "[*] Upgrading Anti-Ads fortress 🏰" && log_message "Updating protections..."
         check_internet
         combined_file="${tmp_hosts}_all"
         > "$combined_file"

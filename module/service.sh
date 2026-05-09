@@ -204,7 +204,7 @@ else
     [ "$dns_logging" = "1" ] && dns_status=" | 🔍 DNS Logging: ON" || dns_status=""
 
     if [ -f "$persist_dir/mode_ready" ]; then
-        status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
+        status_msg="Status: Protection is idle 💤 (Awaiting hosts update) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_default_hosts; then
