@@ -173,7 +173,7 @@ current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
 . $MODPATH/import.sh
 
 if [ "$import_done" != "1" ]; then
-    if [ ! -s "$persistent_dir/sources.txt" ]; then
+    if [ -z "$current_profile" ]; then
         cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
         if grep -q "^profile=" "$config_file"; then
             sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
@@ -182,12 +182,11 @@ if [ "$import_done" != "1" ]; then
         fi
         ui_print "[✓] Auto-selected profile: $detected_profile"
     else
-        if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
-            update_profile "$persistent_dir/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
-            ui_print "[*] Updating hosts sources for your $current_profile profile."
-        elif [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
+        if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
             update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
             ui_print "[*] Updating hosts sources for your $current_profile profile."
+        elif [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
+            ui_print "[*] Keeping existing custom profile: $current_profile"
         else
             ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
             cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
