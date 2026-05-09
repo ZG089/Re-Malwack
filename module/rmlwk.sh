@@ -836,6 +836,7 @@ case "$(tolower "$1")" in
         > "$combined_file"
 
         # 1 - Download base hosts from sources.txt with limited parallelism to prevent resource exhaustion
+        echo "[i] Using profile: $profile"
         echo "[*] Fetching base hosts..."
         log_message "Starting download of base hosts"
         # Extract only the URLs for fetching (ignore inline comments too)
