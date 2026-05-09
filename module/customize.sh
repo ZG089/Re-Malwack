@@ -1,8 +1,8 @@
-ui_print '           ____            __         __  '
-ui_print '          / __ \____ ___  / /      __/ /__'
-ui_print '         / /_/ / __ `__ \/ / | /| / / //_/'
-ui_print '        / _, _/ / / / / / /| |/ |/ / ,<   '
-ui_print '       /_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '                   
+ui_print '          ____            __         __  '
+ui_print '         / __ \____ ___  / /      __/ /__'
+ui_print '        / /_/ / __ `__ \/ / | /| / / //_/'
+ui_print '       / _, _/ / / / / / /| |/ |/ / ,<   '
+ui_print '      /_/ |_/_/ /_/ /_/_/ |__/|__/_/|_|  '                   
 ui_print " "
 ui_print "   Welcome to Re-Malwack installation wizard!"
 sleep 0.2
@@ -112,16 +112,6 @@ mkdir -p $MODPATH/system/etc
 rm -rf $persistent_dir/logs/* 2>/dev/null
 rm -rf $persistent_dir/cache/* 2>/dev/null
 
-
-compare_sources() {
-    awk '!/^#|^$/ {print $1}' "$1" | sort > "$persistent_dir/tmp_cmp1"
-    awk '!/^#|^$/ {print $1}' "$2" | sort > "$persistent_dir/tmp_cmp2"
-    cmp -s "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
-    res=$?
-    rm -f "$persistent_dir/tmp_cmp1" "$persistent_dir/tmp_cmp2"
-    return $res
-}
-
 update_profile() {
     local prof_file="$1"
     local dest_file="$2"
@@ -187,36 +177,20 @@ fi
 
 if [ "$import_done" != "1" ]; then
     if [ ! -s "$persistent_dir/sources.txt" ]; then
-        update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-        sed -i '/^profile=/d' "$config_file"
-        echo "profile=$detected_profile" >> "$config_file"
+        cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+        grep -q '^profile=' "$config_file" || sed -i '$ a\profile="$detected_profile"' "$config_file"
         ui_print "[✓] Auto-selected profile: $detected_profile"
     else
-        if [ -z "$current_profile" ]; then
-            if compare_sources "$persistent_dir/sources.txt" "$MODPATH/profiles/default.txt"; then
-                update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                grep -q '^profile=' "$config_file" && sed -i 's/^profile=.*/profile='"$detected_profile"'/' "$config_file" || sed -i '$ a\profile='"$detected_profile" "$config_file"
-                ui_print "[✓] Auto-selected profile: $detected_profile"
-            else
-                sed -i 's/^profile=.*/profile=custom/' "$config_file"
-                ui_print "[i] Customized hosts sources detected, profile has been set to custom."
-            fi
+        if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
+            update_profile "$persistent_dir/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+            ui_print "[*] Updating hosts sources for your $current_profile profile."
+        elif [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
+            update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+            ui_print "[*] Updating hosts sources for your $current_profile profile."
         else
-            if [ "$current_profile" = "custom" ]; then
-                ui_print "[i] Custom profile detected, keeping hosts sources as is."
-            else
-                if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
-                    update_profile "$persistent_dir/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
-                    ui_print "[*] Updating hosts sources for your $current_profile profile."
-                elif [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
-                    update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
-                    ui_print "[*] Updating hosts sources for your $current_profile profile."
-                else
-                    ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
-                    update_profile "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-                    sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file"
-                fi
-            fi
+            ui_print "[!] Detected missing profile $current_profile, reverting to $detected_profile."
+            cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
+            [ grep -q "^profile=" "$config_file" ] && sed -i "s/^profile=.*/profile=$detected_profile/" "$config_file" || sed -i '$ a\profile="$detected_profile"' "$config_file"
         fi
     fi
 fi
@@ -242,21 +216,26 @@ awk '
 }' "$persistent_dir/sources.txt" > "$persistent_dir/sources.txt.tmp"
 mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
 
-if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
-    # Initialize
-    . $persistent_dir/config.sh
-    [ "$adblock_switch" -eq 1 ] && {
-        echo "[i] Detected adblock pause, auto resuming before updating hosts..."
-        mv -f "$persistent_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
-        sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
-    }
-    if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
-        ui_print "[✗] Failed to initialize script"
-        # Extract version from module.prop
-        module_version=$(grep_prop version $MODPATH/module.prop)
+# Initialize
+. $config_file
+[ "$adblock_switch" -eq 1 ] && {
+    ui_print "[i] Detected adblock pause, auto resuming before updating hosts..."
+    mv -f "$persistent_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
+    sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
+}
 
-        # Check if it's a test release and extract PR/commit info
-        if echo "$module_version" | grep -q "\-test.*(.*@.*)"; then
+# First time installation
+if [ ! -d /data/adb/modules/Re-Malwack ]; then
+    # Check internet connection
+    if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
+        # Initialize hosts
+        ui_print "[i] Initializing hosts for first time installation 🏰"
+        if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
+            ui_print "[✗] Failed to initialize script"
+            # Extract version from module.prop
+            module_version=$(grep_prop version $MODPATH/module.prop)
+            # Check if it's a test release and extract PR/commit info
+            if echo "$module_version" | grep -q "\-test.*(.*@.*)"; then
             # Extract base version commit hash & branch (ex: 5ex77xx@main) from version string
             base_version=$(echo "$module_version" | sed 's/-test.*//')
             build_id=$(echo "$module_version" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
@@ -268,27 +247,25 @@ if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
         fi
 
         tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
-        # cleanup in case of failure (in worst cases on first install)
-        [ -d /data/adb/modules/Re-Malwack ] || rm -rf /data/adb/Re-Malwack
+        # cleanup in case of failure
+        rm -rf /data/adb/Re-Malwack 2>/dev/null
         abort "[i] Logs are saved in ${tarFileName}"
+    else
+        ui_print "[i] No internet connection, skipping hosts initialization."
+        ui_print "[i] It is recommended to initialize hosts update after reboot."
+        # Create empty hosts file
+        printf "127.0.0.1 localhost\n::1 localhost" > $MODPATH/system/etc/hosts
+        status_msg="Status: Reboot required [Offline Mode] 🔃"
+        touch "$persistent_dir/mode_ready"
+        sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
     fi
 else
-    ui_print "[i] No internet connection, skipping hosts initialization. You may initialize it later after reboot."
-    # In case of module update without internet while there's an existing hosts file
-        # We don't want to delete user's existing hosts file, so we just move it to the new location if it exists
-        # otherwise we just create an empty hosts file to prevent potential issues.
-    if [ ! -f /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
-        printf "127.0.0.1 localhost\n::1 localhost" > $MODPATH/system/etc/hosts
-        status_msg="Status: Awaiting reboot 🔃"
-        touch "$persistent_dir/mode_ready"
-    else
-        ui_print "[*] migrating existing hosts file to module directory"
-        mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts
-        status_msg="Status: Reboot required to apply updates 🔃"
-    fi
-    chmod 0644 $MODPATH/system/etc/hosts
+    ui_print "[*] migrating existing hosts file to module directory"
+    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts
+    status_msg="Status: Reboot required to apply module updates 🔃"
     sed -i "s/^description=.*/description=$status_msg/" "$MODDIR/module.prop"
 fi
+chmod 0644 $MODPATH/system/etc/hosts
 
 # Create symlink on install for ksu/ap
 for i in /data/adb/ap/bin /data/adb/ksu/bin; do
@@ -296,7 +273,6 @@ for i in /data/adb/ap/bin /data/adb/ksu/bin; do
 done
 
 # Zygisk Setup
-. "$config_file"
 if [ "$dns_logging" = "1" ] && [ -d "$MODPATH/zygisk_opt" ]; then
     ui_print "[*] Preparing Zygisk binaries..."
     mv "$MODPATH/zygisk_opt" "$MODPATH/zygisk"
