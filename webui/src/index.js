@@ -1141,7 +1141,7 @@ function setupProfile() {
             for p in ${modulePath}/profiles/*.txt ${basePath}/profiles/*.txt; do
                 [ -f "$p" ] || continue
                 name=$(basename "$p" .txt)
-                desc=$(head -n 1 "$p" | grep "^# DESC: " | sed 's/^# DESC: //')
+                desc=$(grep -m 1 "^# DESC: " "$p" | sed 's/^# DESC: //')
                 type="builtin"
                 echo "$p" | grep -q "${basePath}/profiles" && type="user"
                 echo "$name|$desc|$type"
