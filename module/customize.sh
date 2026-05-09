@@ -167,10 +167,7 @@ else
     detected_profile="aggressive"
 fi
 
-current_profile=""
-if [ -f "$config_file" ]; then
-    current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
-fi
+current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
 
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
@@ -178,7 +175,7 @@ fi
 if [ "$import_done" != "1" ]; then
     if [ ! -s "$persistent_dir/sources.txt" ]; then
         cp -f "$MODPATH/profiles/${detected_profile}.txt" "$persistent_dir/sources.txt"
-        grep -q '^profile=' "$config_file" || sed -i '$ a\profile="$detected_profile"' "$config_file"
+        grep_prop profile "$config_file" || setConfigProperty profile "$detected_profile" "$config_file"
         ui_print "[✓] Auto-selected profile: $detected_profile"
     else
         if [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
@@ -228,7 +225,6 @@ mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
 if [ ! -d /data/adb/modules/Re-Malwack ]; then
     # Check internet connection
     if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
-        # Initialize hosts
         ui_print "[i] Initializing hosts for first time installation 🏰"
         if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
             ui_print "[✗] Failed to initialize script"
@@ -236,20 +232,21 @@ if [ ! -d /data/adb/modules/Re-Malwack ]; then
             module_version=$(grep_prop version $MODPATH/module.prop)
             # Check if it's a test release and extract PR/commit info
             if echo "$module_version" | grep -q "\-test.*(.*@.*)"; then
-            # Extract base version commit hash & branch (ex: 5ex77xx@main) from version string
-            base_version=$(echo "$module_version" | sed 's/-test.*//')
-            build_id=$(echo "$module_version" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
-            tarFileName="/sdcard/Download/Re-Malwack_${base_version}-${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
-        else
-            # Regular release version
-            clean_version=$(echo "$module_version" | sed 's/\//_/g')
-            tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+                # Extract base version commit hash & branch (ex: 5ex77xx@main) from version string
+                base_version=$(echo "$module_version" | sed 's/-test.*//')
+                build_id=$(echo "$module_version" | sed 's/.*(\(.*\)).*/\1/' | sed 's/\//_/g')
+                tarFileName="/sdcard/Download/Re-Malwack_${base_version}-${build_id}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+            else
+                # Regular release version
+                clean_version=$(echo "$module_version" | sed 's/\//_/g')
+                tarFileName="/sdcard/Download/Re-Malwack_${clean_version}_install_log_$(date +%Y-%m-%d_%H%M%S).tar.gz"
+            fi
+            # Bundle all logs and zip them
+            tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
+            # cleanup in case of failure
+            rm -rf /data/adb/Re-Malwack 2>/dev/null
+            abort "[i] Logs are saved in ${tarFileName}"
         fi
-
-        tar -czvf ${tarFileName} --exclude="$persistent_dir" -C $persistent_dir logs
-        # cleanup in case of failure
-        rm -rf /data/adb/Re-Malwack 2>/dev/null
-        abort "[i] Logs are saved in ${tarFileName}"
     else
         ui_print "[i] No internet connection, skipping hosts initialization."
         ui_print "[i] It is recommended to initialize hosts update after reboot."
