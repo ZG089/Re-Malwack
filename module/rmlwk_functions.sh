@@ -86,7 +86,6 @@ refresh_blocked_counts() {
     blocked_sys=$(grep -c "0.0.0.0" $system_hosts || true)
     echo "$blocked_sys" > "$persist_dir/counts/blocked_sys.count"
     echo "$blocked_mod" > "$persist_dir/counts/blocked_mod.count"
-    echo "$custom_entries" > "$persist_dir/counts/custom_entries.count"
     log_message "Module hosts: $blocked_mod entries, System hosts: $blocked_sys entries"
 }
 
