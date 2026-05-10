@@ -1,18 +1,110 @@
-name: build
+name: CI Pipeline
 
 on:
   push:
-    paths:
-      - '.github/workflows/build.yml'
-      - 'module/**'
-      - 'webui/**'
-      - 'update.json'
   workflow_dispatch:
 
 jobs:
-  release:
-    if: "!contains(github.event.head_commit.message, '[skip build]')"
+  commit-notifications:
+    name: Commit Notifications
     runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_COMMITS_BOT }}
+          CHAT_ID: -1002271023118
+          THREAD_ID: 215
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PUSHER: ${{ github.actor }}
+          BRANCH: ${{ github.ref_name }}
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
+        run: |
+          REPO_URL="https://github.com/${REPO}"
+          PUSHER_URL="https://github.com/${PUSHER}"
+          BRANCH_URL="${REPO_URL}/tree/${BRANCH}"
+          COMMITS="$COMMITS_JSON"
+          COUNT=$(echo "$COMMITS" | jq length)
+          NL=$'\n'
+
+          MESSAGE="🚀 <b><a href=\"${PUSHER_URL}\">${PUSHER}</a></b> pushed <b>${COUNT} commit(s)</b> to <b><a href=\"${REPO_URL}\">$(basename ${REPO})</a></b> on <b><a href=\"${BRANCH_URL}\">${BRANCH}</a></b>${NL}${NL}"
+
+          while read -r commit; do
+            SHA_FULL=$(echo "$commit" | jq -r '.id')
+            SHA_SHORT=${SHA_FULL:0:7}
+            URL=$(echo "$commit" | jq -r '.url')
+            MSG=$(echo "$commit" | jq -r '.message')
+            ESC_MSG=$(printf '%s' "$MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            TITLE=$(printf '%s' "$ESC_MSG" | head -n1)
+            BODY=$(printf '%s' "$ESC_MSG" | tail -n +2 | sed '/^[[:space:]]*$/d')
+
+            COAUTHORS=""
+            while IFS= read -r line; do
+              if echo "$line" | grep -iqE '^Co-authored-by:'; then
+                CA_NAME=$(echo "$line" | sed -E 's/^Co-authored-by:[[:space:]]*//' | sed -E 's/[[:space:]]*<.*>//')
+                COAUTHORS="${COAUTHORS}  👥 Co-author: <a href=\"https://github.com/${CA_NAME}\">${CA_NAME}</a>${NL}"
+              fi
+            done <<< "$MSG"
+
+            MESSAGE="${MESSAGE}<blockquote>• <code>${SHA_SHORT}</code> — <a href=\"${URL}\"><b>${TITLE}</b></a>${NL}</blockquote>"
+
+            if [ -n "$BODY" ]; then
+              BODY_LINES=()
+              while IFS= read -r line; do
+                echo "$line" | grep -iqE '^Co-authored-by:' && continue
+                [ -n "$line" ] && BODY_LINES+=("$line")
+              done <<< "$BODY"
+              TOTAL=${#BODY_LINES[@]}
+              for i in "${!BODY_LINES[@]}"; do
+                if [ $((i + 1)) -eq "$TOTAL" ]; then
+                  MESSAGE="${MESSAGE}  └ ${BODY_LINES[$i]}${NL}"
+                else
+                  MESSAGE="${MESSAGE}  | ${BODY_LINES[$i]}${NL}"
+                fi
+              done
+            fi
+
+            [ -n "$COAUTHORS" ] && MESSAGE="${MESSAGE}${COAUTHORS}"
+            MESSAGE="${MESSAGE}${NL}"
+          done <<< "$(echo "$COMMITS" | jq -c '.[]')"
+
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "text=${MESSAGE}" \
+            -d chat_id="${CHAT_ID}" \
+            -d message_thread_id="${THREAD_ID}" \
+            -d parse_mode="HTML" \
+            -d disable_web_page_preview=true
+
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_COMMIT_NOTIFICATION }}
+        run: |
+          sudo apt-get install -y jq
+          COMMITS=$(jq -r '.commits[].message' "$GITHUB_EVENT_PATH" | sed 's/^/- /')
+          if [ -z "${COMMITS}" ]; then
+            echo "Seems like the commit message is empty or whatever, skipping this call..."
+            exit 0;
+          fi
+          # Escape newlines and quotes properly by using jq to construct JSON
+          PAYLOAD=$(jq -n \
+            --arg content "**New push** to ${GITHUB_REF#refs/heads/}\nRepository: ${GITHUB_REPOSITORY}\nPusher: ${GITHUB_ACTOR}\nCommits:\n$COMMITS" \
+            '{content: $content}')
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "$PAYLOAD" \
+               $DISCORD_WEBHOOK
+
+  build:
+    name: Build Test Release
+    if: "!contains(github.event.head_commit.message, '[skip build]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    outputs:
+      zip_name: ${{ steps.setup.outputs.zip_name }}
+      version: ${{ steps.setup.outputs.version }}
+      test_build_id: ${{ steps.setup.outputs.test_build_id }}
+      commit_username: ${{ steps.setup.outputs.commit_username }}
+      commit_author_url: ${{ steps.setup.outputs.commit_author_url }}
+      commit_url: ${{ steps.setup.outputs.commit_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -33,14 +125,17 @@ jobs:
           
           COMMIT_AUTHOR_URL="https://github.com/$COMMIT_USERNAME"
           COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/$(git rev-parse HEAD)"
-          echo "COMMIT_USERNAME=$COMMIT_USERNAME" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR_URL=$COMMIT_AUTHOR_URL" >> $GITHUB_ENV
-          echo "COMMIT_URL=$COMMIT_URL" >> $GITHUB_ENV
+          
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "test_build_id=$TEST_BUILD_ID" >> $GITHUB_OUTPUT
+          echo "commit_username=$COMMIT_USERNAME" >> $GITHUB_OUTPUT
+          echo "commit_author_url=$COMMIT_AUTHOR_URL" >> $GITHUB_OUTPUT
+          echo "commit_url=$COMMIT_URL" >> $GITHUB_OUTPUT
+          
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "SHORT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "TEST_BUILD_ID=$TEST_BUILD_ID" >> $GITHUB_ENV
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
@@ -87,20 +182,43 @@ jobs:
           name: ${{ env.ZIP_NAME }}
           path: module/
 
+  send-release:
+    name: Send Test Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ needs.build.outputs.zip_name }}
+          path: module/
+          
       - name: Create ZIP
+        env:
+          ZIP_NAME: ${{ needs.build.outputs.zip_name }}
         run: |
           cd module
           zip -r "../$ZIP_NAME.zip" ./*
           cd ..
 
       - name: Send Release
-        if: true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           THUMB: ${{ github.workspace }}/assets/dl.jpg
           COMMIT_HASH: ${{ github.sha }}
           DISCORD_RELEASES: ${{ secrets.DISCORD_RELEASES }}
+          VERSION: ${{ needs.build.outputs.version }}
+          TEST_BUILD_ID: ${{ needs.build.outputs.test_build_id }}
+          ZIP_NAME: ${{ needs.build.outputs.zip_name }}
+          COMMIT_USERNAME: ${{ needs.build.outputs.commit_username }}
+          COMMIT_AUTHOR_URL: ${{ needs.build.outputs.commit_author_url }}
+          COMMIT_URL: ${{ needs.build.outputs.commit_url }}
         run: |
           COMMIT_MSG_RAW=$(git log -1 --pretty=format:'%B')
           COMMIT_AUTHOR="$COMMIT_USERNAME"
@@ -121,7 +239,7 @@ jobs:
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
-              -F document=@"$ZIP_NAME.zip" \
+              -F document=@"${ZIP_NAME}.zip" \
               -F thumb=@"$THUMB" \
               -F caption="⚙️ <b>New test release!</b>
           <pre>$COMMIT_MSG_TG</pre>
