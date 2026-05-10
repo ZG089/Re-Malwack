@@ -157,6 +157,20 @@ async function getStatus() {
         }
     }
 
+    const welcomeBox = document.getElementById('welcome-box');
+    if (welcomeBox) {
+        if (localStorage.getItem('firstLaunch') !== 'false') {
+            const firstInstallCheck = await exec(`[ -f "${basePath}/first_install_flag" ]`);
+            if (firstInstallCheck.errno === 0) {
+                welcomeBox.classList.add('display-flex');
+                exec(`rm -f "${basePath}/first_install_flag"`);
+            }
+            localStorage.setItem('firstLaunch', 'false');
+        } else {
+            welcomeBox.classList.remove('display-flex');
+        }
+    }
+
     // Check if it's april 1st
     const now = new Date();
     const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
@@ -1414,6 +1428,38 @@ document.querySelector('.credit').addEventListener('scroll', () => {
 });
 
 function setupEventListener() {
+    let welcomeClickCount = 0;
+    const welcomeCardInner = document.getElementById("welcome-card-inner");
+    if (welcomeCardInner) {
+        welcomeCardInner.addEventListener("click", () => {
+            welcomeClickCount++;
+            const icon = document.getElementById("welcome-icon");
+            const title = document.getElementById("welcome-title");
+            const desc = document.getElementById("welcome-desc");
+            
+            if (welcomeClickCount === 2) {
+                icon.textContent = "pan_tool";
+                title.textContent = "Huh-";
+                desc.textContent = "hey stop clicking!";
+            } else if (welcomeClickCount === 4) {
+                icon.textContent = "question_mark";
+                title.textContent = "Uhh...";
+                desc.textContent = "What are you doing mate 🥀";
+            } else if (welcomeClickCount === 8) {
+                icon.textContent = "sentiment_neutral";
+                title.textContent = "Nice try";
+                desc.textContent = "No easter eggs here 😝";
+            } else if (welcomeClickCount === 11) {
+                icon.textContent = "celebration";
+                title.textContent = "Alright you've found the secret!";
+                desc.textContent = "Never gonna give you up, never gonna let you down :)";
+                setTimeout(() => {
+                    linkRedirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+                }, 1500);
+            }
+        });
+    }
+
     document.getElementById("info-box").addEventListener("click", aboutMenu);
     document.getElementById("update").addEventListener("click", () => performAction("--update-hosts"));
     document.getElementById("daily-update-toggle").addEventListener("change", toggleDailyUpdate);

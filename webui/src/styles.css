@@ -97,6 +97,18 @@ body.input-focused {
     font-size: 0.7em;
 }
 
+.welcome-card {
+    background-color: #bbf0d4 !important; /* MD3 Green Container */
+    color: #002114 !important; /* MD3 On Green Container */
+}
+
+@media (prefers-color-scheme: dark) {
+    .welcome-card {
+        background-color: #005234 !important; /* MD3 Dark Green Container */
+        color: #8df7c5 !important; /* MD3 Dark On Green Container */
+    }
+}
+
 #broken-mount-box .info-card {
     background-color: var(--md-sys-color-on-primary) !important;
     color: var(--md-sys-color-primary) !important;
