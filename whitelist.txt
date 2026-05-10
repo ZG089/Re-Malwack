@@ -68,6 +68,7 @@ p11.techlab-cdn.com
 cm.everesttech.net
 weather-server.allawnos.com
 api.visicom.ua
+egoimmerce.e-goi.com
 
 # Google
 googleapis.com
