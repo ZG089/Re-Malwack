@@ -144,7 +144,18 @@ async function getStatus() {
     const statusElement = document.getElementById('status-text');
     const disableBox = document.getElementById('disabled-box');
     const disableText = document.getElementById('disable-text');
+    const idleWarningBox = document.getElementById('idle-warning-box');
+
     const result = await exec("cat /data/adb/Re-Malwack/counts/blocked_mod.count");
+
+    const idleCheck = await exec(`[ -f "${basePath}/mode_ready" ]`);
+    if (idleWarningBox) {
+        if (idleCheck.errno === 0) {
+            idleWarningBox.classList.add('display-flex');
+        } else {
+            idleWarningBox.classList.remove('display-flex');
+        }
+    }
 
     // Check if it's april 1st
     const now = new Date();
@@ -390,6 +401,9 @@ function performAction(commandOption, showTerminal = true) {
             getStatus();
             checkBlockStatus();
             updateAdblockSwtich();
+            if (commandOption === "--update-hosts") {
+                ["custom-source"].forEach(loadFile);
+            }
             resolve(code === 0);
         });
     });
@@ -1192,7 +1206,7 @@ function setupProfile() {
             
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="profile-radio-container">
-                    <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''}></md-radio>
+                    <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''} style="flex-shrink: 0;"></md-radio>
                     <div style="display: flex; flex-direction: column;">
                         <span style="font-weight: 500; font-size: 1rem; color: var(--md-sys-color-on-surface);">${capitalize(p.name)}</span>
                         ${p.desc ? `<span style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${p.desc}</span>` : ''}
