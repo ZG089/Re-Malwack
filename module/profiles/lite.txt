@@ -1,5 +1,5 @@
 # Lite Profile Hosts Sources
-# DESC: Essential/basic degree of protection for devices with low resources.
+# DESC: Light protection for devices with low resources.
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
 https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/light.txt # Hagezi Light hosts
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt # Adguard Mobile Ads

@@ -824,7 +824,7 @@ md-switch {
     --md-dialog-container-color: var(--md-sys-color-surface-container-high);
 }
 
-.profile-dialog-custom::part(scrim) {
+md-dialog::part(scrim) {
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
 }

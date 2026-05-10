@@ -71,10 +71,21 @@
         <!-- Broken mount block -->
          <div class="list-container info-card-container" id="broken-mount-box">
             <div class="list-item info-card">
-                <md-icon>close</md-icon>
+                <md-icon>sync_disabled</md-icon>
                 <div>
                     Critical Error: Broken hosts mount
                     <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your device.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Idle Warning block -->
+         <div class="list-container info-card-container" id="idle-warning-box">
+            <div class="list-item info-card">
+                <md-icon>emoticon</md-icon>
+                <div>
+                    Hello, First time user!
+                    <p>It looks like our protection has not been initialized yet. What about clicking "Update hosts file" below to get started?</p>
                 </div>
             </div>
         </div>
@@ -342,7 +353,10 @@
     <div class="dialog-wrapper" unresolved>
         <!-- Profile Dialog -->
         <md-dialog id="profile-dialog" class="profile-dialog-custom">
-            <div slot="headline">Select Profile</div>
+            <div slot="headline" style="display: flex; align-items: center; gap: 8px;">
+                <md-icon>manage_accounts</md-icon>
+                Select Profile
+            </div>
             <div slot="content" class="profile-dialog-content">
                 <div id="profile-list-container" class="profile-list-container" style="display: flex; flex-direction: column; gap: 8px;">
                     <!-- profiles rendered here -->

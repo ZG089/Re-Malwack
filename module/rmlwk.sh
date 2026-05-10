@@ -248,6 +248,7 @@ case "$(tolower "$1")" in
     --whitelist|-w)
         start_time=$(get_current_time)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
+        [ -f "$persist_dir/mode_ready" ] && abort "Idle protection is active. Please update hosts to apply changes and disable idle mode."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
         action="$2"
         shift 2
@@ -598,6 +599,12 @@ case "$(tolower "$1")" in
                 echo "[!] Invalid domain: $domain"
                 echo "Example valid domain: example.com, https://example.com or https://example.com/hosts.txt"
                 exit 1
+            fi
+
+            # Ensure the file ends with a newline to prevent concatenation
+            if [ -s "$persist_dir/sources.txt" ]; then
+                last_char=$(tail -c 1 "$persist_dir/sources.txt")
+                [ -n "$last_char" ] && echo "" >> "$persist_dir/sources.txt"
             fi
 
             # Check if domain already exists, ignoring the comment part
