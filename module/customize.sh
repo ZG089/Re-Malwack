@@ -56,7 +56,10 @@ pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please un
 ui_print "[*] Preparing Re-Malwack environment"
 persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
-mkdir -p "$persistent_dir"
+if [ ! -d "$persistent_dir" ]; then
+    mkdir -p "$persistent_dir"
+    touch "$persistent_dir/first_install_flag"
+fi
 touch "$config_file"
 for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode dns_logging; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"

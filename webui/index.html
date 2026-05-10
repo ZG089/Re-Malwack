@@ -79,13 +79,25 @@
             </div>
         </div>
 
+        <!-- Welcome block -->
+         <div class="list-container info-card-container" id="welcome-box">
+            <div class="list-item info-card welcome-card" id="welcome-card-inner" style="cursor: pointer;">
+                <md-icon id="welcome-icon">waving_hand</md-icon>
+                <div>
+                    <span id="welcome-title">Hello, First Time user!</span>
+                    <p id="welcome-desc">Welcome to <b>Re-Malwack</b> WebUI. Feel free to explore the interface and enjoy the features, Happy Ad-Blocking!</p>
+                </div>
+                <md-ripple></md-ripple>
+            </div>
+        </div>
+
         <!-- Idle Warning block -->
          <div class="list-container info-card-container" id="idle-warning-box">
-            <div class="list-item info-card">
-                <md-icon>emoticon</md-icon>
+            <div class="list-item info-card welcome-card">
+                <md-icon>info</md-icon>
                 <div>
-                    Hello, First time user!
-                    <p>It looks like our protection has not been initialized yet. What about clicking "Update hosts file" below to get started?</p>
+                    Action Required: Protection not initialized
+                    <p>It looks like our protection has not been initialized yet. Please click "Update hosts file" below to get started.</p>
                 </div>
             </div>
         </div>
