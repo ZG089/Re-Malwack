@@ -1,9 +1,0 @@
-name: Notify Discord
-
-on: [push]
-
-jobs:
-  notify:
-    uses: ikuyo-kita07/workflow-templates/.github/workflows/discord-alert.yml@main
-    secrets:
-      DISCORD_WEBHOOK: ${{ secrets.DISCORD_COMMIT_NOTIFICATION }}
