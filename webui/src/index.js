@@ -1284,6 +1284,8 @@ function setupProfile() {
                         return;
                     }
                     setActiveProfile(p.name);
+                    toast(`Successfully switched to ${capitalize(p.name)} profile`);
+                    ["custom-source"].forEach(loadFile);
                 });
             };
 
@@ -1311,7 +1313,9 @@ function setupProfile() {
                     if (currentProfile === name) {
                         currentProfile = 'default';
                         setActiveProfile('default');
-                        spawn(`sh ${modulePath}/rmlwk.sh --profile default`);
+                        spawn(`sh ${modulePath}/rmlwk.sh --profile default`).on('exit', () => {
+                            ["custom-source"].forEach(loadFile);
+                        });
                     }
                     renderProfileList();
                 };
@@ -1335,7 +1339,9 @@ function setupProfile() {
                         showPrompt(`Profile ${capitalize(name)} reset to defaults`);
                         if (currentProfile === name) {
                             setActiveProfile(name);
-                            spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`);
+                            spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`).on('exit', () => {
+                                ["custom-source"].forEach(loadFile);
+                            });
                         }
                         renderProfileList();
                         profileDialog.show();
@@ -1406,6 +1412,8 @@ function setupProfile() {
                     return;
                 }
                 setActiveProfile(nameVal);
+                toast(`Successfully switched to ${capitalize(nameVal)} profile`);
+                ["custom-source"].forEach(loadFile);
             });
         } else {
             showPrompt('Failed to create profile', false);
