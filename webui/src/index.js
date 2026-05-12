@@ -71,13 +71,27 @@ async function getVersion() {
         versionMain.textContent = "DEV";
         displayHash = "DEVELOPMENT STAGE";
     }
-    versionText.textContent = `You're using a test release: ${displayHash}`;
+    versionText.textContent = `Click to copy test build ID: ${displayHash}`;
     versionBox.classList.add('display-flex');
 
     const testVersionCard = document.getElementById('test-version-card-click');
+    const testVersionIcon = document.getElementById('test-version-icon');
+    const testVersionTitle = document.getElementById('test-version-title');
+    
     if (testVersionCard && displayHash) {
         testVersionCard.onclick = () => {
-            copyToClipboard(displayHash, "Test Build ID has been copied into clipboard");
+            navigator.clipboard.writeText(displayHash).then(() => {
+                testVersionIcon.textContent = "check";
+                testVersionTitle.textContent = "Copied!";
+                versionText.textContent = "Test build ID copied to clipboard";
+                setTimeout(() => {
+                    testVersionIcon.textContent = "science";
+                    testVersionTitle.textContent = "Test Release";
+                    versionText.textContent = `Click to copy test build ID: ${displayHash}`;
+                }, 2000);
+            }).catch(() => {
+                showPrompt("Failed to copy to clipboard", false);
+            });
         };
     }
 }
@@ -1169,10 +1183,19 @@ function setupProfile() {
             for p in ${modulePath}/profiles/*.txt ${basePath}/profiles/*.txt; do
                 [ -f "$p" ] || continue
                 name=$(basename "$p" .txt)
+                
+                # Exclude _added.txt and _removed.txt
+                echo "$name" | grep -qE "_(added|removed)$" && continue
+
                 desc=$(grep -m 1 "^# DESC: " "$p" | sed 's/^# DESC: //')
                 type="builtin"
                 echo "$p" | grep -q "${basePath}/profiles" && type="user"
-                echo "$name|$desc|$type"
+                
+                customized="false"
+                if [ -s "${basePath}/profiles/\${name}_added.txt" ] || [ -s "${basePath}/profiles/\${name}_removed.txt" ]; then
+                    customized="true"
+                fi
+                echo "$name|$desc|$type|$customized"
             done
         `;
         const result = await exec(cmd);
@@ -1181,14 +1204,14 @@ function setupProfile() {
             const lines = result.stdout.trim().split('\n');
             for (const line of lines) {
                 if (!line) continue;
-                const [name, desc, type] = line.split('|');
+                const [name, desc, type, customized] = line.split('|');
                 if (name && !profiles.find(p => p.name === name)) {
-                    profiles.push({ name, desc: desc || '', type });
+                    profiles.push({ name, desc: desc || '', type, customized: customized === 'true' });
                 }
             }
         }
         if (!profiles.find(p => p.name === 'custom')) {
-            profiles.push({ name: 'custom', desc: 'Custom configured sources', type: 'builtin' });
+            profiles.push({ name: 'custom', desc: 'Custom configured sources', type: 'builtin', customized: false });
         }
         return profiles;
     };
@@ -1222,20 +1245,28 @@ function setupProfile() {
                 <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="profile-radio-container">
                     <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''} style="flex-shrink: 0;"></md-radio>
                     <div style="display: flex; flex-direction: column;">
-                        <span style="font-weight: 500; font-size: 1rem; color: var(--md-sys-color-on-surface);">${capitalize(p.name)}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 500; font-size: 1rem; color: var(--md-sys-color-on-surface);">${capitalize(p.name)}</span>
+                            ${p.customized ? '<span class="badge" style="display:flex; padding: 2px 6px; font-size: 0.75rem; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container);">Customized</span>' : ''}
+                        </div>
                         ${p.desc ? `<span style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${p.desc}</span>` : ''}
                     </div>
                 </div>
-                ${p.type === 'user' ? `
-                    <div style="display: flex;">
-                        <md-icon-button class="edit-profile-btn" data-name="${p.name}" data-desc="${p.desc || ''}">
+                <div style="display: flex;">
+                    ${p.customized ? `
+                        <md-icon-button class="reset-profile-btn" data-name="${p.name}" title="Reset Customizations">
+                            <md-icon style="color: var(--md-sys-color-primary);">settings_backup_restore</md-icon>
+                        </md-icon-button>
+                    ` : ''}
+                    ${p.type === 'user' ? `
+                        <md-icon-button class="edit-profile-btn" data-name="${p.name}" data-desc="${p.desc || ''}" title="Edit Profile">
                             <md-icon style="color: var(--md-sys-color-primary);">edit</md-icon>
                         </md-icon-button>
-                        <md-icon-button class="delete-profile-btn" data-name="${p.name}">
+                        <md-icon-button class="delete-profile-btn" data-name="${p.name}" title="Delete Profile">
                             <md-icon style="color: var(--md-sys-color-error);">delete</md-icon>
                         </md-icon-button>
-                    </div>
-                ` : ''}
+                    ` : ''}
+                </div>
             `;
 
             const radioContainer = item.querySelector('.profile-radio-container');
@@ -1275,7 +1306,7 @@ function setupProfile() {
                 deleteBtn.onclick = async (e) => {
                     e.stopPropagation();
                     const name = deleteBtn.getAttribute('data-name');
-                    await exec(`rm -f ${basePath}/profiles/${name}.txt`);
+                    await exec(`rm -f ${basePath}/profiles/${name}.txt ${basePath}/profiles/${name}_added.txt ${basePath}/profiles/${name}_removed.txt`);
                     showPrompt(`Profile ${capitalize(name)} deleted`);
                     if (currentProfile === name) {
                         currentProfile = 'default';
@@ -1283,6 +1314,32 @@ function setupProfile() {
                         spawn(`sh ${modulePath}/rmlwk.sh --profile default`);
                     }
                     renderProfileList();
+                };
+            }
+
+            const resetBtn = item.querySelector('.reset-profile-btn');
+            if (resetBtn) {
+                resetBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const name = resetBtn.getAttribute('data-name');
+                    loadingOverlay.classList.add('show');
+                    profileDialog.close();
+                    const result = spawn(`sh ${modulePath}/rmlwk.sh --reset-profile ${name}`);
+                    result.on('exit', (code) => {
+                        loadingOverlay.classList.remove('show');
+                        if (code !== 0 && !import.meta.env.DEV) {
+                            showPrompt(`Failed to reset profile ${name}`);
+                            profileDialog.show();
+                            return;
+                        }
+                        showPrompt(`Profile ${capitalize(name)} reset to defaults`);
+                        if (currentProfile === name) {
+                            setActiveProfile(name);
+                            spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`);
+                        }
+                        renderProfileList();
+                        profileDialog.show();
+                    });
                 };
             }
 
