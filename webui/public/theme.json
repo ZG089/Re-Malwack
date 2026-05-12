@@ -1,5 +1,5 @@
 {
-    "description": "TYPE: CUSTOM\nMaterial Theme Builder export 2026-04-17 04:49:03",
+    "description": "TYPE: CUSTOM\nMaterial Theme Builder export 2026-05-11 15:05:29",
     "seed": "#D51200",
     "coreColors": {
         "primary": "#D51200"
@@ -132,10 +132,10 @@
             "onBackground": "#EAEAEA",
             "surface": "#000000",
             "onSurface": "#EAEAEA",
-            "surfaceVariant": "#1A1A1A",
+            "surfaceVariant": "#0D0D0D",
             "onSurfaceVariant": "#C6C6C6",
-            "outline": "#555555",
-            "outlineVariant": "#2A2A2A",
+            "outline": "#444444",
+            "outlineVariant": "#1A1A1A",
             "shadow": "#000000",
             "scrim": "#000000",
             "inverseSurface": "#EAEAEA",
@@ -151,12 +151,12 @@
             "onTertiaryFixedVariant": "#614000",
             "surfaceTint": "#000000",
             "surfaceDim": "#000000",
-            "surfaceBright": "#1C1C1C",
+            "surfaceBright": "#141414",
             "surfaceContainerLowest": "#000000",
-            "surfaceContainerLow": "#121212",
-            "surfaceContainer": "#181818",
-            "surfaceContainerHigh": "#202020",
-            "surfaceContainerHighest": "#2A2A2A"
+            "surfaceContainerLow": "#0A0A0A",
+            "surfaceContainer": "#0F0F0F",
+            "surfaceContainerHigh": "#141414",
+            "surfaceContainerHighest": "#1A1A1A"
         }
     }
 }
