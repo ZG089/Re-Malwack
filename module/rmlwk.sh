@@ -95,25 +95,60 @@ log_message INFO "========== End of pre-main logic =========="
 case "$(tolower "$1")" in
     --profile|-p)
         profile_name="$2"
-        if [ -z "$profile_name" ] || { [ ! -f "$MODDIR/profiles/${profile_name}.txt" ] && [ ! -f "$persist_dir/profiles/${profile_name}.txt" ] && [ "$profile_name" != "custom" ]; }; then
+        
+        # Dynamically get available profiles
+        available_profiles=""
+        for p in "$MODDIR/profiles/"*.txt "$persist_dir/profiles/"*.txt; do
+            [ -f "$p" ] || continue
+            name=$(basename "$p" .txt)
+            echo "$name" | grep -qE "_(added|removed)$" && continue
+            available_profiles="$available_profiles $name"
+        done
+        
+        if [ -z "$profile_name" ] || { [ ! -f "$MODDIR/profiles/${profile_name}.txt" ] && [ ! -f "$persist_dir/profiles/${profile_name}.txt" ]; }; then
             echo "[!] Invalid profile or missing argument."
-            echo "[i] Available profiles: default, lite, balanced, aggressive, custom"
+            echo "[i] Available profiles:$available_profiles"
             exit 1
         fi
-
-        if [ "$profile_name" = "custom" ]; then
-            grep -q "^profile=" "$persist_dir/config.sh" && sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
-        else
             if [ -f "$persist_dir/profiles/${profile_name}.txt" ]; then
                 cp -f "$persist_dir/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
             else
                 cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
             fi
+            
+            # Apply customizations
+            if [ -s "$persist_dir/profiles/${profile_name}_removed.txt" ]; then
+                awk '
+                NR==FNR {
+                    dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                    removed[dom] = 1;
+                    next;
+                }
+                {
+                    dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                    if (!(dom in removed)) print $0;
+                }' "$persist_dir/profiles/${profile_name}_removed.txt" "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
+                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+            fi
+            if [ -s "$persist_dir/profiles/${profile_name}_added.txt" ]; then
+                [ -s "$persist_dir/sources.txt" ] && tail -c1 "$persist_dir/sources.txt" | grep -qv $'\n' && echo "" >> "$persist_dir/sources.txt"
+                cat "$persist_dir/profiles/${profile_name}_added.txt" >> "$persist_dir/sources.txt"
+            fi
+            
             grep -q "^profile=" "$persist_dir/config.sh" && sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
-        fi
         log_message SUCCESS "Profile switched to $profile_name."
         echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
         update_status
+        ;;
+    --reset-profile|-rp)
+        profile_name="$2"
+        if [ -z "$profile_name" ]; then
+            echo "[!] Missing argument. Usage: rmlwk --reset-profile <profile_name>"
+            exit 1
+        fi
+        rm -f "$persist_dir/profiles/${profile_name}_added.txt" "$persist_dir/profiles/${profile_name}_removed.txt"
+        log_message SUCCESS "Reset customizations for profile $profile_name."
+        echo "[✓] Reset customizations for profile $profile_name."
         ;;
     --adblock-switch|-as)
         pause_protections
@@ -613,10 +648,12 @@ case "$(tolower "$1")" in
             else
                 if [ -n "$name" ]; then
                     echo "$domain # $name" >> "$persist_dir/sources.txt"
+                    [ -f "$MODDIR/profiles/${profile}.txt" ] && echo "$domain # $name" >> "$persist_dir/profiles/${profile}_added.txt"
                     log_message SUCCESS "Added $domain ($name) to sources."
                     echo "[✓] Added $domain ($name) to sources."
                 else
                     echo "$domain" >> "$persist_dir/sources.txt"
+                    [ -f "$MODDIR/profiles/${profile}.txt" ] && echo "$domain" >> "$persist_dir/profiles/${profile}_added.txt"
                     log_message SUCCESS "Added $domain to sources."
                     echo "[✓] Added $domain to sources."
                 fi
@@ -673,12 +710,24 @@ case "$(tolower "$1")" in
                 # Check correctly by filtering out the prefix if present
                 if grep -E "^(# OFF # )?$domain_to_remove" "$persist_dir/sources.txt" >/dev/null 2>&1; then
                     # Remove the line matching the domain (even if it has a comment after it or # OFF # prefix)
+                    
+                    removed_line=$(awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0}' "$persist_dir/sources.txt" | head -n 1)
+                    if [ -n "$removed_line" ] && [ -f "$MODDIR/profiles/${profile}.txt" ]; then
+                        echo "$removed_line" >> "$persist_dir/profiles/${profile}_removed.txt"
+                    fi
+                    
                     awk -v dom="$domain_to_remove" '{
                         actual=$1; 
                         if (actual=="#") actual=$4; 
                         if (actual != dom) print $0
                     }' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
                     mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+                    
+                    if [ -f "$MODDIR/profiles/${profile}.txt" ] && [ -f "$persist_dir/profiles/${profile}_added.txt" ]; then
+                        awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0}' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
+                        mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
+                    fi
+
                     log_message SUCCESS "Removed $domain_to_remove from sources."
                     echo "[✓] Removed $domain_to_remove from sources."
                     total_removed=$((total_removed + 1))
@@ -705,12 +754,11 @@ case "$(tolower "$1")" in
                 exit 1
             fi
         fi
-        if [ "$profile" != "custom" ]; then
-            if [ "$option" = "add" ] || [ "$option" = "edit" ] || [ "$option" = "remove" ]; then
-                sed -i 's/^profile=.*/profile=custom/' "$persist_dir/config.sh"
-                log_message SUCCESS "Profile automatically set to custom due to source modification."
-                update_status
-            fi
+        
+        # Sync user profile changes directly
+        if [ -f "$persist_dir/profiles/${profile}.txt" ] && [ ! -f "$MODDIR/profiles/${profile}.txt" ]; then
+            cp -f "$persist_dir/sources.txt" "$persist_dir/profiles/${profile}.txt"
+            log_message SUCCESS "Synced changes directly to user profile $profile."
         fi
         ;;
 

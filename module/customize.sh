@@ -118,43 +118,63 @@ rm -rf $persistent_dir/cache/* 2>/dev/null
 update_profile() {
     local prof_file="$1"
     local dest_file="$2"
+    local profile_name="$3"
     
     if [ ! -s "$dest_file" ]; then
         cp -f "$prof_file" "$dest_file"
-        return
-    fi
-    
-    awk '
-    NR==FNR {
-        if (/^# OFF # /) {
-            off_urls[$4] = 1
-        }
-        next
-    }
-    {
-        if (/^# OFF # /) {
-            url = $4
-        } else if ($1 !~ /^#/) {
-            url = $1
-            if (off_urls[url] == 1) {
-                $0 = "# OFF # " $0
+    else
+        # Stage 1 & 2: Preserve OFF states from current sources.txt and apply to new profile
+        awk '
+        NR==FNR {
+            if (/^# OFF # /) {
+                off_urls[$4] = 1
             }
-        } else {
-            url = ""
-        }
-        
-        if (url == "") {
-            print $0
             next
         }
-        
-        if (!seen[url]++) {
-            print $0
+        {
+            if (/^# OFF # /) {
+                url = $4
+            } else if ($1 !~ /^#/) {
+                url = $1
+                if (off_urls[url] == 1) {
+                    $0 = "# OFF # " $0
+                }
+            } else {
+                url = ""
+            }
+            
+            if (url == "") {
+                print $0
+                next
+            }
+            
+            if (!seen[url]++) {
+                print $0
+            }
         }
-    }
-    ' "$dest_file" "$prof_file" > "${dest_file}.tmp"
-    
-    mv -f "${dest_file}.tmp" "$dest_file"
+        ' "$dest_file" "$prof_file" > "${dest_file}.tmp"
+        
+        mv -f "${dest_file}.tmp" "$dest_file"
+    fi
+
+    # Stage 3: Apply customizations (removed and added sources)
+    if [ -s "$persistent_dir/profiles/${profile_name}_removed.txt" ]; then
+        awk '
+        NR==FNR {
+            dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+            removed[dom] = 1;
+            next;
+        }
+        {
+            dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+            if (!(dom in removed)) print $0;
+        }' "$persistent_dir/profiles/${profile_name}_removed.txt" "$dest_file" > "${dest_file}.tmp"
+        mv "${dest_file}.tmp" "$dest_file"
+    fi
+    if [ -s "$persistent_dir/profiles/${profile_name}_added.txt" ]; then
+        [ -s "$dest_file" ] && tail -c1 "$dest_file" | grep -qv $'\n' && echo "" >> "$dest_file"
+        cat "$persistent_dir/profiles/${profile_name}_added.txt" >> "$dest_file"
+    fi
 }
 
 mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -172,6 +192,14 @@ fi
 
 current_profile=$(grep "^profile=" "$config_file" 2>/dev/null | cut -d= -f2)
 
+if [ "$current_profile" = "custom" ] && [ -f "$persistent_dir/sources.txt" ]; then
+    mkdir -p "$persistent_dir/profiles"
+    cp -f "$persistent_dir/sources.txt" "$persistent_dir/profiles/legacy_custom.txt"
+    sed -i "s/^profile=.*/profile=legacy_custom/" "$config_file"
+    current_profile="legacy_custom"
+    ui_print "[*] Migrated legacy 'custom' profile to 'legacy_custom'"
+fi
+
 # Import from other ad-block modules (All respect to other ad-block modules developers)
 . $MODPATH/import.sh
 
@@ -186,7 +214,7 @@ if [ "$import_done" != "1" ]; then
         ui_print "[✓] Auto-selected profile: $detected_profile"
     else
         if [ -f "$MODPATH/profiles/${current_profile}.txt" ]; then
-            update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt"
+            update_profile "$MODPATH/profiles/${current_profile}.txt" "$persistent_dir/sources.txt" "$current_profile"
             ui_print "[*] Updating hosts sources for your $current_profile profile."
         elif [ -f "$persistent_dir/profiles/${current_profile}.txt" ]; then
             ui_print "[*] Keeping existing custom profile: $current_profile"
