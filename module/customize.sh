@@ -296,7 +296,7 @@ if [ ! -d /data/adb/modules/Re-Malwack ]; then
     fi
 else
     ui_print "[*] migrating existing hosts file to module directory"
-    mv -f $MODDIR/system/etc/hosts $MODPATH/system/etc/hosts
+    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/
     status_msg="Status: Reboot required to apply module updates 🔃"
     sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
 fi
