@@ -1520,19 +1520,27 @@ function setupEventListener() {
             if (welcomeClickCount === 2) {
                 icon.textContent = "pan_tool";
                 title.textContent = "Huh-";
-                desc.textContent = "hey stop clicking!";
+                desc.textContent = "Hey stop clicking!";
+                welcomeCardInner.style.setProperty("background-color", "var(--md-sys-color-error-container)", "important");
+                welcomeCardInner.style.setProperty("color", "var(--md-sys-color-on-error-container)", "important");
             } else if (welcomeClickCount === 4) {
                 icon.textContent = "question_mark";
                 title.textContent = "Uhh...";
                 desc.textContent = "What are you doing mate 🥀";
+                welcomeCardInner.style.setProperty("background-color", "var(--md-sys-color-secondary-container)", "important");
+                welcomeCardInner.style.setProperty("color", "var(--md-sys-color-on-secondary-container)", "important");
             } else if (welcomeClickCount === 8) {
-                icon.textContent = "sentiment_neutral";
+                icon.textContent = "emoticon";
                 title.textContent = "Nice try";
                 desc.textContent = "No easter eggs here 😝";
+                welcomeCardInner.style.setProperty("background-color", "var(--md-sys-color-tertiary-container)", "important");
+                welcomeCardInner.style.setProperty("color", "var(--md-sys-color-on-tertiary-container)", "important");
             } else if (welcomeClickCount === 11) {
                 icon.textContent = "celebration";
                 title.textContent = "Alright you've found the secret!";
                 desc.textContent = "Never gonna give you up, never gonna let you down :)";
+                welcomeCardInner.style.setProperty("background-color", "var(--md-sys-color-primary-container)", "important");
+                welcomeCardInner.style.setProperty("color", "var(--md-sys-color-on-primary-container)", "important");
                 setTimeout(() => {
                     linkRedirect("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
                 }, 1500);
