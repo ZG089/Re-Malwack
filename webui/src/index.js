@@ -1225,9 +1225,6 @@ function setupProfile() {
                 }
             }
         }
-        if (!profiles.find(p => p.name === 'custom')) {
-            profiles.push({ name: 'custom', desc: 'Custom configured sources', type: 'builtin', customized: false });
-        }
         return profiles;
     };
 
