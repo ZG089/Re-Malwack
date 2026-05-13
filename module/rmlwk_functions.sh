@@ -818,7 +818,7 @@ update_status() {
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
-                setConfigProperty "name" "Re-Malware | Not just a normal malware module ✨" "$MODDIR/module.prop"
+                setConfigProperty "name" "Re-Malwack | Not just a normal ad-blocker module ✨" "$MODDIR/module.prop"
                 setConfigProperty "banner" "banner=banner.png" "$MODDIR/module.prop"
             fi
         fi
