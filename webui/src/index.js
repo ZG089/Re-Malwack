@@ -600,6 +600,7 @@ function handleAdd(fileType) {
         if (code === 0) inputElement.value = "";
         await loadFile(fileType);
         await getStatus();
+        if (window.updateProfileIndicator) window.updateProfileIndicator();
     });
 }
 
@@ -891,6 +892,7 @@ function editLine(fileType, lines, action = "remove") {
         }
         loadFile(fileType);
         getStatus();
+        if (window.updateProfileIndicator) window.updateProfileIndicator();
     });
 }
 
@@ -930,6 +932,7 @@ function openEditDialog(fileType, currentLine, onSuccess) {
         if (result.errno === 0) {
             if (onSuccess) onSuccess();
             await loadFile(fileType);
+            if (window.updateProfileIndicator) window.updateProfileIndicator();
         } else {
             showPrompt('Failed to update line', false);
         }
@@ -1167,9 +1170,21 @@ function setupProfile() {
 
     const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
+    window.updateProfileIndicator = async () => {
+        if (!currentProfile) return;
+        try {
+            const check = await exec(`[ -s "${basePath}/profiles/${currentProfile}_added.txt" ] || [ -s "${basePath}/profiles/${currentProfile}_removed.txt" ]`);
+            const isCustomized = check.errno === 0;
+            profileText.textContent = capitalize(currentProfile) + (isCustomized ? ' (Customized)' : '');
+        } catch (e) {
+            profileText.textContent = capitalize(currentProfile);
+        }
+    };
+
     const setActiveProfile = (profileName) => {
         currentProfile = profileName.toLowerCase();
         profileText.textContent = capitalize(profileName);
+        window.updateProfileIndicator();
     };
 
     exec(`grep "^profile=" ${CONFIG_PATH} | cut -d'=' -f2 | head -n 1 || echo 'default'`).then((result) => {
@@ -2143,3 +2158,29 @@ function dnsShowToolbox(appCbs, listRoot) {
         setTimeout(() => { loadFile('whitelist'); getStatus(); }, 1500);
     });
 }
+
+// Add global blur effect listener for md-dialogs
+customElements.whenDefined('md-dialog').then(() => {
+    const dialogBlur = document.getElementById('dialog-blur-overlay');
+    let openDialogCount = 0;
+    
+    document.querySelectorAll('md-dialog').forEach(dialog => {
+        // Force the built-in scrim to be fully transparent so we don't double darken
+        dialog.style.setProperty('--md-sys-color-scrim', 'transparent');
+        
+        dialog.addEventListener('open', () => {
+            if (openDialogCount === 0 && dialogBlur) {
+                dialogBlur.classList.add('show');
+            }
+            openDialogCount++;
+        });
+        
+        dialog.addEventListener('closed', () => {
+            openDialogCount--;
+            if (openDialogCount <= 0) {
+                openDialogCount = 0;
+                if (dialogBlur) dialogBlur.classList.remove('show');
+            }
+        });
+    });
+});

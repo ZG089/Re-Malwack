@@ -836,9 +836,19 @@ md-switch {
     --md-dialog-container-color: var(--md-sys-color-surface-container-high);
 }
 
-md-dialog::part(scrim) {
+.dialog-blur-overlay {
+    position: fixed;
+    inset: 0;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
+    z-index: 4; /* Below the top-layer natively but acts as a global background blur */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.dialog-blur-overlay.show {
+    opacity: 1;
 }
 
 .profile-list-container {
