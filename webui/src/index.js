@@ -77,7 +77,7 @@ async function getVersion() {
     const testVersionCard = document.getElementById('test-version-card-click');
     const testVersionIcon = document.getElementById('test-version-icon');
     const testVersionTitle = document.getElementById('test-version-title');
-    
+
     if (testVersionCard && displayHash) {
         testVersionCard.onclick = () => {
             navigator.clipboard.writeText(displayHash).then(() => {
@@ -520,7 +520,7 @@ function setupCustomBlock() {
 function showPrompt(message, isSuccess = true, duration = 2000, actionCallback = null, actionText = null) {
     const prompt = document.getElementById('prompt');
     prompt.textContent = message;
-    
+
     if (actionCallback && actionText) {
         const btn = document.createElement('md-text-button');
         btn.textContent = actionText;
@@ -1092,7 +1092,7 @@ function setupProfile() {
     const newProfileDesc = document.getElementById('new-profile-desc');
     const baseProfileSelect = document.getElementById('base-profile-select');
     const loadingOverlay = document.getElementById('loading-overlay');
-    
+
     const editProfileDialog = document.getElementById('edit-profile-dialog');
     const editProfileName = document.getElementById('edit-profile-name');
     const editProfileDesc = document.getElementById('edit-profile-desc');
@@ -1234,7 +1234,7 @@ function setupProfile() {
         profileListContainer.innerHTML = '<div style="display: flex; justify-content: center; padding: 16px;"><md-circular-progress indeterminate></md-circular-progress></div>';
         const profiles = await getProfiles();
         profileListContainer.innerHTML = '';
-        
+
         baseProfileSelect.innerHTML = '';
 
         profiles.forEach(p => {
@@ -1252,9 +1252,9 @@ function setupProfile() {
             item.style.justifyContent = 'space-between';
             item.style.padding = '8px 0';
             item.style.borderBottom = '1px solid var(--md-sys-color-outline-variant)';
-            
+
             const isSelected = p.name === currentProfile;
-            
+
             item.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="profile-radio-container">
                     <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''} style="flex-shrink: 0;"></md-radio>
@@ -1394,7 +1394,7 @@ function setupProfile() {
 
         const fileContent = descVal ? `# DESC: ${descVal}\n` : '';
         let cmd = `mkdir -p ${basePath}/profiles\n`;
-        
+
         if (baseProfile && baseProfile !== 'none') {
             cmd += `if [ -f "${basePath}/profiles/${baseProfile}.txt" ]; then cp "${basePath}/profiles/${baseProfile}.txt" "${basePath}/profiles/${nameVal}.txt"; elif [ -f "${modulePath}/profiles/${baseProfile}.txt" ]; then cp "${modulePath}/profiles/${baseProfile}.txt" "${basePath}/profiles/${nameVal}.txt"; fi\n`;
             cmd += `sed -i '/^# DESC:/d' "${basePath}/profiles/${nameVal}.txt"\n`;
@@ -1404,9 +1404,9 @@ function setupProfile() {
         } else {
             cmd += `echo "${fileContent}" > ${basePath}/profiles/${nameVal}.txt\n`;
         }
-        
+
         const result = await exec(cmd);
-        
+
         submitNewProfile.disabled = false;
         createProfileSpinner.style.display = 'none';
 
@@ -1416,7 +1416,7 @@ function setupProfile() {
             newProfileDesc.value = '';
             expandableCreateProfile.style.display = 'none';
             renderProfileList();
-            
+
             // Auto-select the new profile
             loadingOverlay.classList.add('show');
             profileDialog.close();
@@ -1517,7 +1517,7 @@ function setupEventListener() {
             const icon = document.getElementById("welcome-icon");
             const title = document.getElementById("welcome-title");
             const desc = document.getElementById("welcome-desc");
-            
+
             if (welcomeClickCount === 2) {
                 icon.textContent = "pan_tool";
                 title.textContent = "Huh-";
@@ -2134,9 +2134,9 @@ function dnsShowToolbox(appCbs, listRoot) {
         if (isDomainView) {
             appCbs.forEach(cb => { cb.classList.remove('show'); cb.checked = false; });
         } else {
-            appCbs.forEach(cb => { 
-                cb.classList.remove('show'); 
-                cb.checked = false; 
+            appCbs.forEach(cb => {
+                cb.classList.remove('show');
+                cb.checked = false;
                 setTimeout(() => { cb.style.display = 'none'; }, 150);
             });
             if (listRoot) {
@@ -2151,7 +2151,7 @@ function dnsShowToolbox(appCbs, listRoot) {
 
     toolbox.querySelector('#dns-tb-all').addEventListener('click', () => {
         const allSelected = toolbox.querySelector('#dns-tb-all').textContent === "Unselect All";
-        
+
         if (isDomainView) {
             appCbs.forEach(cb => { cb.checked = !allSelected; });
         } else if (listRoot) {
@@ -2176,13 +2176,13 @@ function dnsShowToolbox(appCbs, listRoot) {
 
 // Global dialog blur logic
 customElements.whenDefined('md-dialog').then(() => {
+    const openDialogs = new Set();
+    
     const updateBlur = () => {
-        const dialogs = Array.from(document.querySelectorAll('md-dialog'));
-        const anyOpen = dialogs.some(d => d.open);
         const resetOverlay = document.getElementById('reset-confirm-overlay');
         const resetActive = resetOverlay && resetOverlay.classList.contains('show');
-        
-        if (anyOpen || resetActive) {
+
+        if (openDialogs.size > 0 || resetActive) {
             document.body.classList.add('dialog-blur-active');
         } else {
             document.body.classList.remove('dialog-blur-active');
@@ -2193,8 +2193,8 @@ customElements.whenDefined('md-dialog').then(() => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
                 if (node.tagName === 'MD-DIALOG') {
-                    node.addEventListener('open', updateBlur);
-                    node.addEventListener('closed', updateBlur);
+                    node.addEventListener('open', () => { openDialogs.add(node); updateBlur(); });
+                    node.addEventListener('closed', () => { openDialogs.delete(node); updateBlur(); });
                 }
             });
         });
@@ -2202,8 +2202,9 @@ customElements.whenDefined('md-dialog').then(() => {
     observer.observe(document.body, { childList: true, subtree: true });
 
     document.querySelectorAll('md-dialog').forEach(dialog => {
-        dialog.addEventListener('open', updateBlur);
-        dialog.addEventListener('closed', updateBlur);
+        if (dialog.open) openDialogs.add(dialog);
+        dialog.addEventListener('open', () => { openDialogs.add(dialog); updateBlur(); });
+        dialog.addEventListener('closed', () => { openDialogs.delete(dialog); updateBlur(); });
     });
 
     document.addEventListener('visibilitychange', () => {
@@ -2211,7 +2212,7 @@ customElements.whenDefined('md-dialog').then(() => {
             updateBlur();
         }
     });
-    
+
     window._updateDialogBlur = updateBlur;
 });
 
@@ -2227,7 +2228,7 @@ customElements.whenDefined('md-dialog').then(() => {
 
     let _pendingCallback = null;
 
-    window.showResetProfileConfirm = function(profileName, onConfirm) {
+    window.showResetProfileConfirm = function (profileName, onConfirm) {
         bodyText.textContent = `This will reset all customizations for "${profileName}" back to defaults. This action cannot be undone.`;
         _pendingCallback = onConfirm;
         overlay.classList.add('show');

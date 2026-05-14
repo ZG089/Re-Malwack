@@ -837,7 +837,7 @@ md-switch {
 }
 
 /* Global dialog blur */
-.dialog-blur-active .content,
+.dialog-blur-active .content > *,
 .dialog-blur-active #festival-theme,
 .dialog-blur-active .float-container,
 .dialog-blur-active .terminal {
@@ -845,7 +845,7 @@ md-switch {
     pointer-events: none !important;
 }
 
-.content,
+.content > *,
 #festival-theme,
 .float-container,
 .terminal {
