@@ -10,24 +10,24 @@
         "description": "WebUI + Contributor"
     },
     {
-        "username": "GalaxyA14user",
-        "type": "Contributor",
-        "description": "Fixing bugs + Contributor"
-    },
-    {
         "username": "ikuyo-kita07",
         "type": "Contributor",
         "description": "Contributor"
     },
     {
+        "username": "dnascorpionofficial",
+        "type": "Contributor",
+        "description": "Contributor + Bug hunter"
+    },
+    {
+        "username": "GalaxyA14user",
+        "type": "Contributor",
+        "description": "Fixing bugs + Contributor"
+    },
+    {
         "username": "myst-25",
         "type": "Contributor",
         "description": "Testing and feedback"
-    },
-    {
-        "username": "dnascorpionofficial",
-        "type": "Contributor",
-        "description": "Testing & WebUI themer"
     },
     {
         "username": "person0z",
