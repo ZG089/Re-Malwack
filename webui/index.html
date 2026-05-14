@@ -465,7 +465,10 @@
 
         <!-- Reboot dialog -->
         <md-dialog id="reboot-dialog">
-        <div slot="headline">Confirm Reboot?</div>
+        <div slot="headline" style="display: flex; align-items: center; gap: 8px;">
+            <md-icon>restart_alt</md-icon>
+            Confirm Reboot?
+        </div>
         <div slot="content">Are you sure you want to reboot the device?</div>
         <div slot="actions">
             <md-outlined-button id="cancel-reboot">Cancel</md-outlined-button>
@@ -488,7 +491,26 @@
     </div>
 
     <!-- Dialog Blur Overlay -->
-    <div class="dialog-blur-overlay" id="dialog-blur-overlay"></div>
+
+
+    <!-- Reset Profile Confirmation Overlay -->
+    <div class="reset-confirm-overlay" id="reset-confirm-overlay">
+        <div class="reset-confirm-card">
+            <div class="reset-confirm-headline">
+                <md-icon>history</md-icon>
+                Reset Profile?
+            </div>
+            <div class="reset-confirm-body" id="reset-confirm-body">
+                This will reset all customizations for this profile back to defaults. This action cannot be undone.
+            </div>
+            <div class="reset-confirm-actions">
+                <md-outlined-button id="reset-confirm-cancel">Cancel</md-outlined-button>
+                <md-filled-button id="reset-confirm-ok" style="--md-sys-color-primary: var(--md-sys-color-error); --md-sys-color-on-primary: var(--md-sys-color-on-error);">
+                    Reset
+                </md-filled-button>
+            </div>
+        </div>
+    </div>
 
     <!-- Loading overlay -->
     <div class="overlay" id="loading-overlay" unresolved>

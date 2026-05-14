@@ -596,7 +596,9 @@ function handleAdd(fileType) {
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         addBtn.disabled = false;
-        showPrompt(output[output.length - 1].trim(), code === 0);
+        const rawMsg = output[output.length - 1].trim();
+        const cleanMsg = rawMsg.replace(/\x1b\[[0-9;]*m/g, '').trim();
+        showPrompt(cleanMsg, code === 0);
         if (code === 0) inputElement.value = "";
         await loadFile(fileType);
         await getStatus();
@@ -1296,7 +1298,7 @@ function setupProfile() {
                         return;
                     }
                     setActiveProfile(p.name);
-                    toast(`Successfully switched to ${capitalize(p.name)} profile`);
+                    showPrompt(`Successfully switched to ${capitalize(p.name)} profile`);
                     ["custom-source"].forEach(loadFile);
                 });
             };
@@ -1338,25 +1340,27 @@ function setupProfile() {
                 resetBtn.onclick = (e) => {
                     e.stopPropagation();
                     const name = resetBtn.getAttribute('data-name');
-                    loadingOverlay.classList.add('show');
                     profileDialog.close();
-                    const result = spawn(`sh ${modulePath}/rmlwk.sh --reset-profile ${name}`);
-                    result.on('exit', (code) => {
-                        loadingOverlay.classList.remove('show');
-                        if (code !== 0 && !import.meta.env.DEV) {
-                            showPrompt(`Failed to reset profile ${name}`);
+                    window.showResetProfileConfirm(capitalize(name), () => {
+                        loadingOverlay.classList.add('show');
+                        const result = spawn(`sh ${modulePath}/rmlwk.sh --reset-profile ${name}`);
+                        result.on('exit', (code) => {
+                            loadingOverlay.classList.remove('show');
+                            if (code !== 0 && !import.meta.env.DEV) {
+                                showPrompt(`Failed to reset profile ${name}`);
+                                profileDialog.show();
+                                return;
+                            }
+                            showPrompt(`Profile ${capitalize(name)} reset to defaults`);
+                            if (currentProfile === name) {
+                                setActiveProfile(name);
+                                spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`).on('exit', () => {
+                                    ["custom-source"].forEach(loadFile);
+                                });
+                            }
+                            renderProfileList();
                             profileDialog.show();
-                            return;
-                        }
-                        showPrompt(`Profile ${capitalize(name)} reset to defaults`);
-                        if (currentProfile === name) {
-                            setActiveProfile(name);
-                            spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`).on('exit', () => {
-                                ["custom-source"].forEach(loadFile);
-                            });
-                        }
-                        renderProfileList();
-                        profileDialog.show();
+                        });
                     });
                 };
             }
@@ -1765,11 +1769,14 @@ async function loadDnsLogs() {
         if (!document.getElementById('dns-view-toggle')) {
             const toggleRow = document.createElement('div');
             toggleRow.id = 'dns-view-toggle';
-            toggleRow.style.cssText = 'display:flex;padding:12px 16px 4px;';
+            toggleRow.className = 'dns-view-toggle-row';
             toggleRow.innerHTML = `
-                <div style="display:flex;background:var(--md-sys-color-surface-container-high);border-radius:100px;padding:4px;gap:4px;width:100%;">
-                    <button id="dns-btn-domain" style="flex:1;border:none;border-radius:100px;padding:8px 16px;cursor:pointer;font-size:0.875rem;font-family:inherit;outline:none;-webkit-tap-highlight-color:transparent;transition:background 0.2s,color 0.2s;">Per Domain</button>
-                    <button id="dns-btn-app"    style="flex:1;border:none;border-radius:100px;padding:8px 16px;cursor:pointer;font-size:0.875rem;font-family:inherit;outline:none;-webkit-tap-highlight-color:transparent;transition:background 0.2s,color 0.2s;">Per App</button>
+                <div class="dns-segment-control">
+                    <div class="dns-segment-bg left"></div>
+                    <div class="dns-segment-bg right"></div>
+                    <div class="dns-segment-slider" id="dns-segment-slider"></div>
+                    <button id="dns-btn-domain" class="dns-segment-btn"><span>Per Domain</span></button>
+                    <button id="dns-btn-app" class="dns-segment-btn"><span>Per App</span></button>
                 </div>
             `;
             listElement.parentElement.insertBefore(toggleRow, listElement);
@@ -1803,15 +1810,18 @@ async function loadDnsLogs() {
 function dnsUpdateToggle() {
     const domBtn = document.getElementById('dns-btn-domain');
     const appBtn = document.getElementById('dns-btn-app');
-    if (!domBtn || !appBtn) return;
-    const primary = `var(--md-sys-color-primary)`;
-    const onPrimary = `var(--md-sys-color-on-primary)`;
-    const none = `transparent`;
-    const muted = `var(--md-sys-color-on-surface-variant)`;
-    domBtn.style.background = dnsViewMode === 'domain' ? primary : none;
-    domBtn.style.color = dnsViewMode === 'domain' ? onPrimary : muted;
-    appBtn.style.background = dnsViewMode === 'app' ? primary : none;
-    appBtn.style.color = dnsViewMode === 'app' ? onPrimary : muted;
+    const slider = document.getElementById('dns-segment-slider');
+    if (!domBtn || !appBtn || !slider) return;
+    const isDomain = dnsViewMode === 'domain';
+    domBtn.classList.toggle('dns-segment-btn--active', isDomain);
+    appBtn.classList.toggle('dns-segment-btn--active', !isDomain);
+    if (isDomain) {
+        slider.style.transform = 'translateX(0)';
+        slider.style.borderRadius = '24px 8px 8px 24px';
+    } else {
+        slider.style.transform = 'translateX(calc(100% + 4px))';
+        slider.style.borderRadius = '8px 24px 24px 8px';
+    }
 }
 
 async function renderDnsView(listElement) {
@@ -2164,28 +2174,79 @@ function dnsShowToolbox(appCbs, listRoot) {
     });
 }
 
-// Add global blur effect listener for md-dialogs
+// Global dialog blur logic
 customElements.whenDefined('md-dialog').then(() => {
-    const dialogBlur = document.getElementById('dialog-blur-overlay');
-    let openDialogCount = 0;
-    
-    document.querySelectorAll('md-dialog').forEach(dialog => {
-        // Force the built-in scrim to be fully transparent so we don't double darken
-        dialog.style.setProperty('--md-sys-color-scrim', 'transparent');
+    const updateBlur = () => {
+        const dialogs = Array.from(document.querySelectorAll('md-dialog'));
+        const anyOpen = dialogs.some(d => d.open);
+        const resetOverlay = document.getElementById('reset-confirm-overlay');
+        const resetActive = resetOverlay && resetOverlay.classList.contains('show');
         
-        dialog.addEventListener('open', () => {
-            if (openDialogCount === 0 && dialogBlur) {
-                dialogBlur.classList.add('show');
-            }
-            openDialogCount++;
-        });
-        
-        dialog.addEventListener('closed', () => {
-            openDialogCount--;
-            if (openDialogCount <= 0) {
-                openDialogCount = 0;
-                if (dialogBlur) dialogBlur.classList.remove('show');
-            }
+        if (anyOpen || resetActive) {
+            document.body.classList.add('dialog-blur-active');
+        } else {
+            document.body.classList.remove('dialog-blur-active');
+        }
+    };
+
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.tagName === 'MD-DIALOG') {
+                    node.addEventListener('open', updateBlur);
+                    node.addEventListener('closed', updateBlur);
+                }
+            });
         });
     });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    document.querySelectorAll('md-dialog').forEach(dialog => {
+        dialog.addEventListener('open', updateBlur);
+        dialog.addEventListener('closed', updateBlur);
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            updateBlur();
+        }
+    });
+    
+    window._updateDialogBlur = updateBlur;
 });
+
+
+// Reset profile confirmation overlay logic
+(function setupResetProfileConfirm() {
+    const overlay = document.getElementById('reset-confirm-overlay');
+    const cancelBtn = document.getElementById('reset-confirm-cancel');
+    const confirmBtn = document.getElementById('reset-confirm-ok');
+    const bodyText = document.getElementById('reset-confirm-body');
+
+    if (!overlay || !cancelBtn || !confirmBtn) return;
+
+    let _pendingCallback = null;
+
+    window.showResetProfileConfirm = function(profileName, onConfirm) {
+        bodyText.textContent = `This will reset all customizations for "${profileName}" back to defaults. This action cannot be undone.`;
+        _pendingCallback = onConfirm;
+        overlay.classList.add('show');
+        if (window._updateDialogBlur) window._updateDialogBlur();
+    };
+
+    cancelBtn.onclick = () => {
+        overlay.classList.remove('show');
+        _pendingCallback = null;
+        if (window._updateDialogBlur) window._updateDialogBlur();
+        profileDialog.show();
+    };
+
+    confirmBtn.onclick = () => {
+        overlay.classList.remove('show');
+        if (typeof _pendingCallback === 'function') {
+            _pendingCallback();
+        }
+        _pendingCallback = null;
+        if (window._updateDialogBlur) window._updateDialogBlur();
+    };
+})();
