@@ -836,19 +836,84 @@ md-switch {
     --md-dialog-container-color: var(--md-sys-color-surface-container-high);
 }
 
-.dialog-blur-overlay {
+/* Global dialog blur */
+.dialog-blur-active .content,
+.dialog-blur-active #festival-theme,
+.dialog-blur-active .float-container,
+.dialog-blur-active .terminal {
+    filter: blur(5px);
+    pointer-events: none !important;
+}
+
+.content,
+#festival-theme,
+.float-container,
+.terminal {
+    transition: filter 0.2s ease;
+}
+
+/* Reset profile confirmation overlay */
+.reset-confirm-overlay {
     position: fixed;
     inset: 0;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 4; /* Below the top-layer natively but acts as a global background blur */
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
 }
 
-.dialog-blur-overlay.show {
+.reset-confirm-overlay.show {
     opacity: 1;
+    pointer-events: auto;
+}
+
+.reset-confirm-card {
+    background: var(--md-sys-color-surface-container-high);
+    border-radius: 28px;
+    padding: 24px;
+    width: calc(100% - 64px);
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transform: scale(0.92);
+    transition: transform 0.2s ease;
+}
+
+.reset-confirm-overlay.show .reset-confirm-card {
+    transform: scale(1);
+}
+
+.reset-confirm-headline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--md-sys-color-on-surface);
+    user-select: none;
+}
+
+.reset-confirm-headline md-icon {
+    color: var(--md-sys-color-error);
+}
+
+.reset-confirm-body {
+    font-size: 0.9em;
+    color: var(--md-sys-color-on-surface-variant);
+    line-height: 1.5;
+    user-select: none;
+}
+
+.reset-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 .profile-list-container {
@@ -885,4 +950,70 @@ md-switch {
     padding: 16px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+/* DNS view segment slider */
+.dns-view-toggle-row {
+    padding: 12px 16px 4px;
+}
+
+.dns-segment-control {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dns-segment-bg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: calc(50% - 2px);
+    background: var(--md-sys-color-surface-container-high);
+    z-index: 0;
+}
+
+.dns-segment-bg.left {
+    left: 0;
+    border-radius: 24px 8px 8px 24px;
+}
+
+.dns-segment-bg.right {
+    right: 0;
+    border-radius: 8px 24px 24px 8px;
+}
+
+.dns-segment-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(50% - 2px);
+    height: 100%;
+    background: var(--md-sys-color-primary-container);
+    border-radius: 24px 8px 8px 24px;
+    transition: transform 0.5s cubic-bezier(0.3, 0, 0, 1), border-radius 0.5s cubic-bezier(0.3, 0, 0, 1);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.dns-segment-btn {
+    position: relative;
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--md-sys-color-on-surface);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.25s ease;
+    z-index: 2;
+    user-select: none;
+}
+
+.dns-segment-btn--active {
+    color: var(--md-sys-color-on-primary-container);
 }
