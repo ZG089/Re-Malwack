@@ -185,6 +185,7 @@ jobs:
   send-release:
     name: Send Test Release
     needs: build
+    if: "!contains(github.event.head_commit.message, '[skip send]')"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -222,8 +223,11 @@ jobs:
         run: |
           COMMIT_MSG_RAW=$(git log -1 --pretty=format:'%B')
           COMMIT_AUTHOR="$COMMIT_USERNAME"
+          
           # Escape for Telegram HTML
-          COMMIT_MSG_TG=$(printf '%s' "$COMMIT_MSG_RAW" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          COMMIT_MSG_TG="${COMMIT_MSG_RAW//&/&amp;}"
+          COMMIT_MSG_TG="${COMMIT_MSG_TG//</&lt;}"
+          COMMIT_MSG_TG="${COMMIT_MSG_TG//>/&gt;}"
           
           # Generate Discord payload using jq to safely handle quotes and newlines
           PAYLOAD=$(jq -n \
@@ -236,19 +240,23 @@ jobs:
             --arg runUrl "$RUN_URL" \
             '{content: "⚙️ **New test release**\n\n\($msg)\n\n`Base Version: \($ver)`\n`Test Build ID: \($tid)`\n\nAuthor: *[\($author)](\($authorUrl))*\n\n[View Commit](\($commitUrl))\n[Workflow Run](\($runUrl))"}')
 
+          cat <<EOF > tg_caption.txt
+          ⚙️ <b>New test release!</b>
+          <pre>${COMMIT_MSG_TG}</pre>
+          👤 Author: <b><a href="${COMMIT_AUTHOR_URL}">${COMMIT_AUTHOR}</a></b>
+          ⚙ Base Version: <code>${VERSION}</code>
+          🧪 Test Build ID: <code>${TEST_BUILD_ID}</code>
+          =================================
+          <a href="${COMMIT_URL}">- View Commit -</a>
+          <a href="${RUN_URL}">- Workflow Run -</a>
+          EOF
+
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
               -F chat_id="-1002271023118" \
               -F message_thread_id="1314" \
               -F document=@"${ZIP_NAME}.zip" \
               -F thumb=@"$THUMB" \
-              -F caption="⚙️ <b>New test release!</b>
-          <pre>$COMMIT_MSG_TG</pre>
-          👤 Author: <b><a href=\"$COMMIT_AUTHOR_URL\">$COMMIT_AUTHOR</a></b>
-          ⚙ Base Version: <code>${VERSION}</code>
-          🧪 Test Build ID: <code>${TEST_BUILD_ID}</code>
-          =================================
-          <a href=\"$COMMIT_URL\">- View Commit -</a>
-          <a href=\"$RUN_URL\">- Workflow Run -</a>" \
-          -F parse_mode="HTML"
+              -F caption="<tg_caption.txt" \
+              -F parse_mode="HTML"
           curl -X POST -H "Content-Type: multipart/form-data" -F \
             "payload_json=$PAYLOAD" -F "file=@$ZIP_NAME.zip" "$DISCORD_RELEASES"
