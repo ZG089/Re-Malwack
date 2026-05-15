@@ -20,4 +20,5 @@
     direction: ltr;
     -moz-font-feature-settings: 'liga';
     -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
 }
