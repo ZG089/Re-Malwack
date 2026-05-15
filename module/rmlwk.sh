@@ -613,7 +613,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
-	--custom-source|-c)
+--custom-source|-c)
         option="$2"
         shift 2 # Remove script name and option from arguments        
         if [ -z "$option" ] || [ $# -eq 0 ]; then
@@ -682,7 +682,7 @@ case "$(tolower "$1")" in
             fi
 
             # Replace matching line in sources.txt (match by URL field, preserve disabled prefix)
-            if awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) exit 0 } END { exit 1 }' "$persist_dir/sources.txt"; then
+            if awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) found=1 } END { exit !found }' "$persist_dir/sources.txt"; then
                 awk -v old="$old_url" -v new="$new_line" '{
                     actual=$1; if (actual=="#") actual=$4;
                     if (actual==old) print new;
@@ -699,7 +699,7 @@ case "$(tolower "$1")" in
             # Sync _added.txt for builtin profiles
             if is_builtin_profile; then
                 if [ -f "$persist_dir/profiles/${profile}_added.txt" ] && \
-                   awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) exit 0 } END { exit 1 }' "$persist_dir/profiles/${profile}_added.txt" 2>/dev/null; then
+                   awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) found=1 } END { exit !found }' "$persist_dir/profiles/${profile}_added.txt" 2>/dev/null; then
                     # Source was user-added: just update it in _added.txt
                     awk -v old="$old_url" -v new="$new_line" '{
                         actual=$1; if (actual=="#") actual=$4;
@@ -773,7 +773,7 @@ case "$(tolower "$1")" in
                 if grep -E "^(# OFF # )?$domain_to_remove" "$persist_dir/sources.txt" >/dev/null 2>&1; then
                     # Remove the line matching the domain (even if it has a comment after it or # OFF # prefix)
                     
-                    removed_line=$(awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0}' "$persist_dir/sources.txt" | head -n 1)
+                    removed_line=$(awk -v dom="$domain_to_remove" '{ actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0 }' "$persist_dir/sources.txt" | head -n 1)
                     if [ -n "$removed_line" ] && is_builtin_profile; then
                         echo "$removed_line" >> "$persist_dir/profiles/${profile}_removed.txt"
                     fi
@@ -786,7 +786,7 @@ case "$(tolower "$1")" in
                     mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
                     
                     if is_builtin_profile && [ -f "$persist_dir/profiles/${profile}_added.txt" ]; then
-                        awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0}' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
+                        awk -v dom="$domain_to_remove" '{ actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0 }' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
                         mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
                     fi
 
