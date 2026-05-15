@@ -215,7 +215,7 @@ md-dialog.input-dialog {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(5px);
     z-index: 5;
     display: flex;
@@ -860,7 +860,7 @@ md-switch {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -989,7 +989,7 @@ md-switch {
     left: 0;
     width: calc(50% - 2px);
     height: 100%;
-    background: var(--md-sys-color-primary-container);
+    background: var(--md-sys-color-primary);
     border-radius: 24px 8px 8px 24px;
     transition: transform 0.5s cubic-bezier(0.3, 0, 0, 1), border-radius 0.5s cubic-bezier(0.3, 0, 0, 1);
     pointer-events: none;
@@ -1015,5 +1015,5 @@ md-switch {
 }
 
 .dns-segment-btn--active {
-    color: var(--md-sys-color-on-primary-container);
+    color: var(--md-sys-color-on-primary);
 }
