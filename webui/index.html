@@ -455,7 +455,10 @@
 
         <!-- Confirmation dialog -->
         <md-dialog id="confirmation-dialog">
-        <div slot="headline">Confirm Reset?</div>
+        <div slot="headline" style="display: flex; align-items: center; gap: 8px;">
+            <md-icon>history</md-icon>
+            Confirm Reset?
+        </div>
         <div slot="content">Are you sure you want to reset hosts file?</div>
         <div slot="actions">
             <md-outlined-button id="cancel-reset">Cancel</md-outlined-button>
