@@ -365,6 +365,7 @@ async function checkBlockStatus() {
         } else {
             dnsLoggingToggle.selected = false;
         }
+        updateLoggedDnsVisibility(dnsLoggingToggle.selected);
     } catch (error) {
         if (error.message === 'Config file not found') {
             const success = await linkFile();
@@ -477,6 +478,7 @@ async function toggleDnsLogging() {
 
     const result = await performAction(`--dns-logging ${action}`, false);
     if (result) {
+        updateLoggedDnsVisibility(toggle.selected);
         await checkRebootRequired();
         showPrompt(
             toggle.selected ? "DNS Logging enabled, Reboot to apply changes." : "DNS Logging disabled, Reboot to apply changes.",
@@ -488,6 +490,14 @@ async function toggleDnsLogging() {
     } else {
         showPrompt("Failed to toggle DNS logging", false);
     }
+}
+
+function updateLoggedDnsVisibility(enabled) {
+    const title = document.getElementById('logged-dns-title');
+    const box = document.getElementById('logged-dns');
+    const display = enabled ? '' : 'none';
+    if (title) title.style.display = display;
+    if (box) box.style.display = display;
 }
 
 // Function to export logs
@@ -1751,6 +1761,8 @@ async function loadDnsLogs() {
         const content = await response.text();
         const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
+        if (lines.length === 0) throw new Error('dns.log is empty');
+
         _domainCounts = {};
         _appMap = {};
 
@@ -1804,6 +1816,8 @@ async function loadDnsLogs() {
 
     } catch (e) {
         listElement.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.5;">No logs recorded yet.</div>`;
+        const toggle = document.getElementById('dns-view-toggle');
+        if (toggle) toggle.remove();
     }
 }
 
