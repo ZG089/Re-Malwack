@@ -111,6 +111,20 @@ is_protection_paused() {
     [ -f "$persist_dir/hosts.bak" ]
 }
 
+# Returns 0 if the given profile (defaults to $profile) is a built-in one
+# i.e. it ships with the module inside MODDIR/profiles/
+is_builtin_profile() {
+    local p="${1:-$profile}"
+    [ -f "$MODDIR/profiles/${p}.txt" ]
+}
+
+# Returns 0 if the given profile (defaults to $profile) was created by the user
+# i.e. it exists in persist_dir/profiles/ but is NOT a built-in profile
+is_user_profile() {
+    local p="${1:-$profile}"
+    [ -f "$persist_dir/profiles/${p}.txt" ] && ! is_builtin_profile "$p"
+}
+
 # 1 - Pause adblock
 pause_protections() {
     # Check if protection is paused, enable if it is paused.
@@ -1000,7 +1014,7 @@ help_menu() {
     echo "============= Sources Management ============="
     echo "--whitelist, -w <add|remove> <domain|pattern> <domain2> ...: Whitelist domain(s), only whitelist one domain at a time, otherwise use wildcard or use multiple domains in case of unwhitelisting."
     echo "--blacklist, -b <add|remove> <domain1> <domain2> ...: Blacklist domain(s)."
-    echo "--custom-source, -c <add|remove|enable|disable> ...: Add/remove/enable/disable custom hosts sources."
+    echo "--custom-source, -c <add|remove|enable|disable|edit> ...: Add/remove/enable/disable custom hosts sources."
     echo ""
     echo "============= Block Lists Categories ============="
     echo "--block-porn, -bp <disable>: Enable or disable porn domains blocking."

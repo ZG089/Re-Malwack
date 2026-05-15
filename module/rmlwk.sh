@@ -110,32 +110,42 @@ case "$(tolower "$1")" in
             echo "[i] Available profiles:$available_profiles"
             exit 1
         fi
-            if [ -f "$persist_dir/profiles/${profile_name}.txt" ]; then
-                cp -f "$persist_dir/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
-            else
-                cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
-            fi
+
+        if [ -f "$persist_dir/profiles/${profile_name}.txt" ]; then
+            cp -f "$persist_dir/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
+        else
+            cp -f "$MODDIR/profiles/${profile_name}.txt" "$persist_dir/sources.txt"
+        fi
             
-            # Apply customizations
-            if [ -s "$persist_dir/profiles/${profile_name}_removed.txt" ]; then
-                awk '
-                NR==FNR {
-                    dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
-                    removed[dom] = 1;
-                    next;
-                }
-                {
-                    dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
-                    if (!(dom in removed)) print $0;
-                }' "$persist_dir/profiles/${profile_name}_removed.txt" "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
-                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
-            fi
-            if [ -s "$persist_dir/profiles/${profile_name}_added.txt" ]; then
-                [ -s "$persist_dir/sources.txt" ] && tail -c1 "$persist_dir/sources.txt" | grep -qv $'\n' && echo "" >> "$persist_dir/sources.txt"
-                cat "$persist_dir/profiles/${profile_name}_added.txt" >> "$persist_dir/sources.txt"
-            fi
-            
-            grep -q "^profile=" "$persist_dir/config.sh" && sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
+        # Apply customizations
+        if [ -s "$persist_dir/profiles/${profile_name}_removed.txt" ]; then
+            awk '
+            NR==FNR {
+                dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                removed[dom] = 1;
+                next;
+            }
+            {
+                dom = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                if (!(dom in removed)) print $0;
+            }' "$persist_dir/profiles/${profile_name}_removed.txt" "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
+            mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+        fi
+        if [ -s "$persist_dir/profiles/${profile_name}_added.txt" ]; then
+            [ -s "$persist_dir/sources.txt" ] && tail -c1 "$persist_dir/sources.txt" | grep -qv $'\n' && echo "" >> "$persist_dir/sources.txt"
+            # Only append entries whose URL isn't already in sources.txt (base/dev wins on conflict)
+            awk 'NR==FNR {
+                actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                existing[actual] = 1;
+                next;
+            }
+            {
+                actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+                if (!(actual in existing)) print $0;
+            }' "$persist_dir/sources.txt" "$persist_dir/profiles/${profile_name}_added.txt" >> "$persist_dir/sources.txt"
+        fi
+  
+        grep -q "^profile=" "$persist_dir/config.sh" && sed -i "s/^profile=.*/profile=$profile_name/" "$persist_dir/config.sh"
         log_message SUCCESS "Profile switched to $profile_name."
         echo "[✓] Profile switched to $profile_name. Please update hosts to apply changes."
         update_status
@@ -614,9 +624,9 @@ case "$(tolower "$1")" in
             exit 1
         fi
 
-        if [ "$option" != "add" ] && [ "$option" != "remove" ] && [ "$option" != "enable" ] && [ "$option" != "disable" ]; then
-            echo "[!] Invalid option: Use 'add', 'remove', 'enable', or 'disable'."
-            echo "Usage: rmlwk --custom-source <add/remove/enable/disable> <domain1> [domain2] [domain3] ..."
+        if [ "$option" != "add" ] && [ "$option" != "remove" ] && [ "$option" != "enable" ] && [ "$option" != "disable" ] && [ "$option" != "edit" ]; then
+            echo "[!] Invalid option: Use 'add', 'remove', 'edit', 'enable', or 'disable'."
+            echo "Usage: rmlwk --custom-source <add/remove/edit/enable/disable> <domain1> [domain2] [domain3] ..."
             exit 1
         fi
         touch "$persist_dir/sources.txt"
@@ -648,14 +658,66 @@ case "$(tolower "$1")" in
             else
                 if [ -n "$name" ]; then
                     echo "$domain # $name" >> "$persist_dir/sources.txt"
-                    [ -f "$MODDIR/profiles/${profile}.txt" ] && echo "$domain # $name" >> "$persist_dir/profiles/${profile}_added.txt"
+                    is_builtin_profile && echo "$domain # $name" >> "$persist_dir/profiles/${profile}_added.txt"
                     log_message SUCCESS "Added $domain ($name) to sources."
                     echo "[✓] Added $domain ($name) to sources."
                 else
                     echo "$domain" >> "$persist_dir/sources.txt"
-                    [ -f "$MODDIR/profiles/${profile}.txt" ] && echo "$domain" >> "$persist_dir/profiles/${profile}_added.txt"
+                    is_builtin_profile && echo "$domain" >> "$persist_dir/profiles/${profile}_added.txt"
                     log_message SUCCESS "Added $domain to sources."
                     echo "[✓] Added $domain to sources."
+                fi
+            fi
+        elif [ "$option" = "edit" ]; then
+            # Usage: --custom-source edit <old_url> <new_full_line>
+            # $1 = old URL (used to find the line), rest = new full line to replace with
+            old_url="$1"
+            shift
+            new_line="$*"
+
+            if [ -z "$old_url" ] || [ -z "$new_line" ]; then
+                echo "[!] Missing arguments for edit."
+                echo "Usage: rmlwk --custom-source edit <old_url> <new_full_line>"
+                exit 1
+            fi
+
+            # Replace matching line in sources.txt (match by URL field, preserve disabled prefix)
+            if awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) exit 0 } END { exit 1 }' "$persist_dir/sources.txt"; then
+                awk -v old="$old_url" -v new="$new_line" '{
+                    actual=$1; if (actual=="#") actual=$4;
+                    if (actual==old) print new;
+                    else print $0;
+                }' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
+                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+                log_message SUCCESS "Edited source: $old_url -> $new_line"
+                echo "[✓] Edited source entry."
+            else
+                echo "[!] $old_url was not found in sources."
+                exit 1
+            fi
+
+            # Sync _added.txt for builtin profiles
+            if is_builtin_profile; then
+                if [ -f "$persist_dir/profiles/${profile}_added.txt" ] && \
+                   awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) exit 0 } END { exit 1 }' "$persist_dir/profiles/${profile}_added.txt" 2>/dev/null; then
+                    # Source was user-added: just update it in _added.txt
+                    awk -v old="$old_url" -v new="$new_line" '{
+                        actual=$1; if (actual=="#") actual=$4;
+                        if (actual==old) print new;
+                        else print $0;
+                    }' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
+                    mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
+                    log_message SUCCESS "Synced edit to _added.txt for builtin profile $profile."
+                else
+                    # Source came from the base profile (not in _added.txt yet):
+                    # tombstone the original URL so it won't be re-applied on profile switch,
+                    # then track the edited version as a user addition.
+                    echo "$old_url" >> "$persist_dir/profiles/${profile}_removed.txt"
+                    [ -s "$persist_dir/profiles/${profile}_added.txt" ] && \
+                        tail -c1 "$persist_dir/profiles/${profile}_added.txt" | grep -qv $'\n' && \
+                        echo "" >> "$persist_dir/profiles/${profile}_added.txt"
+                    echo "$new_line" >> "$persist_dir/profiles/${profile}_added.txt"
+                    log_message SUCCESS "Tracked base-profile source edit for $profile: removed $old_url, added $new_line."
                 fi
             fi
         elif [ "$option" = "enable" ] || [ "$option" = "disable" ]; then
@@ -712,7 +774,7 @@ case "$(tolower "$1")" in
                     # Remove the line matching the domain (even if it has a comment after it or # OFF # prefix)
                     
                     removed_line=$(awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0}' "$persist_dir/sources.txt" | head -n 1)
-                    if [ -n "$removed_line" ] && [ -f "$MODDIR/profiles/${profile}.txt" ]; then
+                    if [ -n "$removed_line" ] && is_builtin_profile; then
                         echo "$removed_line" >> "$persist_dir/profiles/${profile}_removed.txt"
                     fi
                     
@@ -723,7 +785,7 @@ case "$(tolower "$1")" in
                     }' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
                     mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
                     
-                    if [ -f "$MODDIR/profiles/${profile}.txt" ] && [ -f "$persist_dir/profiles/${profile}_added.txt" ]; then
+                    if is_builtin_profile && [ -f "$persist_dir/profiles/${profile}_added.txt" ]; then
                         awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0}' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
                         mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
                     fi
@@ -756,7 +818,7 @@ case "$(tolower "$1")" in
         fi
         
         # Sync user profile changes directly
-        if [ -f "$persist_dir/profiles/${profile}.txt" ] && [ ! -f "$MODDIR/profiles/${profile}.txt" ]; then
+        if is_user_profile; then
             cp -f "$persist_dir/sources.txt" "$persist_dir/profiles/${profile}.txt"
             log_message SUCCESS "Synced changes directly to user profile $profile."
         fi

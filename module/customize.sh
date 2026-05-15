@@ -174,7 +174,16 @@ update_profile() {
     fi
     if [ -s "$persistent_dir/profiles/${profile_name}_added.txt" ]; then
         [ -s "$dest_file" ] && tail -c1 "$dest_file" | grep -qv $'\n' && echo "" >> "$dest_file"
-        cat "$persistent_dir/profiles/${profile_name}_added.txt" >> "$dest_file"
+        # Only append entries whose URL isn't already in dest_file (base/dev wins on conflict)
+        awk 'NR==FNR {
+            actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+            existing[actual] = 1;
+            next;
+        }
+        {
+            actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
+            if (!(actual in existing)) print $0;
+        }' "$dest_file" "$persistent_dir/profiles/${profile_name}_added.txt" >> "$dest_file"
     fi
 }
 
