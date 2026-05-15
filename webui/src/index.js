@@ -1670,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('clear-dns-logs').addEventListener('click', async () => {
         const tbBack = document.getElementById('dns-tb-back');
         if (tbBack) tbBack.click();
-        await exec(`rm ${basePath}/logs/dns.log`);
+        await exec(`echo "" > ${basePath}/logs/dns.log`);
         showPrompt("DNS Logs cleared", true);
         loadDnsLogs();
     });
