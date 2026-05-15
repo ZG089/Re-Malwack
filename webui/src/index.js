@@ -744,7 +744,8 @@ function setupControlListListeners(listElement, fileType) {
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
-        const filePath = 'link/persistent_dir/' + filePaths[fileType];
+        const cacheBust = `?t=${Date.now()}`;
+        const filePath = 'link/persistent_dir/' + filePaths[fileType] + cacheBust;
         const response = await fetch(filePath);
         if (!response.ok) throw new Error(filePath + ' not found');
         const content = await response.text();
@@ -756,7 +757,7 @@ async function loadFile(fileType) {
         let sourceCounts = {};
         if (fileType === "custom-source") {
             try {
-                const countResponse = await fetch('link/persistent_dir/counts/sources.counts');
+                const countResponse = await fetch(`link/persistent_dir/counts/sources.counts${cacheBust}`);
                 if (countResponse.ok) {
                     const countContent = await countResponse.text();
                     countContent.split("\n").forEach(line => {
@@ -940,7 +941,16 @@ function openEditDialog(fileType, currentLine, onSuccess) {
         const targetFile = `${basePath}/${filePaths[fileType]}`;
         const escapeLine = (line) => line.replace(/[\/&]/g, '\\$&');
 
-        const result = await exec(`sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`);
+        let result;
+        if (fileType === 'custom-source') {
+            // Use rmlwk --custom-source edit so profile tracking files (_added.txt /
+            // user profile file) are kept in sync — raw sed would bypass tracking
+            // and cause names to be lost on the next profile switch or hosts update.
+            result = await exec(`sh ${modulePath}/rmlwk.sh --custom-source edit "${domain}" "${newLine}"`);
+        } else {
+            result = await exec(`sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`);
+        }
+
         if (result.errno === 0) {
             if (onSuccess) onSuccess();
             await loadFile(fileType);
