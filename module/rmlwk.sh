@@ -30,8 +30,8 @@ rmlwkExec=true
 . $persist_dir/config.sh
 # 2 - sourcing functions script
 . $MODDIR/rmlwk_functions.sh
-# 3 - creating logs dir in case if not created
-mkdir -p "$persist_dir/logs"
+# 3 - creating logs + profiles dir in case if not created
+mkdir -p "$persist_dir/logs" "$persist_dir/profiles"
 
 # 4 - Determine target hosts (zn-hostsredirect / default)
 if [ -d "$zn_module_dir" ] && [ ! -f "$zn_module_dir/disable" ] && [ ! -f "$zn_module_dir/remove" ]; then
