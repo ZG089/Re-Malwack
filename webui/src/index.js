@@ -431,9 +431,11 @@ function performAction(commandOption, showTerminal = true) {
     const closeTerminal = () => {
         document.body.classList.remove('noscroll');
         terminal.classList.remove('show');
-        terminalContent.innerHTML = "";
         closeBtn.classList.remove('show');
         backBtn.style.display = '';
+        setTimeout(() => {
+            terminalContent.innerHTML = "";
+        }, 400); // Wait for the transition to finish
     }
 
     const stepMap = {
