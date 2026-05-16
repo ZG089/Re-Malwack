@@ -307,7 +307,7 @@ case "$(tolower "$1")" in
             echo "  rmlwk --whitelist add something*   # Add prefix wildcard to whitelist"
             echo "  rmlwk --whitelist remove example.com # Remove domain from whitelist"
             echo "  rmlwk -w add domain1.com domain2.com domain3.com # Add multiple domains to whitelist"
-            display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null || true )
+            display_whitelist=$(cat "$persist_dir/whitelist.txt" 2>/dev/null || true)
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
         fi
@@ -335,34 +335,40 @@ case "$(tolower "$1")" in
                     continue
                 fi
 
-                # Check if already whitelisted
-                if grep -qxF "$raw_input" "$persist_dir/whitelist.txt"; then
+                # Wildcard-aware already-whitelisted guard.
+
+                case "$host" in
+                    \*\.*) wl_check="${host#*.}" ; wl_pattern="\.${wl_check}$" ;;
+                    \**)   wl_pattern="${host#\*}$" ;;
+                    *\*)   wl_pattern="^${host%\*}" ;;
+                    *)     wl_pattern="^${host}$" ;;
+                esac
+                if grep -qE "$wl_pattern" "$persist_dir/whitelist.txt"; then
                     echo "[i] $raw_input is already whitelisted"
                     continue
                 fi
 
-                # Detect input type
-                case "$raw_input" in
+                case "$host" in
                     \*\.*) # Subdomain: *.domain.com
-                        domain="${raw_input#*.}"
+                        domain="${host#*.}"
                         esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
                         pattern="^0\.0\.0\.0 [^.]+\\.${esc_domain}\$"
                         match_type="subdomain"
                         ;;
                     \**) # Suffix: *something
-                        suffix="${raw_input#\*}"
+                        suffix="${host#\*}"
                         esc_suffix=$(printf '%s' "$suffix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
                         pattern="^0\.0\.0\.0 .*${esc_suffix}\$"
                         match_type="suffix"
                         ;;
                     *\*) # Prefix: something*
-                        prefix="${raw_input%\*}"
+                        prefix="${host%\*}"
                         esc_prefix=$(printf '%s' "$prefix" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
                         pattern="^0\.0\.0\.0 ${esc_prefix}.*\$"
                         match_type="prefix"
                         ;;
                     *) # Exact
-                        domain="$raw_input"
+                        domain="$host"
                         esc_domain=$(printf '%s' "$domain" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
                         pattern="^0\.0\.0\.0 ${esc_domain}\$"
                         match_type="exact"
@@ -394,11 +400,10 @@ case "$(tolower "$1")" in
                     fi
                 done
 
-                # Rewrite hosts file excluding matched domains
-                tmp_hosts="$persist_dir/tmp.hosts.$$"
-                grep -Ev "$pattern" "$hosts_file" > "$tmp_hosts"
-                cat "$tmp_hosts" > "$hosts_file"
-                rm -f "$tmp_hosts"
+                wl_tmp="$persist_dir/tmp.hosts.$$"
+                grep -Ev "$pattern" "$hosts_file" > "$wl_tmp"
+                cat "$wl_tmp" > "$hosts_file"
+                rm -f "$wl_tmp"
 
                 added_total="$added_total $raw_input"
                 log_message "Whitelisted ($match_type): $raw_input. Domains: $matched_domains"
@@ -421,7 +426,7 @@ case "$(tolower "$1")" in
             end_time=$(get_current_time)
             log_duration "Adding to whitelist bulk" "$start_time" "$end_time"
         else  # remove
-            shift 2  # move past: --whitelist remove
+
             if [ $# -lt 1 ]; then
                 echo "[!] No domains/patterns provided to remove."
                 exit 1
@@ -496,7 +501,7 @@ case "$(tolower "$1")" in
             echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
             update_status
             end_time=$(get_current_time)
-            log_duration "Removing from whitelist: $raw_input" "$start_time" "$end_time"
+            log_duration "Removing from whitelist:$removed_total" "$start_time" "$end_time"
         fi
         ;;
 
