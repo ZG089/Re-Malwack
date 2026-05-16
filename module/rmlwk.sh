@@ -517,6 +517,7 @@ case "$(tolower "$1")" in
             [ ! -z "$display_blacklist" ] && echo -e "Current blacklist:\n$display_blacklist" || echo "Current blacklist: no saved blacklist"
             exit 1
         fi
+
         if [ "$option" = "add" ]; then
             added_total=""
             for raw_input in "$@"; do
@@ -542,18 +543,26 @@ case "$(tolower "$1")" in
 
                 # Add to hosts file if not already present
                 if grep -qE "^0\.0\.0\.0[[:space:]]+$domain\$" "$hosts_file"; then
-                    echo "[i] $domain is already blocked."
+                    if ! grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
+                        echo "$domain" >> "$persist_dir/blacklist.txt"
+                        log_message "Pinned $domain to blacklist for persistence"
+                        echo "[✓] $domain is already blocked (now pinned to blacklist for persistence)."
+                        added_total="$added_total $domain"
+                    else
+                        log_message "$domain is already blocked and pinned"
+                        echo "[i] $domain is already blocked and pinned."
+                    fi
                     continue
-                else
-                    echo "[*] Blacklisting $domain..."
-                    log_message "Blacklisting $domain..."
-                    # Add to blacklist.txt if not already there
-                    grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
-                    # Ensure newline at end before appending
-                    [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
-                    echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
-                    added_total="$added_total $domain"
                 fi
+
+                echo "[*] Blacklisting $domain..."
+                log_message "Blacklisting $domain..."
+                # Add to blacklist.txt if not already there
+                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+                # Ensure newline at end before appending
+                [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
+                echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
+                added_total="$added_total $domain"
             done
 
             if [ -z "$added_total" ]; then
@@ -583,10 +592,12 @@ case "$(tolower "$1")" in
                 log_message "Removing $domain from blacklist..."
                 if grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                     sed -i "/^$(printf '%s' "$domain" | sed 's/[]\/$*.^|[]/\\&/g')$/d" "$persist_dir/blacklist.txt"
-                    tmp_hosts="$persist_dir/tmp.hosts.$$"
-                    grep -vF "0.0.0.0 $domain" "$hosts_file" > "$tmp_hosts"
-                    cat "$tmp_hosts" > "$hosts_file"
-                    rm -f "$tmp_hosts"
+                    bl_tmp="$persist_dir/tmp.hosts.$$"
+                    esc_domain=$(printf '%s' "$domain" | sed 's/[.[\^$+?(){}|\\]/\\&/g')
+                    grep -vE "^0\.0\.0\.0[[:space:]]+${esc_domain}\$" "$hosts_file" > "$bl_tmp"
+                    cat "$bl_tmp" > "$hosts_file"
+                    rm -f "$bl_tmp"
+
                     log_message "Removed $domain from blacklist and unblocked."
                     echo "[✓] $domain has been removed from blacklist and unblocked."
                     total_removed=$((total_removed + 1))
@@ -605,7 +616,7 @@ case "$(tolower "$1")" in
                 end_time=$(get_current_time)
                 log_duration "Removing from blacklist: $*" "$start_time" "$end_time"
             fi
-            
+
             if [ -n "$failed_removals" ]; then
                 echo "[i] Failed to remove:$failed_removals"
                 log_message WARN "Failed to remove domains:$failed_removals"
