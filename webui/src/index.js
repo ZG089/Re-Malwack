@@ -114,8 +114,48 @@ async function checkMount() {
         module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
         [ $system_hosts -eq $module_hosts ] || echo "error"
     `);
+    
+    const mountBox = document.getElementById('broken-mount-box');
+    const mountCard = document.getElementById('broken-mount-card-click');
+    const mountText = document.getElementById('broken-mount-text');
+    
     if (result.stdout.trim().includes("error") && !await isZnhr() || import.meta.env.DEV) {
-        document.getElementById('broken-mount-box').classList.add('display-flex');
+        mountBox.classList.add('display-flex');
+        
+        if (mountCard) {
+            mountCard.onclick = () => {
+                mountText.textContent = "Attempting to remount...";
+                const remountResult = spawn('sh', [`${modulePath}/rmlwk.sh`, `--remount-hosts`]);
+                remountResult.on('exit', (code) => {
+                    if (code === 0) {
+                        mountBox.classList.remove('display-flex');
+                        showPrompt("Hosts remounted successfully", true);
+                        getStatus();
+                    } else {
+                        mountText.textContent = "Remount failed. Tap here to reboot your device.";
+                        showPrompt("Failed to remount hosts", false);
+                        
+                        mountCard.onclick = () => {
+                            const rebootDialog = document.getElementById('reboot-dialog');
+                            if (rebootDialog) {
+                                rebootDialog.show();
+                                const cancelBtn = document.getElementById('cancel-reboot');
+                                const confirmBtn = document.getElementById('confirm-reboot');
+                                if (cancelBtn) cancelBtn.onclick = () => rebootDialog.close();
+                                if (confirmBtn) confirmBtn.onclick = () => {
+                                    rebootDialog.close();
+                                    exec('reboot');
+                                };
+                            } else {
+                                exec('reboot');
+                            }
+                        };
+                    }
+                });
+            };
+        }
+    } else {
+        mountBox.classList.remove('display-flex');
     }
 }
 

@@ -1060,6 +1060,13 @@ case "$(tolower "$1")" in
         log_duration "Updating hosts" "$start_time" "$end_time"
         ;;
 
+    --remount-hosts)
+        start_time=$(get_current_time)
+        remount_hosts || abort "Failed to remount hosts."
+        end_time=$(get_current_time)
+        log_duration "Remounting hosts" "$start_time" "$end_time"
+        ;;
+
     --help|-h|*)
         help_menu
         ;;
