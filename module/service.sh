@@ -42,7 +42,6 @@ mount_hosts() {
         return 0
     fi
     log_message "Attempting to remount hosts..."
-    umount -l "$system_hosts" 2>/dev/null || log_message "Failed to unmount $system_hosts"
     mount --bind "$hosts_file" "$system_hosts" || {
         log_message "Failed to bind mount $hosts_file to $system_hosts"
         return 1
