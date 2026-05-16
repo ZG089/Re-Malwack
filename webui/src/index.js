@@ -799,6 +799,9 @@ function setupControlListListeners(listElement, fileType) {
 // Function to read a file and display its content in the UI
 async function loadFile(fileType) {
     try {
+        const listElement = document.getElementById(`${fileType}-list`);
+        listElement.innerHTML = "";
+        
         const cacheBust = `?t=${Date.now()}`;
         const filePath = 'link/persistent_dir/' + filePaths[fileType] + cacheBust;
         const response = await fetch(filePath);
@@ -830,8 +833,6 @@ async function loadFile(fileType) {
         let skipDivider = true;
         const now = new Date();
         const isApril1st = (now.getMonth() === 3 && now.getDate() === 1);
-        const listElement = document.getElementById(`${fileType}-list`);
-        listElement.innerHTML = "";
 
         // Function to create list items
         lines.forEach(line => {

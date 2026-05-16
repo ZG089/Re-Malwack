@@ -424,7 +424,23 @@ md-dialog.input-dialog {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+}
+
+.box > :not(:first-child) {
+    margin-top: 8px;
+}
+
+.box > .control-list:not(.show) {
+    margin-top: 0;
+}
+
+#whitelist-list:empty,
+#blacklist-list:empty,
+#custom-source-list:empty,
+#custom-rule-list:empty,
+#logged-dns-list:empty {
+    display: none;
+    margin-top: 0;
 }
 
 .list-title {
