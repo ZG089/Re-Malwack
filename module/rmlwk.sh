@@ -674,14 +674,15 @@ case "$(tolower "$1")" in
                 fi
             fi
         elif [ "$option" = "edit" ]; then
-            # Args: $1=old_url  $2=new_url  $3=new_name (each a single clean arg, no spaces)
+            # Args: $1=old_url  $2=new_url  $3...=new_name
             old_url="$1"
             new_url="$2"
-            new_name="$3"
+            shift 2
+            new_name="$*"
 
             old_url=$(printf '%s' "$old_url" | tr -d '\r' | sed 's/[[:space:]]*$//')
             new_url=$(printf '%s' "$new_url" | tr -d '\r' | sed 's/[[:space:]]*$//')
-            new_name=$(printf '%s' "$new_name" | tr -d '\r' | sed 's/[[:space:]]*$//')
+            new_name=$(printf '%s' "$new_name" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 
             if [ -z "$old_url" ] || [ -z "$new_url" ]; then
                 echo "[!] Missing arguments for edit."
