@@ -120,7 +120,6 @@ update_profile() {
     local prof_file="$1"
     local dest_file="$2"
     local profile_name="$3"
-    
     if [ ! -s "$dest_file" ]; then
         cp -f "$prof_file" "$dest_file"
     else
@@ -174,16 +173,27 @@ update_profile() {
     fi
     if [ -s "$persistent_dir/profiles/${profile_name}_added.txt" ]; then
         [ -s "$dest_file" ] && tail -c1 "$dest_file" | grep -qv $'\n' && echo "" >> "$dest_file"
-        # Only append entries whose URL isn't already in dest_file (base/dev wins on conflict)
+        # Merge _added.txt into dest_file:
+        # - If URL already in base: replace base entry with user's version (preserves name)
+        # - If URL only in _added.txt: append it
         awk 'NR==FNR {
             actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
-            existing[actual] = 1;
+            user_lines[actual] = $0;
             next;
         }
         {
             actual = ($1 == "#" && $2 == "OFF" && $3 == "#") ? $4 : $1;
-            if (!(actual in existing)) print $0;
-        }' "$dest_file" "$persistent_dir/profiles/${profile_name}_added.txt" >> "$dest_file"
+            if (actual in user_lines) {
+                print user_lines[actual];
+                delete user_lines[actual];
+            } else {
+                print $0;
+            }
+        }
+        END {
+            for (url in user_lines) print user_lines[url];
+        }' "$persistent_dir/profiles/${profile_name}_added.txt" "$dest_file" > "${dest_file}.tmp"
+        mv "${dest_file}.tmp" "$dest_file"
     fi
 }
 
