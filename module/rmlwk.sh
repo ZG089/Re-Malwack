@@ -1028,16 +1028,8 @@ case "$(tolower "$1")" in
             bl_count=0
             for file in "$persist_dir/cache/$bl/hosts"*; do
                 if [ -f "$file" ]; then
-                    if [ "$bl" = "safebrowsing" ]; then
-                        # Count raw entries BEFORE host_process: safebrowsing files contain
-                        # bare IPs (no hostname), which host_process silently drops.
-                        # Counting after processing would always return near-zero.
-                        file_count=$(grep -cE '^[^#[:space:]]' "$file" 2>/dev/null || true)
-                        host_process "$file"
-                    else
-                        host_process "$file"
-                        file_count=$(wc -l < "$file")
-                    fi
+                    host_process "$file"
+                    file_count=$(wc -l < "$file")
                     bl_count=$((bl_count + file_count))
                 fi
             done
