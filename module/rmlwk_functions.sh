@@ -657,7 +657,7 @@ fetch_blocklist() {
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"
             ;;
         safebrowsing)
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/columndeeply/hosts/refs/heads/main/safebrowsing"
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/Re-Malwack/hosts/refs/heads/main/safebrowsing.txt"
             ;;
     esac
     wait
@@ -702,7 +702,7 @@ fetch() {
     # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
     if command -v curl >/dev/null 2>&1; then
         dl_tool=curl
-        if ! curl -Ls "$url" > "$output_file"; then
+        if ! curl -LfsS "$url" > "$output_file"; then
             log_message ERROR "Failed to download from $url with curl"
             echo "[!] Failed to download from $url"
             echo "" > "$output_file"
@@ -764,8 +764,11 @@ update_status() {
     for bl in porn gambling fakenews social trackers safebrowsing; do
         eval enabled=\$block_${bl}
         if [ "$enabled" = "1" ]; then
-            enabled_blocklists="$enabled_blocklists - $bl"
-            [ -z "$enabled_blocklists" ] && enabled_blocklists=" $bl"
+            if [ -z "$enabled_blocklists" ]; then
+                enabled_blocklists="$bl"
+            else
+                enabled_blocklists="$enabled_blocklists, $bl"
+            fi
         fi
     done
     [ -n "$enabled_blocklists" ] && log_message INFO "Enabled blocklists:$enabled_blocklists" || \

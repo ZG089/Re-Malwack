@@ -85,9 +85,9 @@ for bl in porn gambling fakenews social trackers safebrowsing; do
     eval enabled=\$block_${bl}
     if [ "$enabled" = "1" ]; then
         if [ -z "$enabled_blocklists" ]; then
-            enabled_blocklists=" $bl"
+            enabled_blocklists="$bl"
         else
-            enabled_blocklists="$enabled_blocklists - $bl"
+            enabled_blocklists="$enabled_blocklists, $bl"
         fi
     fi
 done

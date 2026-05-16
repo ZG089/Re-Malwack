@@ -401,6 +401,7 @@ function performAction(commandOption, showTerminal = true) {
         '[i]': { icon: 'info',         cls: 'step-info'    },
         '[✓]': { icon: 'check_circle', cls: 'step-done'    },
         '[!]': { icon: 'warning',      cls: 'step-warn'    },
+        '[✗]': { icon: 'error',        cls: 'step-warn'    },
     };
 
     const completeRunningSteps = () => {
