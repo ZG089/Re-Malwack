@@ -613,7 +613,7 @@ case "$(tolower "$1")" in
         fi
         ;;
 
---custom-source|-c)
+	--custom-source|-c)
         option="$2"
         shift 2 # Remove script name and option from arguments        
         if [ -z "$option" ] || [ $# -eq 0 ]; then
@@ -669,26 +669,35 @@ case "$(tolower "$1")" in
                 fi
             fi
         elif [ "$option" = "edit" ]; then
-            # Usage: --custom-source edit <old_url> <new_full_line>
-            # $1 = old URL (used to find the line), rest = new full line to replace with
+            # Args: $1=old_url  $2=new_url  $3=new_name (each a single clean arg, no spaces)
             old_url="$1"
-            shift
-            new_line="$*"
+            new_url="$2"
+            new_name="$3"
 
-            if [ -z "$old_url" ] || [ -z "$new_line" ]; then
+            old_url=$(printf '%s' "$old_url" | tr -d '\r' | sed 's/[[:space:]]*$//')
+            new_url=$(printf '%s' "$new_url" | tr -d '\r' | sed 's/[[:space:]]*$//')
+            new_name=$(printf '%s' "$new_name" | tr -d '\r' | sed 's/[[:space:]]*$//')
+
+            if [ -z "$old_url" ] || [ -z "$new_url" ]; then
                 echo "[!] Missing arguments for edit."
-                echo "Usage: rmlwk --custom-source edit <old_url> <new_full_line>"
+                echo "Usage: rmlwk --custom-source edit <old_url> <new_url> [new_name]"
                 exit 1
             fi
 
-            # Replace matching line in sources.txt (match by URL field, preserve disabled prefix)
-            if awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) found=1 } END { exit !found }' "$persist_dir/sources.txt"; then
-                awk -v old="$old_url" -v new="$new_line" '{
-                    actual=$1; if (actual=="#") actual=$4;
-                    if (actual==old) print new;
-                    else print $0;
-                }' "$persist_dir/sources.txt" > "$persist_dir/sources.tmp"
-                mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
+            if [ -n "$new_name" ]; then
+                new_line="$new_url # $new_name"
+            else
+                new_line="$new_url"
+            fi
+
+            # Replace matching line in sources.txt
+            # grep -F for existence check, then two separate sed calls with || true
+            # BusyBox sed -i exits non zero when a pattern matches nothing, which kills set -e
+            if grep -qF "$old_url" "$persist_dir/sources.txt"; then
+                esc_old=$(printf '%s' "$old_url" | sed 's|[&/\\]|\\&|g')
+                esc_new=$(printf '%s' "$new_line" | sed 's|[&/\\]|\\&|g')
+                sed -i "s|^${esc_old}.*|${esc_new}|" "$persist_dir/sources.txt" || true
+                sed -i "s|^# OFF # ${esc_old}.*|# OFF # ${esc_new}|" "$persist_dir/sources.txt" || true
                 log_message SUCCESS "Edited source: $old_url -> $new_line"
                 echo "[✓] Edited source entry."
             else
@@ -699,14 +708,12 @@ case "$(tolower "$1")" in
             # Sync _added.txt for builtin profiles
             if is_builtin_profile; then
                 if [ -f "$persist_dir/profiles/${profile}_added.txt" ] && \
-                   awk -v old="$old_url" '{ actual=$1; if (actual=="#") actual=$4; if (actual==old) found=1 } END { exit !found }' "$persist_dir/profiles/${profile}_added.txt" 2>/dev/null; then
+                   grep -qF "$old_url" "$persist_dir/profiles/${profile}_added.txt" 2>/dev/null; then
                     # Source was user-added: just update it in _added.txt
-                    awk -v old="$old_url" -v new="$new_line" '{
-                        actual=$1; if (actual=="#") actual=$4;
-                        if (actual==old) print new;
-                        else print $0;
-                    }' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
-                    mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
+                    esc_old=$(printf '%s' "$old_url" | sed 's|[&/\\]|\\&|g')
+                    esc_new=$(printf '%s' "$new_line" | sed 's|[&/\\]|\\&|g')
+                    sed -i "s|^${esc_old}.*|${esc_new}|" "$persist_dir/profiles/${profile}_added.txt" || true
+                    sed -i "s|^# OFF # ${esc_old}.*|# OFF # ${esc_new}|" "$persist_dir/profiles/${profile}_added.txt" || true
                     log_message SUCCESS "Synced edit to _added.txt for builtin profile $profile."
                 else
                     # Source came from the base profile (not in _added.txt yet):
@@ -773,7 +780,7 @@ case "$(tolower "$1")" in
                 if grep -E "^(# OFF # )?$domain_to_remove" "$persist_dir/sources.txt" >/dev/null 2>&1; then
                     # Remove the line matching the domain (even if it has a comment after it or # OFF # prefix)
                     
-                    removed_line=$(awk -v dom="$domain_to_remove" '{ actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0 }' "$persist_dir/sources.txt" | head -n 1)
+                    removed_line=$(awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual == dom) print $0}' "$persist_dir/sources.txt" | head -n 1)
                     if [ -n "$removed_line" ] && is_builtin_profile; then
                         echo "$removed_line" >> "$persist_dir/profiles/${profile}_removed.txt"
                     fi
@@ -786,7 +793,7 @@ case "$(tolower "$1")" in
                     mv "$persist_dir/sources.tmp" "$persist_dir/sources.txt"
                     
                     if is_builtin_profile && [ -f "$persist_dir/profiles/${profile}_added.txt" ]; then
-                        awk -v dom="$domain_to_remove" '{ actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0 }' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
+                        awk -v dom="$domain_to_remove" '{actual=$1; if (actual=="#") actual=$4; if (actual != dom) print $0}' "$persist_dir/profiles/${profile}_added.txt" > "$persist_dir/profiles/${profile}_added.tmp"
                         mv "$persist_dir/profiles/${profile}_added.tmp" "$persist_dir/profiles/${profile}_added.txt"
                     fi
 
@@ -953,7 +960,9 @@ case "$(tolower "$1")" in
         > "$combined_file"
 
         # 1 - Download base hosts from sources.txt with limited parallelism to prevent resource exhaustion
-        echo "[i] Using profile: $profile"
+        customized_label=""
+        { [ -s "$persist_dir/profiles/${profile}_added.txt" ] || [ -s "$persist_dir/profiles/${profile}_removed.txt" ]; } && customized_label=" (customized)"
+        echo "[i] Using profile: $profile${customized_label}"
         echo "[*] Fetching base hosts..."
         log_message "Starting download of base hosts"
         # Extract only the URLs for fetching (ignore inline comments too)
@@ -1019,8 +1028,16 @@ case "$(tolower "$1")" in
             bl_count=0
             for file in "$persist_dir/cache/$bl/hosts"*; do
                 if [ -f "$file" ]; then
-                    host_process "$file"
-                    file_count=$(wc -l < "$file")
+                    if [ "$bl" = "safebrowsing" ]; then
+                        # Count raw entries BEFORE host_process: safebrowsing files contain
+                        # bare IPs (no hostname), which host_process silently drops.
+                        # Counting after processing would always return near-zero.
+                        file_count=$(grep -cE '^[^#[:space:]]' "$file" 2>/dev/null || true)
+                        host_process "$file"
+                    else
+                        host_process "$file"
+                        file_count=$(wc -l < "$file")
+                    fi
                     bl_count=$((bl_count + file_count))
                 fi
             done
