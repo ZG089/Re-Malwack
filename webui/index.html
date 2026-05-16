@@ -73,12 +73,13 @@
 
         <!-- Broken mount block -->
          <div class="list-container info-card-container" id="broken-mount-box">
-            <div class="list-item info-card">
+            <div class="list-item info-card" id="broken-mount-card-click" style="cursor: pointer;">
                 <md-icon>sync_disabled</md-icon>
                 <div>
                     Critical Error: Broken hosts mount
-                    <p>Please check your root manager settings and disable any conflicted module(s), Or try reboot your device.</p>
+                    <p id="broken-mount-text">Please check your root manager settings and disable any conflicted module(s), or tap here to attempt an auto-remount.</p>
                 </div>
+                <md-ripple></md-ripple>
             </div>
         </div>
 

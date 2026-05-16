@@ -540,7 +540,6 @@ remount_hosts() {
     umount -l "$system_hosts" 2>/dev/null || log_message WARN "Failed to unmount $system_hosts"
     if ! mount --bind "$hosts_file" "$system_hosts"; then
         log_message ERROR "Failed to bind mount $hosts_file to $system_hosts"
-        echo "[!] Failed to remount hosts, please report to developer!"
         return 1
     fi
     log_message SUCCESS "Hosts remounted successfully."
