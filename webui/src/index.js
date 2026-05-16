@@ -136,7 +136,7 @@ async function isPaused() {
     return result.errno === 0;
 }
 
-function formatNumber(numStr, isApril1st = false, includeLabel = false) {
+function formatNumber(numStr, isApril1st, includeLabel, customLabel) {
     let num = parseInt(numStr, 10);
     if (isNaN(num)) return numStr;
 
@@ -149,7 +149,7 @@ function formatNumber(numStr, isApril1st = false, includeLabel = false) {
 
     if (!includeLabel) return formattedNum;
 
-    const label = isApril1st ? "Allowed Ads" : "Blocked entries";
+    const label = customLabel || (isApril1st ? "Allowed Ads" : "Blocked entries");
     return `${formattedNum} ${label}`;
 }
 
@@ -341,7 +341,8 @@ async function checkBlockStatus() {
 
             if (badge) {
                 const enabled = isEnabled && blocklistCounts[type] !== undefined;
-                badge.textContent = formatNumber(blocklistCounts[type] || 0, isApril1st, true);
+                const countLabel = type === 'safebrowsing' ? 'Domain rules' : undefined;
+                badge.textContent = formatNumber(blocklistCounts[type] || 0, isApril1st, true, countLabel);
                 badge.classList.toggle('display-flex', enabled);
             }
         });
@@ -392,23 +393,69 @@ function performAction(commandOption, showTerminal = true) {
         terminal.classList.remove('show');
         terminalContent.innerHTML = "";
         closeBtn.classList.remove('show');
+        backBtn.style.display = '';
     }
+
+    const stepMap = {
+        '[*]': { icon: 'sync',         cls: 'step-running' },
+        '[i]': { icon: 'info',         cls: 'step-info'    },
+        '[✓]': { icon: 'check_circle', cls: 'step-done'    },
+        '[!]': { icon: 'warning',      cls: 'step-warn'    },
+    };
+
+    const completeRunningSteps = () => {
+        terminalContent.querySelectorAll('.step-item.step-running').forEach(el => {
+            el.classList.replace('step-running', 'step-done');
+            const icon = el.querySelector('.step-icon');
+            if (icon) icon.textContent = 'check_circle';
+        });
+    };
 
     const appendOutput = (data, isError = false) => {
         if (!showTerminal) return;
-        const newline = document.createElement('p');
-        newline.className = 'output-line';
-        if (isError) newline.classList.add('error');
-        newline.textContent = data;
-        terminalContent.appendChild(newline);
-        terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
-    }
+        String(data).split('\n').forEach(raw => {
+            const line = raw.trim();
+            if (!line) return;
+
+            const text = line;
+
+            const prefix = Object.keys(stepMap).find(p => text.startsWith(p));
+            if (prefix) {
+                const { icon, cls } = stepMap[prefix];
+                // Complete any still-spinning step whenever any new prefixed line arrives
+                completeRunningSteps();
+                const label = text.slice(prefix.length).trim();
+                const item = document.createElement('div');
+                item.className = `step-item ${cls}`;
+                item.innerHTML = `<span class="step-icon">${icon}</span><span class="step-label">${label}</span>`;
+                terminalContent.appendChild(item);
+            } else {
+                const el = document.createElement('p');
+                el.className = isError ? 'output-line error' : 'output-line step-detail';
+                el.textContent = text;
+                terminalContent.appendChild(el);
+            }
+            terminalContent.scrollTo({ top: terminalContent.scrollHeight, behavior: 'smooth' });
+        });
+    };
 
     if (showTerminal) {
         terminal.classList.add('show');
         document.body.classList.add('noscroll');
-        backBtn.onclick = () => closeTerminal();
+        if (commandOption === "--update-hosts") {
+            backBtn.style.display = 'none';
+        } else {
+            backBtn.style.display = '';
+            backBtn.onclick = () => closeTerminal();
+        }
         closeBtn.onclick = () => closeTerminal();
+
+        // Show animation until 1st output
+        const waitingEl = document.createElement('div');
+        waitingEl.className = 'terminal-waiting';
+        waitingEl.id = 'terminal-waiting-indicator';
+        waitingEl.innerHTML = `<span>Initializing</span><div class="terminal-waiting-dots"><span></span><span></span><span></span></div>`;
+        terminalContent.appendChild(waitingEl);
     } else {
         loadingOverlay.classList.add('show');
     }
@@ -417,12 +464,22 @@ function performAction(commandOption, showTerminal = true) {
 
     isShellRunning = true;
     return new Promise((resolve) => {
-        const output = spawn('sh', [`${modulePath}/rmlwk.sh`, `${commandOption}`], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
-        output.stdout.on('data', (data) => appendOutput(data));
-        output.stderr.on('data', (data) => appendOutput(data, true));
+        const args = commandOption.trim().split(/\s+/);
+        const output = spawn('sh', [`${modulePath}/rmlwk.sh`, ...args], { env: { MAGISKTMP: 'true', WEBUI: 'true' } });
+        let firstData = true;
+        const removeWaiting = () => {
+            if (firstData) {
+                firstData = false;
+                const w = document.getElementById('terminal-waiting-indicator');
+                if (w) w.remove();
+            }
+        };
+        output.stdout.on('data', (data) => { removeWaiting(); appendOutput(data); });
+        output.stderr.on('data', (data) => { removeWaiting(); appendOutput(data, true); });
         output.on('exit', (code) => {
             isShellRunning = false;
             if (showTerminal) {
+                completeRunningSteps();
                 closeBtn.classList.add('show');
             } else {
                 loadingOverlay.classList.remove('show');
@@ -430,9 +487,6 @@ function performAction(commandOption, showTerminal = true) {
             getStatus();
             checkBlockStatus();
             updateAdblockSwtich();
-            if (commandOption === "--update-hosts") {
-                ["custom-source"].forEach(loadFile);
-            }
             resolve(code === 0);
         });
     });
@@ -929,7 +983,7 @@ function openEditDialog(fileType, currentLine, onSuccess) {
     const closeDialog = () => editDialog.close();
 
     cancelBtn.onclick = closeDialog;
-    confirmBtn.onclick = async () => {
+    confirmBtn.onclick = () => {
         const newDomain = editDomain.value.trim();
         const newName = editName.value.trim();
         if (!newDomain || (newDomain === domain && newName === name)) {
@@ -937,28 +991,36 @@ function openEditDialog(fileType, currentLine, onSuccess) {
             return;
         }
 
-        const newLine = `${isDisabled ? '# OFF # ' : ''}${newDomain}${newName ? ' # ' + newName : ''}`
+        const newLine = `${isDisabled ? '# OFF # ' : ''}${newDomain}${newName ? ' # ' + newName : ''}`;
         const targetFile = `${basePath}/${filePaths[fileType]}`;
         const escapeLine = (line) => line.replace(/[\/&]/g, '\\$&');
 
+        const output = [];
         let result;
         if (fileType === 'custom-source') {
+            // Use spawn so stdout is captured — await exec() drops output on KSU WebUI
             // Use rmlwk --custom-source edit so profile tracking files (_added.txt /
             // user profile file) are kept in sync — raw sed would bypass tracking
             // and cause names to be lost on the next profile switch or hosts update.
-            result = await exec(`sh ${modulePath}/rmlwk.sh --custom-source edit "${domain}" "${newLine}"`);
+            // Pass old_url, new_url, new_name as three separate args — no spaces in any single arg
+            // Shell assembles new_line itself to avoid KSU spawn space-splitting the name
+            result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-source', 'edit', domain, newDomain, newName]);
         } else {
-            result = await exec(`sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`);
+            result = spawn('sh', ['-c', `sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`]);
         }
 
-        if (result.errno === 0) {
-            if (onSuccess) onSuccess();
-            await loadFile(fileType);
-            if (window.updateProfileIndicator) window.updateProfileIndicator();
-        } else {
-            showPrompt('Failed to update line', false);
-        }
-        closeDialog();
+        result.stdout.on('data', (data) => output.push(data));
+        result.on('exit', async (code) => {
+            const rawMsg = (output[output.length - 1] || '').trim();
+            const msg = rawMsg.replace(/\x1b\[[0-9;]*m/g, '').trim();
+            showPrompt(msg || (code === 0 ? 'Updated successfully' : 'Failed to update line'), code === 0);
+            if (code === 0) {
+                if (onSuccess) onSuccess();
+                await loadFile(fileType);
+                if (window.updateProfileIndicator) window.updateProfileIndicator();
+            }
+            closeDialog();
+        });
     };
 }
 
