@@ -22,7 +22,42 @@ MODDIR=$(dirname "$REALPATH")
 system_hosts="/system/etc/hosts"
 tmp_hosts="/data/local/tmp/hosts"
 version=$(grep '^version=' "$MODDIR/module.prop" | cut -d= -f2-)
-LOGFILE="$persist_dir/logs/Re-Malwack_$(date +%Y-%m-%d_%H%M%S).log"
+# Determine action name for the log file
+action_name="unknown"
+if [ $# -gt 0 ]; then
+    raw_arg1="$1"
+    raw_arg2="$2"
+    
+    # Strip leading dashes
+    arg1_clean="${raw_arg1##-}"
+    arg1_clean="${arg1_clean##-}"
+    
+    # Check if the second argument is a subcommand/value and not a flag
+    if [ -n "$raw_arg2" ] && ! printf "%s" "$raw_arg2" | grep -q '^-'; then
+        case "$raw_arg1" in
+            --block-*|-bp|-bg|-bf|-bs|-bt|-bsb)
+                case "$raw_arg1" in
+                    --block-*) block_name="${arg1_clean#block-}" ;;
+                    -bp) block_name="porn" ;;
+                    -bg) block_name="gambling" ;;
+                    -bf) block_name="fakenews" ;;
+                    -bs) block_name="social" ;;
+                    -bt) block_name="trackers" ;;
+                    -bsb) block_name="safebrowsing" ;;
+                esac
+                action_name="blocklist-${raw_arg2}-${block_name}"
+                ;;
+            *)
+                arg2_clean=$(printf "%s" "$raw_arg2" | cut -c 1-15 | tr -d '[:space:]/\\*?"<>|')
+                action_name="${arg1_clean}-${arg2_clean}"
+                ;;
+        esac
+    else
+        action_name="${arg1_clean}"
+    fi
+fi
+
+LOGFILE="$persist_dir/logs/rmlwk_${action_name}_$(date +%Y-%m-%d_%H%M%S).log"
 rmlwkExec=true
 
 ############################### TODOS! DON'T EDIT ANY ONE OF THESE
@@ -65,6 +100,13 @@ set -e
 trap '
 exit_code=$?
 timestamp=$(date +"%Y-%m-%d %I:%M:%S %p")
+
+if [ $exit_code -ne 0 ]; then
+    # Add error/crash tag to log file name
+    NEW_LOGFILE=$(echo "$LOGFILE" | sed "s/[.]log$/_ERROR.log/")
+    mv "$LOGFILE" "$NEW_LOGFILE" 2>/dev/null || true
+    LOGFILE="$NEW_LOGFILE"
+fi
 
 case $exit_code in
     0)   msg="Script ran successfully ✅ - No errors" ;;
