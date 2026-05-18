@@ -388,7 +388,7 @@ install_hosts() {
     fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
     log_message "Starting to install $type hosts."
     # Prepare original hosts
-    touch "${tmp_hosts}0"
+    cp -f $hosts_file "${tmp_hosts}0"
     # Process blacklist and merge into previous hosts
     log_message "Preparing Blacklist..."
     [ -s "$persist_dir/blacklist.txt" ] && awk 'NF && $1 !~ /^#/ { print "0.0.0.0", $1 }' "$persist_dir/blacklist.txt" >> "${tmp_hosts}0"
@@ -422,7 +422,7 @@ install_hosts() {
         awk '!seen[$0]++' "$combined_file" > "${tmp_hosts}merged.sorted"
     else # In case of install_hosts() being called in block_content() or block_trackers()
         log_message "detected multiple hosts file, merging and sorting... (Blocklist toggles only)"
-        LC_ALL=C sort -u "${tmp_hosts}"[!0] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
+        LC_ALL=C sort -u "${tmp_hosts}"[1-9] "${tmp_hosts}0" > "${tmp_hosts}merged.sorted"
     fi
 
     log_message "Filtering hosts"
@@ -500,31 +500,32 @@ block_content() {
         setConfigProperty "block_${block_type}" "0"
         log_message SUCCESS "Disabled $block_type blocklist."
     else
-        if [ ! -f "${cache_hosts}1" ] || [ "$status" = "update" ]; then
+        # Download and process if no cache exists
+        if [ ! -f "${cache_hosts}1" ]; then
             check_internet
             echo "[*] Downloading hosts for $block_type block."
-            fetch_blocklist "$block_type"            # Process downloaded hosts
+            fetch_blocklist "$block_type"
 
             for file in "$persist_dir/cache/$block_type/hosts"*; do
                 [ -f "$file" ] && host_process "$file"
             done
         fi
 
-        if [ "$status" != "update" ]; then
-            stage_blocklist_files "$block_type"
-            install_hosts "$block_type" 
-            setConfigProperty "block_${block_type}" "1"
-            
-            # Count the entries blocks for this blocklist
-            bl_count=0
-            for file in "$persist_dir/cache/$block_type/hosts"*; do
-                if [ -f "$file" ]; then
-                    file_count=$(wc -l < "$file")
-                    bl_count=$((bl_count + file_count))
-                fi
-            done
-            log_message SUCCESS "Enabled $block_type blocklist ($bl_count entries)."
-        fi
+        stage_blocklist_files "$block_type"
+        install_hosts "$block_type"
+        setConfigProperty "block_${block_type}" "1"
+
+        # Count entries from cache and persist
+        bl_count=0
+        for file in "$persist_dir/cache/$block_type/hosts"*; do
+            if [ -f "$file" ]; then
+                file_count=$(wc -l < "$file")
+                bl_count=$((bl_count + file_count))
+            fi
+        done
+        log_message SUCCESS "Enabled $block_type blocklist ($bl_count entries)."
+        sed -i "/^${block_type}|/d" "$persist_dir/counts/blocklists.counts" 2>/dev/null || true
+        echo "${block_type}|${bl_count}" >> "$persist_dir/counts/blocklists.counts"
     fi
 }
 
@@ -615,6 +616,8 @@ block_trackers() {
             fi
         done
         log_message SUCCESS "Trackers blocklist enabled ($tr_count entries)."
+        sed -i "/^trackers|/d" "$persist_dir/counts/blocklists.counts" 2>/dev/null || true
+        echo "trackers|${tr_count}" >> "$persist_dir/counts/blocklists.counts"
         local end_time
         end_time=$(get_current_time)
         log_duration "Enabling trackers block" "$start_time" "$end_time"
