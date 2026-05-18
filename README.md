@@ -16,7 +16,7 @@
 ![Built with](https://img.shields.io/badge/Made_with-Love_❤-d51200?style=for-the-badge)
 </div>
 
-<b align="center"> If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family. </b>
+<b align="center"> If you are looking for a final solution to get rid of ads, malware, and trackers forever, then Re-Malwack is the best choice for you and your family.</b>
 
 ## Table of Contents
 - [Table of Contents](#table-of-contents)
@@ -36,13 +36,10 @@
   - [4 - Acknowledgment](#4---acknowledgment)
 - [Donations](#donations)
 
-> [!IMPORTANT]
-> ⚠ I'm not available in telegram currently until further notice. This warning will be removed once I return back....someday maybe.
-
 ## Features // What makes this module special?
 
 - ⛔ It blocks ads, malware and trackers By default[*], you can also block porn sites, fake news sites, gambling sites and social sites, and even use safebrowsing! _(note: may break some youtube features, use with caution!)_
-- ⚙ Allows you to modify and manage hosts file (whitelist & blacklist urls, reset hosts, auto update adblock), changes apply ***instantly***
+- ⚙ Allows you to modify and manage hosts file (whitelist & blacklist urls, reset hosts, auto update adblock), changes apply ***instantly*** without a device reboot
 - 💡 A smart protection status indicator in module description
 - 📦 Shipped with a curated list of adblock profiles [!]
 - 💫 Supports [wildcarded whitelisting](https://github.com/ZG089/Re-Malwack/blob/c09063e46b42ecb36b6b288f6382a2fcb29d4a19/changelog.md?plain=1#L94)
@@ -63,13 +60,13 @@
 - ❤ Made with love and care
 
 > [!CAUTION]
-> **[*] Re-Malwack comes with a pre-configured hosts sources setups in which can be used freely without worrying about configuring everything from scratch. However, in-app ads such as sponsored posts on Facebook or spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, The type of ads that get blocked are those ads that show up in websites and in-app pop-up external ads by Google etc.**
+> **[*] Re-Malwack comes with a pre-configured adblock system in which you can use freely without worrying about setting up everything from scratch. However, some ads such as in-app sponsored posts on Facebook or Spotify ads that show up for "non-premium" users are _NOT_ blocked because they are elements inside the app itself, So stay aware.**
 
 > [!TIP]
-> **[!] A profile is a group of hosts sources in one file, and it's automatically selected - during installation of the module - based on your device resources, which makes sure you will get a perfect adblocking experience yet not sacrificing all your device performance, you may also switch between profiles and even customize everything as you like!**
+> **[!] A profile is a group of hosts sources in one file, there are several built-in profiles that differ between adblocking levels, and it's automatically selected - during installation of the module - based on your device resources, which makes sure you will get a perfect adblocking experience yet not sacrificing all your device performance, you may also switch between profiles anytime and even customize everything per your likings!**
 
 > [!TIP]
-> **[@] Supported stuff for import: Hosts sources, custom rules (bindhosts only), whitelist and blacklist (bindhosts and AdAway only)**
+> **[@] [BETA] Supported stuff for import: Hosts sources, custom rules (bindhosts only), whitelist and blacklist (bindhosts and AdAway)**
 
 > [!CAUTION]
 > **Also avoid using other types of adblock files, _only adblock files in hosts format (Linux/Windows) are accepted_** 
