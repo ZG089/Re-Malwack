@@ -279,7 +279,7 @@ case "$(tolower "$1")" in
         ;;
     --query-domain|-q)
         start_time=$(get_current_time)
-        domain="$2"
+        domain=$(sanitize_domain "$2")
         query_domain "$domain"
         end_time=$(get_current_time)
         log_duration "Querying domain: $domain" "$start_time" "$end_time"
@@ -357,12 +357,7 @@ case "$(tolower "$1")" in
         if [ "$action" = "add" ]; then
             added_total=""
             for raw_input in "$@"; do
-                # Extract host if a URL was passed
-                if printf '%s' "$raw_input" | grep -qE '^https?://'; then
-                    host=$(printf '%s' "$raw_input" | awk -F[/:] '{print $4}')
-                else
-                    host="$raw_input"
-                fi
+                host=$(sanitize_domain "$raw_input")
 
                 # Validate domain format (Special cases for wildcards)
                 if ! printf '%s' "$host" | grep -qE '(\*|\.)'; then
@@ -476,12 +471,7 @@ case "$(tolower "$1")" in
 
             removed_total=""
             for raw in "$@"; do
-                # Extract host (strip protocol if URL)
-                if printf '%s' "$raw" | grep -qE '^https?://'; then
-                    host=$(printf '%s' "$raw" | awk -F[/:] '{print $4}')
-                else
-                    host="$raw"
-                fi
+                host=$(sanitize_domain "$raw")
 
                 # Skip invalid inputs quickly
                 if [ -z "$host" ]; then
@@ -563,12 +553,7 @@ case "$(tolower "$1")" in
         if [ "$option" = "add" ]; then
             added_total=""
             for raw_input in "$@"; do
-                # Sanitize input
-                if printf "%s" "$raw_input" | grep -qE '^https?://'; then
-                    domain=$(printf "%s" "$raw_input" | awk -F[/:] '{print $4}')
-                else
-                    domain="$raw_input"
-                fi
+                domain=$(sanitize_domain "$raw_input")
 
                 # Validate domain format
                 if ! printf '%s' "$domain" | grep -qiE '^[a-z0-9.-]+\.[a-z]{2,}$'; then
@@ -599,8 +584,8 @@ case "$(tolower "$1")" in
 
                 echo "[*] Blacklisting $domain..."
                 log_message "Blacklisting $domain..."
-                # Add to blacklist.txt if not already there
-                grep -qxF "$domain" "$persist_dir/blacklist.txt" || echo "$domain" >> "$persist_dir/blacklist.txt"
+                # Add to blacklist.txt
+                echo "$domain" >> "$persist_dir/blacklist.txt"
                 # Ensure newline at end before appending
                 [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
                 echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
@@ -623,12 +608,7 @@ case "$(tolower "$1")" in
             failed_removals=""
 
             for domain_to_remove in "$@"; do
-                # Sanitize input
-                if printf "%s" "$domain_to_remove" | grep -qE '^https?://'; then
-                    domain=$(printf "%s" "$domain_to_remove" | awk -F[/:] '{print $4}')
-                else
-                    domain="$domain_to_remove"
-                fi
+                domain=$(sanitize_domain "$domain_to_remove")
 
                 echo "[*] Removing $domain from blacklist..."
                 log_message "Removing $domain from blacklist..."
@@ -918,7 +898,7 @@ case "$(tolower "$1")" in
                 exit 1
             fi
             ip="$1"
-            domain="$2"
+            domain=$(sanitize_domain "$2")
 
             # Validate IP format
             if ! printf '%s' "$ip" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$|^[0-9a-fA-F:]+$'; then
@@ -955,7 +935,8 @@ case "$(tolower "$1")" in
             log_message "Removing multiple domains from custom rules: $*"
             total_removed=0
             failed_removals=""
-            for domain_to_remove in "$@"; do
+            for raw_rule_domain in "$@"; do
+                domain_to_remove=$(sanitize_domain "$raw_rule_domain")
                 if grep -qw "$domain_to_remove" "$persist_dir/custom_rules.txt"; then
                     awk -v dom="$domain_to_remove" '$2 != dom' "$persist_dir/custom_rules.txt" > "$persist_dir/custom_rules.tmp"
                     mv "$persist_dir/custom_rules.tmp" "$persist_dir/custom_rules.txt"
