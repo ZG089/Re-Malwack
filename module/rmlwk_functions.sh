@@ -34,6 +34,15 @@ rmlwk_banner() {
     printf '\033[0m'
 }
 
+# Sanitize domain input: strip protocol (http/https) and www. prefix
+sanitize_domain() {
+    local input="$1"
+    if printf '%s' "$input" | grep -qE '^https?://'; then
+        input=$(printf '%s' "$input" | awk -F[/:] '{print $4}')
+    fi
+    printf '%s' "$input" | sed 's/^www\.//'
+}
+
 # function to check hosts file reset state
 # Becomes true in case of both hosts counts = 0
 # And becomes also true in case of blocked entries in both module and system hosts equals the blacklist file
@@ -306,9 +315,6 @@ query_domain() {
         echo "[i] Example: rmlwk --query-domain example.com"
         exit 1
     fi
-
-    # Sanitize input - extract domain from URL if needed
-    printf '%s' "$domain" | grep -qE '^https?://' && domain=$(printf '%s' "$domain" | awk -F[/:] '{print $4}')
 
     # Validate domain format
     printf '%s' "$domain" | grep -qiE '^[a-z0-9]([a-z0-9-]*\.)*[a-z0-9-]*[a-z0-9]$|^[a-z0-9]$' || abort "Invalid domain format: $domain"
