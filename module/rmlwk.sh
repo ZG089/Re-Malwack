@@ -1075,7 +1075,7 @@ case "$(tolower "$1")" in
             # 2.1 - Skip if not enabled
             [ "$enabled" = "0" ] && continue
 
-            # 2.1 - Prepare blocklist fetch
+            # 2.2 - Prepare blocklist fetch
             echo "[*] Fetching blocklist: $bl"
             log_message "Fetching blocklist: $bl"
             mkdir -p "$persist_dir/cache/$bl"
@@ -1083,7 +1083,7 @@ case "$(tolower "$1")" in
             # 2.3 - Fetch blocklists
             fetch_blocklist "$bl"
 
-            # 2.4 - Process blocklists
+            # 2.4 - Process blocklists and count entries
             bl_count=0
             for file in "$persist_dir/cache/$bl/hosts"*; do
                 if [ -f "$file" ]; then

@@ -352,7 +352,7 @@ async function checkBlockStatus() {
 
         let blocklistCounts = {};
         try {
-            const countsResult = await fetch('link/persistent_dir/counts/blocklists.counts').then(res => res.text());
+            const countsResult = await fetch(`link/persistent_dir/counts/blocklists.counts?t=${Date.now()}`).then(res => res.text());
             countsResult.split('\n').forEach(line => {
                 const parts = line.split('|');
                 if (parts.length === 2) {
@@ -530,6 +530,10 @@ function performAction(commandOption, showTerminal = true) {
             getStatus();
             checkBlockStatus();
             updateAdblockSwtich();
+            // Refresh sources list to update per-source counts after hosts update
+            if (commandOption.includes('--update-hosts')) {
+                loadFile('custom-source');
+            }
             resolve(code === 0);
         });
     });
