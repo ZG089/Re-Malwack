@@ -79,17 +79,17 @@ else
 fi
 
 # 5 - Refreshing module status
-update_status
+if [ "$WEBUI" = "true" ]; then
+    refresh_blocked_counts
+    update_status
+else
+    update_status
+fi
 ############################### TODOS! DON'T EDIT ANY ONE OF THESE
 
 # 6 - log module version
 log_message "Running Re-Malwack version $version"
 
-# 3 - Trigger force stats refresh on WebUI
-if [ "$WEBUI" = "true" ]; then
-    refresh_blocked_counts
-    update_status
-fi
 # 4 - Error logging lore
 
 # 4.1 - Log errors

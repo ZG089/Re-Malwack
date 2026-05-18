@@ -672,7 +672,7 @@ function handleAdd(fileType) {
         addBtn.disabled = true;
         showPrompt(`Adding rule…`, true, 3000);
         const output = [];
-        const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue]);
+        const result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-rule', 'add', ipValue, domValue], { env: { MAGISKTMP: 'true' } });
         result.stdout.on('data', (data) => output.push(data));
         result.on('exit', async (code) => {
             addBtn.disabled = false;
@@ -703,7 +703,7 @@ function handleAdd(fileType) {
     const args = [];
     args.push(`${modulePath}/rmlwk.sh`, `--${fileType}`, 'add', ...inputValue.split(/\s+/));
 
-    const result = spawn('sh', args);
+    const result = spawn('sh', args, { env: { MAGISKTMP: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', async (code) => {
         addBtn.disabled = false;
@@ -986,7 +986,7 @@ async function loadFile(fileType) {
 function editLine(fileType, lines, action = "remove") {
     showPrompt(`${action === 'remove' ? 'Removing' : action === 'enable' ? 'Enabling' : 'Disabling'} entries…`, true, 3000);
     const output = [];
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, action, ...lines]);
+    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--${fileType}`, action, ...lines], { env: { MAGISKTMP: 'true' } });
     result.stdout.on('data', (data) => output.push(data));
     result.on('exit', (code) => {
         if (code === 0) {
@@ -1052,7 +1052,7 @@ function openEditDialog(fileType, currentLine, onSuccess) {
             // and cause names to be lost on the next profile switch or hosts update.
             // Pass old_url, new_url, new_name as three separate args — no spaces in any single arg
             // Shell assembles new_line itself to avoid KSU spawn space-splitting the name
-            result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-source', 'edit', domain, newDomain, newName]);
+            result = spawn('sh', [`${modulePath}/rmlwk.sh`, '--custom-source', 'edit', domain, newDomain, newName], { env: { MAGISKTMP: 'true' } });
         } else {
             result = spawn('sh', ['-c', `sed -i 's|${escapeLine(currentLine)}|${escapeLine(newLine)}|' "${targetFile}"`]);
         }
