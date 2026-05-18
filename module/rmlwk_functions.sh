@@ -394,7 +394,7 @@ install_hosts() {
     fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
     log_message "Starting to install $type hosts."
     # Prepare original hosts
-    cp -f $hosts_file "${tmp_hosts}0"
+    cp -f $system_hosts "${tmp_hosts}0"
     # Process blacklist and merge into previous hosts
     log_message "Preparing Blacklist..."
     [ -s "$persist_dir/blacklist.txt" ] && awk 'NF && $1 !~ /^#/ { print "0.0.0.0", $1 }' "$persist_dir/blacklist.txt" >> "${tmp_hosts}0"
