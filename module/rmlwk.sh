@@ -1083,6 +1083,7 @@ case "$(tolower "$1")" in
         # 3 - Install hosts
         echo "[*] Installing hosts"
         log_message "Writing new hosts file"
+		printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
         install_hosts "all"
 
         # 4 - Done
