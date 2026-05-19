@@ -324,7 +324,9 @@ else
         status_msg="Status: Reboot required [Offline Mode] 🔃"
         touch "$persistent_dir/mode_ready"
         sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
+    fi
 fi
+
 chmod 0644 $MODPATH/system/etc/hosts
 
 # Create symlink on install for ksu/ap
