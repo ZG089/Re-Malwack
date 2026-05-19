@@ -56,7 +56,7 @@ pm list packages | grep -q org.adaway && abort "[✗] Adaway detected, Please un
 ui_print "[*] Preparing Re-Malwack environment"
 persistent_dir="/data/adb/Re-Malwack"
 config_file="$persistent_dir/config.sh"
-if [ ! -d /data/adb/modules/Re-Malwack ]; then # if module not installed
+if [ ! -d "$persistent_dir" ]; then # if persistent directory not created (first install)
     mkdir -p "$persistent_dir"
     touch "$persistent_dir/first_install_flag"
 fi
@@ -275,12 +275,23 @@ mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
 . $config_file
 [ "$adblock_switch" -eq 1 ] && {
     ui_print "[i] Detected adblock pause, auto resuming before updating hosts..."
-    mv -f "$persistent_dir/hosts.bak" "/data/adb/modules/Re-Malwack/system/etc/hosts"
+    mv -f "$persistent_dir/hosts.bak" "$MODPATH/system/etc/hosts"
     sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
 }
 
-# First time installation
-if [ ! -d /data/adb/modules/Re-Malwack ]; then
+# Determine if hosts file already exists in new module path (e.g. from resume above)
+if [ -s $MODPATH/system/etc/hosts ]; then
+    ui_print "[*] Hosts file already initialized in module path."
+    status_msg="Status: Reboot required to apply changes 🔃"
+    sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
+# If not, check if we can migrate it from an existing installation
+elif [ -s /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
+    ui_print "[*] migrating existing hosts file to module directory"
+    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/
+    status_msg="Status: Reboot required to apply module updates 🔃"
+    sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
+# Otherwise, initialize hosts (first-time installation or missing hosts file)
+else
     # Check internet connection
     if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
         ui_print "[i] Initializing hosts for first time installation 🏰"
@@ -313,11 +324,6 @@ if [ ! -d /data/adb/modules/Re-Malwack ]; then
         status_msg="Status: Reboot required [Offline Mode] 🔃"
         touch "$persistent_dir/mode_ready"
         sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
-    fi
-else
-    ui_print "[*] migrating existing hosts file to module directory"
-    status_msg="Status: Reboot required to apply module updates 🔃"
-    sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
 fi
 chmod 0644 $MODPATH/system/etc/hosts
 
