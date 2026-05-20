@@ -72,6 +72,7 @@ egoimmerce.e-goi.com
 
 # Google
 googleapis.com
+play-fe.googleapis.com
 googleadservices.com
 s.youtube.com
 s2.youtube.com
@@ -86,8 +87,8 @@ optimizationguide-pa.googleapis.com
 android.clients.google.com
 
 # Captcha
-www.google.com/recaptcha/
-www.gstatic.com/recaptcha/
+www.google.com/recaptcha
+www.gstatic.com/recaptcha
 hcaptcha.com
 assets.hcaptcha.com
 ssl.kaptcha.com
