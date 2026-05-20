@@ -754,14 +754,17 @@ function handleQuery() {
 }
 
 // Prevent input box blocked by keyboard
-const inputs = document.querySelectorAll('input');
+const inputs = document.querySelectorAll('md-outlined-text-field, input, textarea');
 const focusClass = 'input-focused';
 inputs.forEach(input => {
     input.addEventListener('focus', event => {
+        const inDialog = event.currentTarget.closest('md-dialog');
+        if (inDialog) return;
+
         document.body.classList.add(focusClass);
         setTimeout(() => {
             const offsetAdjustment = window.innerHeight * 0.1;
-            const targetPosition = event.target.getBoundingClientRect().top + window.scrollY;
+            const targetPosition = event.currentTarget.getBoundingClientRect().top + window.scrollY;
             const adjustedPosition = targetPosition - (window.innerHeight / 2) + offsetAdjustment;
             window.scrollTo({
                 top: adjustedPosition,
@@ -769,7 +772,10 @@ inputs.forEach(input => {
             });
         }, 100);
     });
-    input.addEventListener('blur', () => {
+    input.addEventListener('blur', event => {
+        const inDialog = event.currentTarget.closest('md-dialog');
+        if (inDialog) return;
+
         document.body.classList.remove(focusClass);
     });
 });
