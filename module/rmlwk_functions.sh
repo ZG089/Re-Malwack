@@ -305,51 +305,6 @@ log_duration() {
     log_message SUCCESS "Task [$job_name] took $formatted_time"
 }
 
-# function to query domain status in hosts file
-query_domain() {
-    local domain="$1"
-
-    if [ -z "$domain" ]; then
-        echo "[!] No domain provided."
-        echo "[i] Usage: rmlwk --query-domain <domain> or rmlwk -q <domain>"
-        echo "[i] Example: rmlwk --query-domain example.com"
-        exit 1
-    fi
-
-    # Validate domain format
-    printf '%s' "$domain" | grep -qiE '^[a-z0-9]([a-z0-9-]*\.)*[a-z0-9-]*[a-z0-9]$|^[a-z0-9]$' || abort "Invalid domain format: $domain"
-
-    log_message "Querying domain: $domain"
-    # Search in hosts file for the domain
-    # This will find lines like "0.0.0.0 example.com" or "127.0.0.1 example.com"
-    entry=$(grep -E "^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|[0-9a-fA-F:]+)[[:space:]]+${domain}([[:space:]]|$)" "$hosts_file" 2>/dev/null | head -1)
-
-    if [ -z "$entry" ]; then
-        echo "[i] Domain '$domain' is NOT blocked"
-        log_message "Domain query result: $domain is NOT blocked"
-        return 0
-    fi
-
-    # Extract the IP address from the entry
-    ip=$(echo "$entry" | awk '{print $1}')
-
-    # Check if it's a blocking IP
-    case "$ip" in
-        0.0.0.0)
-            echo "[!] Domain '$domain' IS BLOCKED"
-            echo "[i] IP: $ip"
-            log_message "Domain query result: $domain IS BLOCKED with IP $ip"
-            return 0
-        ;;
-        *)
-            # If it's a different IP, it's redirected
-            echo "[⟳] Domain '$domain' IS REDIRECTED"
-            echo "[i] Redirected to IP: $ip"
-            log_message "Domain query result: $domain IS REDIRECTED to IP $ip"
-            return 0
-        ;;
-    esac
-}
 
 # function to export logs
 export_logs() {
