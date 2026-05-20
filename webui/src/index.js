@@ -114,14 +114,14 @@ async function checkMount() {
         module_hosts="$(cat ${modulePath}/system/etc/hosts | wc -l)"
         [ $system_hosts -eq $module_hosts ] || echo "error"
     `);
-    
+
     const mountBox = document.getElementById('broken-mount-box');
     const mountCard = document.getElementById('broken-mount-card-click');
     const mountText = document.getElementById('broken-mount-text');
-    
+
     if (result.stdout.trim().includes("error") && !await isZnhr() || import.meta.env.DEV) {
         mountBox.classList.add('display-flex');
-        
+
         if (mountCard) {
             mountCard.onclick = () => {
                 mountText.textContent = "Attempting to remount...";
@@ -134,7 +134,7 @@ async function checkMount() {
                     } else {
                         mountText.textContent = "Remount failed. Tap here to reboot your device.";
                         showPrompt("Failed to remount hosts", false);
-                        
+
                         mountCard.onclick = () => {
                             const rebootDialog = document.getElementById('reboot-dialog');
                             if (rebootDialog) {
@@ -439,11 +439,11 @@ function performAction(commandOption, showTerminal = true) {
     }
 
     const stepMap = {
-        '[*]': { icon: 'sync',         cls: 'step-running' },
-        '[i]': { icon: 'info',         cls: 'step-info'    },
-        '[✓]': { icon: 'check_circle', cls: 'step-done'    },
-        '[!]': { icon: 'warning',      cls: 'step-warn'    },
-        '[✗]': { icon: 'error',        cls: 'step-warn'    },
+        '[*]': { icon: 'sync', cls: 'step-running' },
+        '[i]': { icon: 'info', cls: 'step-info' },
+        '[✓]': { icon: 'check_circle', cls: 'step-done' },
+        '[!]': { icon: 'warning', cls: 'step-warn' },
+        '[✗]': { icon: 'error', cls: 'step-warn' },
     };
 
     const completeRunningSteps = () => {
@@ -623,12 +623,12 @@ function openXVExplorer(mode = 'import') {
     const modal = document.getElementById("xvExplorerModal");
     if (!modal) return;
     modal.classList.add("open");
-    
+
     const footer = document.getElementById("xv-footer");
     if (footer) {
         footer.style.display = mode === 'export' ? 'flex' : 'none';
     }
-    
+
     xvCurrentPath = XV_ROOT;
     xvLoadFolder(XV_ROOT);
 }
@@ -866,32 +866,204 @@ function copyToClipboard(text, successMsg = "Copied to clipboard") {
     });
 }
 
+let queryMultiSelectMode = false;
+const querySelectedRows = new Map(); // tr -> { domain, ip, isSafebrowsing }
+
+function updateQueryMultiSelectToolbar() {
+    const toolbar = document.getElementById('query-multi-select-toolbar');
+    const countText = document.getElementById('query-selection-count');
+    const copyBtn = document.getElementById('query-multi-select-copy');
+    const whitelistBtn = document.getElementById('query-multi-select-whitelist');
+
+    if (!toolbar) return;
+
+    if (!queryMultiSelectMode) {
+        toolbar.classList.remove('show');
+        querySelectedRows.forEach((val, tr) => tr.classList.remove('selected-row'));
+        querySelectedRows.clear();
+        return;
+    }
+
+    toolbar.classList.add('show');
+    const count = querySelectedRows.size;
+    if (countText) countText.textContent = `${count} selected`;
+
+    if (count === 0) {
+        if (copyBtn) copyBtn.disabled = true;
+        if (whitelistBtn) whitelistBtn.disabled = true;
+        return;
+    }
+
+    if (copyBtn) copyBtn.disabled = false;
+    
+    let hasInvalid = false;
+    querySelectedRows.forEach(data => {
+        if (data.ip !== '0.0.0.0' && data.ip !== '127.0.0.1') hasInvalid = true; // Redirected
+        if (data.isSafebrowsing) hasInvalid = true; // Safebrowsing
+    });
+    
+    if (whitelistBtn) whitelistBtn.disabled = hasInvalid;
+}
+
 // Function to handle query domain
 function handleQuery() {
     const inputElement = document.getElementById('query-input');
     const resultCard = document.getElementById('query-result-card');
     const resultText = document.getElementById('query-result-text');
+    const tableContainer = document.getElementById('query-table-container');
+    const tbody = document.getElementById('query-result-table-body');
     const inputValue = inputElement.value.trim();
 
     if (inputValue === "") return;
 
-    inputElement.value = "";
+    queryMultiSelectMode = false;
+    updateQueryMultiSelectToolbar();
+
     resultText.textContent = "Querying...";
+    tbody.innerHTML = "";
+    if (tableContainer) tableContainer.style.display = "none";
     resultCard.classList.add('display-block');
 
-    const output = [];
-    const result = spawn('sh', [`${modulePath}/rmlwk.sh`, `--query-domain`, `${inputValue}`, `--quiet`]);
-    result.stdout.on('data', (data) => output.push(data));
-    result.stderr.on('data', (data) => output.push(data));
-    result.on('exit', () => {
-        resultText.textContent = "";
-        output.forEach(line => {
-            const div = document.createElement('div');
-            div.textContent = line;
-            div.addEventListener('click', () => copyToClipboard(line));
-            resultText.appendChild(div);
-        })
-    });
+    (async () => {
+        try {
+            const znhrDetected = await isZnhr();
+            const hostsFile = znhrDetected ? `/data/adb/hostsredirect/hosts` : `${modulePath}/system/etc/hosts`;
+
+            // Sanitize query
+            const sanitizedQuery = inputValue.replace(/[^a-zA-Z0-9.\-_*]/g, '');
+            if (sanitizedQuery === "") {
+                resultText.textContent = "Invalid search query.";
+                return;
+            }
+
+            const command = `
+                matches=$(grep -i "${sanitizedQuery}" "${hostsFile}" | grep -v '^[[:space:]]*#' | head -n 100)
+                if [ -z "$matches" ]; then exit 1; fi
+                echo "$matches" | while read -r ip domain; do
+                    is_sb="false"
+                    if grep -q -i "[[:space:]]$domain$" "${basePath}/cache/safebrowsing/hosts1" 2>/dev/null; then
+                        is_sb="true"
+                    fi
+                    echo "$ip|$domain|$is_sb"
+                done
+            `;
+            const { errno, stdout, stderr } = await exec(command);
+
+            if (errno !== 0 && stdout.trim() === "") {
+                resultText.textContent = "No matches found (Domain is not blocked/redirected).";
+                return;
+            }
+
+            const lines = stdout.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            if (lines.length === 0) {
+                resultText.textContent = "No matches found (Domain is not blocked/redirected).";
+                return;
+            }
+
+            resultText.textContent = "";
+
+            const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const highlightRegex = new RegExp(`(${escapeRegExp(sanitizedQuery)})`, 'gi');
+
+            lines.forEach(line => {
+                const parts = line.split('|');
+                if (parts.length < 3) return;
+
+                const ip = parts[0];
+                const domain = parts[1];
+                const isSafebrowsing = parts[2] === 'true';
+
+                const tr = document.createElement('tr');
+                tr.style.userSelect = 'none'; // prevent text selection during long press
+
+                // Domain cell
+                const tdDomain = document.createElement('td');
+                const highlighted = domain.replace(highlightRegex, '<span class="highlight">$1</span>');
+                tdDomain.innerHTML = highlighted;
+                tdDomain.style.cursor = 'pointer';
+                tdDomain.title = 'Long press to select, click to copy';
+                tr.appendChild(tdDomain);
+
+                // Status cell
+                const tdStatus = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'status-badge';
+
+                if (ip === '0.0.0.0' || ip === '127.0.0.1') {
+                    badge.classList.add('blocked');
+                    badge.textContent = 'Blocked';
+                } else {
+                    badge.classList.add('redirected');
+                    badge.textContent = `Redirected (${ip})`;
+                }
+
+                tdStatus.appendChild(badge);
+                
+                if (isSafebrowsing) {
+                    const sbBadge = document.createElement('span');
+                    sbBadge.className = 'status-badge safebrowsing';
+                    sbBadge.textContent = 'Safebrowsing';
+                    sbBadge.style.marginLeft = '4px';
+                    tdStatus.appendChild(sbBadge);
+                }
+
+                tr.appendChild(tdStatus);
+                tbody.appendChild(tr);
+
+                // Interaction listeners
+                let pressTimer;
+                let isSelecting = false;
+
+                const handleLongPress = () => {
+                    isSelecting = true;
+                    if (!queryMultiSelectMode) {
+                        queryMultiSelectMode = true;
+                    }
+                    toggleSelection();
+                };
+
+                const toggleSelection = () => {
+                    if (querySelectedRows.has(tr)) {
+                        querySelectedRows.delete(tr);
+                        tr.classList.remove('selected-row');
+                        if (querySelectedRows.size === 0) queryMultiSelectMode = false;
+                    } else {
+                        querySelectedRows.set(tr, { domain, ip, isSafebrowsing });
+                        tr.classList.add('selected-row');
+                    }
+                    updateQueryMultiSelectToolbar();
+                };
+
+                tr.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0 && e.pointerType === 'mouse') return;
+                    isSelecting = false;
+                    pressTimer = setTimeout(handleLongPress, 500);
+                });
+
+                tr.addEventListener('pointerup', () => clearTimeout(pressTimer));
+                tr.addEventListener('pointerleave', () => clearTimeout(pressTimer));
+                tr.addEventListener('pointercancel', () => clearTimeout(pressTimer));
+                
+                tr.addEventListener('contextmenu', (e) => {
+                    e.preventDefault(); // prevent context menu on long press (mobile)
+                });
+
+                tr.addEventListener('click', (e) => {
+                    if (isSelecting) return;
+                    
+                    if (queryMultiSelectMode) {
+                        toggleSelection();
+                    } else {
+                        copyToClipboard(domain);
+                    }
+                });
+            });
+
+            if (tableContainer) tableContainer.style.display = "block";
+        } catch (err) {
+            resultText.textContent = `Failed to execute query: ${err.message || err}`;
+        }
+    })();
 }
 
 // Prevent input box blocked by keyboard
@@ -994,7 +1166,7 @@ async function loadFile(fileType) {
     try {
         const listElement = document.getElementById(`${fileType}-list`);
         listElement.innerHTML = "";
-        
+
         const cacheBust = `?t=${Date.now()}`;
         const filePath = 'link/persistent_dir/' + filePaths[fileType] + cacheBust;
         const response = await fetch(filePath);
@@ -1890,6 +2062,40 @@ function setupEventListener() {
         if (e.key === "Enter") handleQuery();
     });
     document.getElementById("query-search").addEventListener("click", () => handleQuery());
+    document.getElementById("query-input").addEventListener("input", () => {
+        const resultCard = document.getElementById('query-result-card');
+        if (resultCard) {
+            resultCard.classList.remove('display-block');
+        }
+    });
+
+    // Query Multi-Select Toolbar Actions
+    document.getElementById('query-multi-select-close')?.addEventListener('click', () => {
+        queryMultiSelectMode = false;
+        updateQueryMultiSelectToolbar();
+    });
+
+    document.getElementById('query-multi-select-copy')?.addEventListener('click', () => {
+        if (querySelectedRows.size === 0) return;
+        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join('\n');
+        copyToClipboard(domains, `Copied ${querySelectedRows.size} domain(s)`);
+        queryMultiSelectMode = false;
+        updateQueryMultiSelectToolbar();
+    });
+
+    document.getElementById('query-multi-select-whitelist')?.addEventListener('click', () => {
+        if (querySelectedRows.size === 0 || document.getElementById('query-multi-select-whitelist').disabled) return;
+        
+        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join(' ');
+        const whitelistInput = document.getElementById("whitelist-input");
+        if (whitelistInput) whitelistInput.value = domains;
+        
+        document.getElementById("whitelist-add")?.click();
+
+        queryMultiSelectMode = false;
+        updateQueryMultiSelectToolbar();
+        setTimeout(() => handleQuery(), 1500); // Wait for whitelist add to finish, then refresh query
+    });
 }
 
 // Function to handle festival themes
@@ -2471,7 +2677,6 @@ function dnsShowToolbox(appCbs, listRoot) {
 // Global dialog blur logic
 customElements.whenDefined('md-dialog').then(() => {
     const openDialogs = new Set();
-    
     const updateBlur = () => {
         const resetOverlay = document.getElementById('reset-confirm-overlay');
         const resetActive = resetOverlay && resetOverlay.classList.contains('show');

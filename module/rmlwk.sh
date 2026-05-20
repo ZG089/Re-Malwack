@@ -277,13 +277,6 @@ case "$(tolower "$1")" in
             exit 1
         fi
         ;;
-    --query-domain|-q)
-        start_time=$(get_current_time)
-        domain=$(sanitize_domain "$2")
-        query_domain "$domain"
-        end_time=$(get_current_time)
-        log_duration "Querying domain: $domain" "$start_time" "$end_time"
-        ;;
     --block-porn|-bp|--block-gambling|-bg|--block-fakenews|-bf|--block-social|-bs|--block-trackers|-bt|--block-safebrowsing|-bsb)
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         start_time=$(get_current_time)
