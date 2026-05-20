@@ -73,6 +73,7 @@ egoimmerce.e-goi.com
 # Google
 googleapis.com
 play-fe.googleapis.com
+smartlock.google.com
 googleadservices.com
 s.youtube.com
 s2.youtube.com
