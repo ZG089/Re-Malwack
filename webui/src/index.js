@@ -613,6 +613,147 @@ async function exportLogs() {
 }
 
 
+// File Explorer -- Import/Export Setting
+let xvExplorerMode = 'import'; // 'import' or 'export'
+const XV_ROOT = "/sdcard";
+let xvCurrentPath = XV_ROOT;
+
+function openXVExplorer(mode = 'import') {
+    xvExplorerMode = mode;
+    const modal = document.getElementById("xvExplorerModal");
+    if (!modal) return;
+    modal.classList.add("open");
+    
+    const footer = document.getElementById("xv-footer");
+    if (footer) {
+        footer.style.display = mode === 'export' ? 'flex' : 'none';
+    }
+    
+    xvCurrentPath = XV_ROOT;
+    xvLoadFolder(XV_ROOT);
+}
+
+// Function to export settings
+async function exportSettings(targetDir) {
+    document.getElementById("xvExplorerModal").classList.remove("open");
+    const now = new Date();
+    const logDate = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0') + '__' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0');
+    const targetPath = `${targetDir}/Re-Malwack-settings_${logDate}.tar.gz`;
+    const result = await exec(
+        `cd ${basePath} && tar -czf "${targetPath}" --exclude='./logs' --exclude='./logs/*' --exclude='./counts' --exclude='./counts/*' . 2>/dev/null || exit 1`
+    );
+    if (result.errno === 0) {
+        showPrompt(`Settings exported to ${targetPath}`, true, 3000);
+    } else {
+        showPrompt("Export failed", false);
+    }
+}
+
+function xvUpdateBreadcrumb() {
+    const container = document.getElementById("breadcrumb");
+    container.innerHTML = "";
+    const parts = xvCurrentPath.replace(XV_ROOT, "").split("/").filter(Boolean);
+
+    const root = document.createElement("span");
+    root.textContent = "Internal Storage";
+    root.onclick = () => xvLoadFolder(XV_ROOT);
+    container.appendChild(root);
+
+    let path = XV_ROOT;
+    parts.forEach(part => {
+        path += "/" + part;
+        container.appendChild(document.createTextNode(" / "));
+        const crumb = document.createElement("span");
+        crumb.textContent = part;
+        const p = path;
+        crumb.onclick = () => xvLoadFolder(p);
+        container.appendChild(crumb);
+    });
+}
+
+function xvLoadFolder(path) {
+    if (!path.startsWith(XV_ROOT)) path = XV_ROOT;
+    xvCurrentPath = path;
+    xvUpdateBreadcrumb();
+
+    const explorer = document.getElementById("fileExplorer");
+    explorer.innerHTML = "Loading…";
+
+    exec(`ls -Ap "${path}" 2>/dev/null`).then(({ errno, stdout }) => {
+        explorer.innerHTML = "";
+
+        if (xvCurrentPath !== XV_ROOT) {
+            const row = xvMakeRow("📁", "..", "folder");
+            row.onclick = () => {
+                let parent = xvCurrentPath.split("/").slice(0, -1).join("/");
+                if (!parent.startsWith(XV_ROOT)) parent = XV_ROOT;
+                xvLoadFolder(parent);
+            };
+            explorer.appendChild(row);
+        }
+
+        if (errno !== 0 || !stdout?.trim()) {
+            const empty = xvMakeRow("", "Empty folder", "disabled");
+            explorer.appendChild(empty);
+            return;
+        }
+
+        stdout.trim().split("\n").forEach(item => {
+            if (item.endsWith("/")) {
+                const folderName = item.slice(0, -1);
+                const row = xvMakeRow("folder", folderName, "folder");
+                row.onclick = () => xvLoadFolder(xvCurrentPath + "/" + folderName);
+                explorer.appendChild(row);
+            } else {
+                const isTar = item.endsWith(".tar.gz") || item.endsWith(".tar");
+                // Disable file clicks in export mode
+                const isClickable = isTar && xvExplorerMode === 'import';
+                const row = xvMakeRow(isTar ? "archive" : "insert_drive_file", item, isClickable ? "file" : "disabled");
+                if (isClickable) {
+                    const fullPath = xvCurrentPath + "/" + item;
+                    row.onclick = () => importSettings(fullPath);
+                }
+                explorer.appendChild(row);
+            }
+        });
+    });
+}
+
+function xvMakeRow(icon, label, cls) {
+    const row = document.createElement("div");
+    row.className = "item " + cls;
+    if (icon) {
+        const ic = document.createElement("md-icon");
+        ic.className = "icon";
+        ic.textContent = icon;
+        row.appendChild(ic);
+    }
+    const nm = document.createElement("span");
+    nm.textContent = label;
+    row.appendChild(nm);
+    return row;
+}
+
+async function importSettings(filePath) {
+    document.getElementById("xvExplorerModal").classList.remove("open");
+    const result = await exec(`tar -xzf "${filePath}" -C ${basePath}/ 2>/dev/null || exit 1`);
+    if (result.errno === 0) {
+        showPrompt("Settings imported successfully", true, 3000);
+        await checkBlockStatus();
+        await getStatus();
+        setTimeout(() => {
+            showPrompt("Warning: You MUST 'Update hosts file' to apply these settings!", false, 4000);
+        }, 3200);
+    } else {
+        showPrompt("Import failed", false);
+    }
+}
+
 // Function to handle blocking/unblocking different site categories
 function setupCustomBlock() {
     const customBlock = document.querySelector('.custom-block');
@@ -764,7 +905,7 @@ inputs.forEach(input => {
         document.body.classList.add(focusClass);
         setTimeout(() => {
             const offsetAdjustment = window.innerHeight * 0.1;
-            const targetPosition = event.currentTarget.getBoundingClientRect().top + window.scrollY;
+            const targetPosition = event.target.getBoundingClientRect().top + window.scrollY;
             const adjustedPosition = targetPosition - (window.innerHeight / 2) + offsetAdjustment;
             window.scrollTo({
                 top: adjustedPosition,
@@ -1690,6 +1831,19 @@ function setupEventListener() {
     document.getElementById("daily-update-toggle").addEventListener("change", toggleDailyUpdate);
     document.getElementById("reset").addEventListener("click", resetHostsFile);
     document.getElementById("export-logs").addEventListener("click", exportLogs);
+    document.getElementById("export-settings").addEventListener("click", () => openXVExplorer('export'));
+    document.getElementById("import-settings").addEventListener("click", () => openXVExplorer('import'));
+    document.getElementById("xv-save-btn").addEventListener("click", () => {
+        if (xvExplorerMode === 'export') {
+            exportSettings(xvCurrentPath);
+        }
+    });
+    document.getElementById("xv-close-btn").addEventListener("click", () => {
+        document.getElementById("xvExplorerModal").classList.remove("open");
+    });
+    document.getElementById("xvExplorerModal").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) e.currentTarget.classList.remove("open");
+    });
 
     // Action mode listener
     document.getElementById("action-mode").addEventListener("click", () => updateActionMode(actionMode === 1 ? 0 : 1));

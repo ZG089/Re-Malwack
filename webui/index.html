@@ -350,6 +350,36 @@
                 <md-ripple></md-ripple>
             </div>
         </div>
+
+        <!-- Import / Export Settings -->
+        <div class="list-container">
+            <div class="list-item settings-transfer-item" id="settings-transfer">
+                <md-outlined-button id="import-settings">
+                    <md-icon slot="icon">upload</md-icon>
+                    Import
+                </md-outlined-button>
+                <div class="settings-transfer-label">Settings</div>
+                <md-outlined-button id="export-settings">
+                    <md-icon slot="icon">download</md-icon>
+                    Export
+                </md-outlined-button>
+            </div>
+        </div>
+
+        <!-- File Explorer -->
+        <div id="xvExplorerModal" class="xv-modal-backdrop">
+            <div class="xv-modal">
+                <div class="xv-modal-header">
+                    <md-icon>folder_open</md-icon>
+                    <div class="xv-breadcrumb" id="breadcrumb"></div>
+                    <md-icon-button id="xv-close-btn"><md-icon>close</md-icon></md-icon-button>
+                </div>
+                <div class="xv-file-explorer" id="fileExplorer"></div>
+                <div class="xv-modal-footer" id="xv-footer" style="display: none; padding: 8px; justify-content: flex-end; border-top: 1px solid var(--md-sys-color-outline-variant);">
+                    <md-filled-button id="xv-save-btn">Save Here</md-filled-button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="festival-theme">
