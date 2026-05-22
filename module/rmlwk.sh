@@ -330,9 +330,7 @@ case "$(tolower "$1")" in
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
         [ -f "$persist_dir/mode_ready" ] && abort "Idle protection is active. Please update hosts to apply changes and disable idle mode."
         is_default_hosts && abort "You cannot whitelist links while hosts is reset."
-        action="$2"
-        shift 2
-        if [ -z "$action" ] || [ $# -eq 0 ] || { [ "$action" != "add" ] && [ "$action" != "remove" ]; }; then
+        if [ -z "$2" ] || { [ "$2" != "add" ] && [ "$2" != "remove" ]; } || [ $# -lt 3 ]; then
             echo "[!] Invalid arguments for --whitelist|-w"
             echo "[i] Usage: rmlwk --whitelist|-w <add|remove> [domain1] [domain2] ..."
             echo "[i] Examples:"
@@ -346,6 +344,8 @@ case "$(tolower "$1")" in
             [ -n "$display_whitelist" ] && echo -e "Current whitelist:\n$display_whitelist" || echo "Current whitelist: no saved whitelist"
             exit 1
         fi
+        action="$2"
+        shift 2
 
         if [ "$action" = "add" ]; then
             added_total=""
@@ -365,8 +365,7 @@ case "$(tolower "$1")" in
                     continue
                 fi
 
-                # Wildcard-aware already-whitelisted guard.
-
+                # Wildcard-aware already-whitelisted guard
                 case "$host" in
                     \*\.*) wl_check="${host#*.}" ; wl_pattern="\.${wl_check}$" ;;
                     \**)   wl_pattern="${host#\*}$" ;;
@@ -407,43 +406,64 @@ case "$(tolower "$1")" in
 
                 # Collect matches
                 matched_domains=$(grep -E "$pattern" "$hosts_file" | awk '{print $2}' | sort -u)
-                if [ -z "$matched_domains" ]; then
-                    echo "[i] No matches found for $raw_input"
-                    continue
-                fi
 
-                # Remove blacklisted entries from the match set
-                if [ -s "$persist_dir/blacklist.txt" ]; then
-                    matched_domains=$(printf '%s\n' "$matched_domains" | grep -Fvxf "$persist_dir/blacklist.txt")
-                fi
+                if [ "$match_type" = "exact" ]; then
+                    if [ -z "$matched_domains" ]; then
+                        echo "[i] $raw_input is not found in hosts, adding to whitelist anyway."
+                        echo "$domain" >> "$persist_dir/whitelist.txt"
+                        added_total="$added_total $raw_input"
+                        log_message "Whitelisted (exact): $raw_input - (not found in hosts)"
+                        echo "[✓] Whitelisted (exact): $raw_input"
+                    else
+                        echo "$domain" >> "$persist_dir/whitelist.txt"
+                        wl_tmp="$persist_dir/tmp.hosts.$$"
+                        grep -Ev "$pattern" "$hosts_file" > "$wl_tmp" || true
+                        cat "$wl_tmp" > "$hosts_file"
+                        rm -f "$wl_tmp"
 
-                if [ -z "$matched_domains" ]; then
-                    echo "[i] All matched domains are already blacklisted, nothing to whitelist."
-                    continue
-                fi
-
-                # Add matched domains to whitelist file
-                echo "[*] Whitelisting ($match_type): $raw_input"
-                for md in $matched_domains; do
-                    if ! grep -qxF "$md" "$persist_dir/whitelist.txt"; then
-                        echo "$md" >> "$persist_dir/whitelist.txt"
+                        added_total="$added_total $raw_input"
+                        log_message "Whitelisted (exact): $raw_input."
+                        echo "[✓] Whitelisted (exact): $raw_input"
+                        echo "[i] Removed from hosts and added to whitelist: $domain"
                     fi
-                done
+                else
+                    if [ -z "$matched_domains" ]; then
+                        echo "[i] No matches found for $raw_input"
+                        continue
+                    fi
 
-                wl_tmp="$persist_dir/tmp.hosts.$$"
-                grep -Ev "$pattern" "$hosts_file" > "$wl_tmp"
-                cat "$wl_tmp" > "$hosts_file"
-                rm -f "$wl_tmp"
+                    # Remove blacklisted entries from the match set
+                    if [ -s "$persist_dir/blacklist.txt" ]; then
+                        matched_domains=$(printf '%s\n' "$matched_domains" | grep -Fvxf "$persist_dir/blacklist.txt" || true)
+                    fi
 
-                added_total="$added_total $raw_input"
-                log_message "Whitelisted ($match_type): $raw_input. Domains: $matched_domains"
-                echo "[✓] Whitelisted ($match_type): $raw_input"
-                echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
-                printf " - %s\n" $matched_domains
+                    if [ -z "$matched_domains" ]; then
+                    echo "[i] All matched domains are already blacklisted, nothing to whitelist."
+                        continue
+                    fi
+
+                    echo "[*] Whitelisting ($match_type): $raw_input"
+                    for md in $matched_domains; do
+                        echo "$md" >> "$persist_dir/whitelist.txt"
+                    done
+
+                    matches_tmp="$persist_dir/tmp.matches.$$"
+                    wl_tmp="$persist_dir/tmp.hosts.$$"
+                    printf '%s\n' "$matched_domains" | awk '{print "0.0.0.0 " $0}' > "$matches_tmp"
+                    grep -Fvxf "$matches_tmp" "$hosts_file" > "$wl_tmp" || true
+                    cat "$wl_tmp" > "$hosts_file"
+                    rm -f "$wl_tmp" "$matches_tmp"
+
+                    added_total="$added_total $raw_input"
+                    log_message "Whitelisted ($match_type): $raw_input. Domains: $matched_domains"
+                    echo "[✓] Whitelisted ($match_type): $raw_input"
+                    echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
+                    printf " - %s\n" $matched_domains
+                fi
             done
 
             if [ -z "$added_total" ]; then
-                abort "Nothing was whitelisted."
+                abort "No domains were whitelisted. Each domain was either already whitelisted, blacklisted, or not found in hosts."
             fi
 
             # Deduplicate whitelist file
@@ -487,7 +507,7 @@ case "$(tolower "$1")" in
                 esc_base=$(printf '%s' "$base" | sed -e 's/[.[\^$+?(){}|\\]/\\&/g')
 
                 if [ "$suffix_wildcard" -eq 1 ]; then
-                    dom_re="(^|.*\.)${esc_base}$"
+                    dom_re="^[^.]+\.${esc_base}$"
                 elif [ "$glob_mode" -eq 1 ]; then
                     esc_glob=$(printf '%s' "$esc_base" | sed 's/\*/.*/g')
                     dom_re="^${esc_glob}$"
@@ -517,6 +537,7 @@ case "$(tolower "$1")" in
             fi
 
             # Re-block once at the end
+            [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
             for dom in $removed_total; do
                 if ! grep -qE "^0\.0\.0\.0[[:space:]]+$dom\$" "$hosts_file"; then
                     echo "0.0.0.0 $dom" >> "$hosts_file"
@@ -945,7 +966,7 @@ case "$(tolower "$1")" in
                     total_removed=$((total_removed + 1))
                 else
                     echo "[!] $domain_to_remove was not found in custom rules."
-                    failed_removals="$failed_removals $domain_to_remove"
+                    failed_removals="$failed_removals $raw_rule_domain"
                     log_message WARN "$domain_to_remove not found in custom rules"
                 fi
             done
