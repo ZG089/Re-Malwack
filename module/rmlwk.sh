@@ -90,6 +90,17 @@ fi
 # 6 - log module version
 log_message "Running Re-Malwack version $version"
 
+user_profiles=""
+for p in "$persist_dir/profiles/"*.txt; do
+    [ -f "$p" ] || continue
+    name=$(basename "$p" .txt)
+    echo "$name" | grep -qE "_(added|removed)$" && continue
+    user_profiles="$user_profiles $name"
+done
+if [ -n "$user_profiles" ]; then
+    log_message "Found user profile(s):${user_profiles}"
+fi
+
 # 4 - Error logging lore
 
 # 4.1 - Log errors
