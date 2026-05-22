@@ -254,7 +254,7 @@
         <div class="box" id="query">
             <div class="category-container">
                 <md-outlined-text-field type="url" id="query-input" label="Domain or text to search"
-                    placeholder="text or domain"></md-outlined-text-field>
+                    placeholder="example.com or 'text'"></md-outlined-text-field>
                 <md-filled-icon-button id="query-search"><md-icon>search</md-icon></md-filled-icon-button>
             </div>
             <div class="card" id="query-result-card">
@@ -454,13 +454,26 @@
             </div>
             <div slot="actions">
                 <md-outlined-button id="cancel-create-profile">Cancel</md-outlined-button>
-                <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end; min-height: 40px;">
+                    <md-circular-progress id="create-profile-spinner" indeterminate style="display: none; --md-circular-progress-size: 32px;"></md-circular-progress>
                     <md-filled-button id="submit-new-profile">
-                        <md-icon id="submit-new-profile-icon" slot="icon">add</md-icon>
-                        <md-circular-progress id="create-profile-spinner" slot="icon" indeterminate style="display: none; --md-circular-progress-size: 18px;"></md-circular-progress>
-                        <span id="submit-new-profile-text">Create</span>
+                        <md-icon slot="icon">add</md-icon>
+                        Create
                     </md-filled-button>
                 </div>
+            </div>
+        </md-dialog>
+
+        <!-- Delete Profile Confirmation dialog -->
+        <md-dialog id="delete-profile-dialog" class="profile-dialog-custom">
+            <div slot="headline" style="display: flex; align-items: center; gap: 8px;">
+                <md-icon style="color: var(--md-sys-color-error);">delete_forever</md-icon>
+                Delete Profile?
+            </div>
+            <div slot="content" id="delete-profile-content" style="color: var(--md-sys-color-on-surface-variant);">Are you sure you want to permanently delete this profile?</div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-delete-profile">Cancel</md-outlined-button>
+                <md-filled-button id="confirm-delete-profile" style="--md-sys-color-primary: var(--md-sys-color-error); --md-sys-color-on-primary: var(--md-sys-color-on-error);">Delete</md-filled-button>
             </div>
         </md-dialog>
 
