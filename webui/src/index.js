@@ -869,24 +869,123 @@ function copyToClipboard(text, successMsg = "Copied to clipboard") {
 let queryMultiSelectMode = false;
 const querySelectedRows = new Map(); // tr -> { domain, ip, isSafebrowsing }
 
+// --- Global Bottom Toolbar Component ---
+let globalBottomToolbar = null;
+
+function showBottomToolbar(options) {
+    if (!globalBottomToolbar) {
+        globalBottomToolbar = document.createElement('div');
+        globalBottomToolbar.className = 'global-bottom-toolbar';
+        globalBottomToolbar.id = 'global-bottom-toolbar';
+        document.body.appendChild(globalBottomToolbar);
+    }
+
+    let buttonsHtml = '';
+    options.buttons.forEach((btn, i) => {
+        const btnTag = btn.type === 'filled' ? 'md-filled-button' : 'md-text-button';
+        const iconHtml = btn.icon ? `<md-icon slot="icon">${btn.icon}</md-icon>` : '';
+        buttonsHtml += `<${btnTag} id="g-tb-btn-${i}" style="flex-shrink:0;">
+            ${iconHtml}
+            <span id="g-tb-btn-text-${i}">${btn.text}</span>
+        </${btnTag}>`;
+    });
+
+    globalBottomToolbar.innerHTML = `
+        <md-icon-button id="g-tb-close"><md-icon>${options.closeIcon || 'close'}</md-icon></md-icon-button>
+        <span id="g-tb-count" class="selection-count">${options.countText || ''}</span>
+        <div class="spacer"></div>
+        ${buttonsHtml}
+    `;
+
+    document.getElementById('g-tb-close').addEventListener('click', options.onClose);
+    options.buttons.forEach((btn, i) => {
+        document.getElementById(`g-tb-btn-${i}`).addEventListener('click', btn.onClick);
+    });
+
+    requestAnimationFrame(() => globalBottomToolbar.classList.add('show'));
+}
+
+function updateBottomToolbarText(text) {
+    const textEl = document.getElementById('g-tb-count');
+    if (textEl) textEl.textContent = text;
+}
+
+function getBottomToolbarButton(index) {
+    return document.getElementById(`g-tb-btn-${index}`);
+}
+
+function setBottomToolbarButtonText(index, text) {
+    const textEl = document.getElementById(`g-tb-btn-text-${index}`);
+    if (textEl) {
+        textEl.textContent = text;
+    }
+}
+
+function hideBottomToolbar() {
+    if (globalBottomToolbar) {
+        globalBottomToolbar.classList.remove('show');
+    }
+}
+
 function updateQueryMultiSelectToolbar() {
-    const toolbar = document.getElementById('query-multi-select-toolbar');
-    const countText = document.getElementById('query-selection-count');
-    const copyBtn = document.getElementById('query-multi-select-copy');
-    const whitelistBtn = document.getElementById('query-multi-select-whitelist');
-
-    if (!toolbar) return;
-
     if (!queryMultiSelectMode) {
-        toolbar.classList.remove('show');
+        hideBottomToolbar();
         querySelectedRows.forEach((val, tr) => tr.classList.remove('selected-row'));
         querySelectedRows.clear();
         return;
     }
 
-    toolbar.classList.add('show');
     const count = querySelectedRows.size;
-    if (countText) countText.textContent = `${count} selected`;
+    const countText = `${count} selected`;
+
+    if (!globalBottomToolbar || !globalBottomToolbar.classList.contains('show')) {
+        showBottomToolbar({
+            closeIcon: 'close',
+            countText: countText,
+            onClose: () => {
+                queryMultiSelectMode = false;
+                updateQueryMultiSelectToolbar();
+            },
+            buttons: [
+                {
+                    text: 'Copy to Clipboard',
+                    icon: 'content_copy',
+                    type: 'text',
+                    onClick: () => {
+                        if (querySelectedRows.size === 0) return;
+                        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join('\n');
+                        copyToClipboard(domains, `Copied ${querySelectedRows.size} domain(s)`);
+                        queryMultiSelectMode = false;
+                        updateQueryMultiSelectToolbar();
+                    }
+                },
+                {
+                    text: 'Whitelist',
+                    icon: 'verified_user',
+                    type: 'filled',
+                    onClick: () => {
+                        const wlBtn = getBottomToolbarButton(1);
+                        if (querySelectedRows.size === 0 || wlBtn.disabled) return;
+                        
+                        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join(' ');
+                        const whitelistInput = document.getElementById("whitelist-input");
+                        if (whitelistInput) whitelistInput.value = domains;
+                        
+                        document.getElementById("whitelist-add")?.click();
+
+                        queryMultiSelectMode = false;
+                        updateQueryMultiSelectToolbar();
+                        setTimeout(() => handleQuery(), 1500); // Wait for whitelist add to finish, then refresh query
+                    }
+                }
+            ]
+        });
+    } else {
+        updateBottomToolbarText(countText);
+    }
+
+    const copyBtn = getBottomToolbarButton(0);
+    const whitelistBtn = getBottomToolbarButton(1);
 
     if (count === 0) {
         if (copyBtn) copyBtn.disabled = true;
@@ -2069,33 +2168,7 @@ function setupEventListener() {
         }
     });
 
-    // Query Multi-Select Toolbar Actions
-    document.getElementById('query-multi-select-close')?.addEventListener('click', () => {
-        queryMultiSelectMode = false;
-        updateQueryMultiSelectToolbar();
-    });
 
-    document.getElementById('query-multi-select-copy')?.addEventListener('click', () => {
-        if (querySelectedRows.size === 0) return;
-        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join('\n');
-        copyToClipboard(domains, `Copied ${querySelectedRows.size} domain(s)`);
-        queryMultiSelectMode = false;
-        updateQueryMultiSelectToolbar();
-    });
-
-    document.getElementById('query-multi-select-whitelist')?.addEventListener('click', () => {
-        if (querySelectedRows.size === 0 || document.getElementById('query-multi-select-whitelist').disabled) return;
-        
-        const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join(' ');
-        const whitelistInput = document.getElementById("whitelist-input");
-        if (whitelistInput) whitelistInput.value = domains;
-        
-        document.getElementById("whitelist-add")?.click();
-
-        queryMultiSelectMode = false;
-        updateQueryMultiSelectToolbar();
-        setTimeout(() => handleQuery(), 1500); // Wait for whitelist add to finish, then refresh query
-    });
 }
 
 // Function to handle festival themes
@@ -2559,28 +2632,7 @@ function dnsAttachLongPress(el, cb) {
 }
 
 function dnsShowToolbox(appCbs, listRoot) {
-    document.getElementById('dns-toolbox')?.remove();
-
     const isDomainView = listRoot === null;
-
-    const toolbox = document.createElement('div');
-    toolbox.id = 'dns-toolbox';
-    toolbox.style.cssText = `
-        position:fixed;bottom:0;left:0;right:0;z-index:999;
-        display:flex;align-items:center;gap:4px;
-        padding:12px 12px calc(12px + var(--bottom-inset, 0px)) 12px;
-        background:var(--md-sys-color-surface-container-high);
-        box-shadow:0 -2px 12px rgba(0,0,0,0.15);
-        border-radius:16px 16px 0 0;
-    `;
-    toolbox.innerHTML = `
-        <md-icon-button id="dns-tb-back"><md-icon>arrow_back</md-icon></md-icon-button>
-        <span id="dns-tb-count" style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
-        <div style="flex:1;"></div>
-        <md-text-button id="dns-tb-all" style="flex-shrink:0;">Select All</md-text-button>
-        <md-filled-button id="dns-tb-wl" style="flex-shrink:0;">Whitelist</md-filled-button>
-    `;
-    document.body.appendChild(toolbox);
 
     const getCheckedDomains = () => {
         if (isDomainView) {
@@ -2599,7 +2651,7 @@ function dnsShowToolbox(appCbs, listRoot) {
 
     const updateCount = () => {
         const n = getCheckedDomains().length;
-        toolbox.querySelector('#dns-tb-count').textContent = `${n} domain${n !== 1 ? 's' : ''} selected`;
+        updateBottomToolbarText(`${n} domain${n !== 1 ? 's' : ''} selected`);
 
         let allSelected = false;
         if (isDomainView) {
@@ -2614,7 +2666,7 @@ function dnsShowToolbox(appCbs, listRoot) {
                 allSelected = allAppsChecked;
             }
         }
-        toolbox.querySelector('#dns-tb-all').textContent = allSelected ? "Unselect All" : "Select All";
+        setBottomToolbarButtonText(0, allSelected ? "Unselect All" : "Select All");
     };
 
     const onCountUpdate = () => updateCount();
@@ -2626,10 +2678,8 @@ function dnsShowToolbox(appCbs, listRoot) {
         });
     }
 
-    updateCount();
-
     const hide = () => {
-        toolbox.remove();
+        hideBottomToolbar();
         document.removeEventListener('dns-count-update', onCountUpdate);
         if (isDomainView) {
             appCbs.forEach(cb => { cb.classList.remove('show'); cb.checked = false; });
@@ -2647,31 +2697,46 @@ function dnsShowToolbox(appCbs, listRoot) {
         }
     };
 
-    toolbox.querySelector('#dns-tb-back').addEventListener('click', hide);
-
-    toolbox.querySelector('#dns-tb-all').addEventListener('click', () => {
-        const allSelected = toolbox.querySelector('#dns-tb-all').textContent === "Unselect All";
-
-        if (isDomainView) {
-            appCbs.forEach(cb => { cb.checked = !allSelected; });
-        } else if (listRoot) {
-            appCbs.forEach(cb => { cb.checked = !allSelected; });
-            listRoot.querySelectorAll('.app-domains md-checkbox').forEach(dc => { dc.checked = !allSelected; });
-        }
-        document.dispatchEvent(new CustomEvent('dns-count-update'));
+    showBottomToolbar({
+        closeIcon: 'close',
+        countText: '',
+        onClose: hide,
+        buttons: [
+            {
+                text: 'Select All',
+                icon: 'select_all',
+                type: 'text',
+                onClick: () => {
+                    const allSelected = getBottomToolbarButton(0).querySelector('span').textContent === "Unselect All";
+                    if (isDomainView) {
+                        appCbs.forEach(cb => { cb.checked = !allSelected; });
+                    } else if (listRoot) {
+                        appCbs.forEach(cb => { cb.checked = !allSelected; });
+                        listRoot.querySelectorAll('.app-domains md-checkbox').forEach(dc => { dc.checked = !allSelected; });
+                    }
+                    document.dispatchEvent(new CustomEvent('dns-count-update'));
+                }
+            },
+            {
+                text: 'Whitelist',
+                icon: 'verified_user',
+                type: 'filled',
+                onClick: () => {
+                    const domains = getCheckedDomains();
+                    if (domains.length === 0) {
+                        showPrompt('No domains selected', false);
+                        return;
+                    }
+                    hide();
+                    exec(`sh ${modulePath}/rmlwk.sh --whitelist add ${domains.join(' ')} > /dev/null 2>&1 &`);
+                    showPrompt(`Whitelisting ${domains.length} domain${domains.length > 1 ? 's' : ''}…`, true, 3000);
+                    setTimeout(() => { loadFile('whitelist'); getStatus(); }, 1500);
+                }
+            }
+        ]
     });
 
-    toolbox.querySelector('#dns-tb-wl').addEventListener('click', () => {
-        const domains = getCheckedDomains();
-        if (domains.length === 0) {
-            showPrompt('No domains selected', false);
-            return;
-        }
-        hide();
-        exec(`sh ${modulePath}/rmlwk.sh --whitelist add ${domains.join(' ')} > /dev/null 2>&1 &`);
-        showPrompt(`Whitelisting ${domains.length} domain${domains.length > 1 ? 's' : ''}…`, true, 3000);
-        setTimeout(() => { loadFile('whitelist'); getStatus(); }, 1500);
-    });
+    updateCount();
 }
 
 // Global dialog blur logic
