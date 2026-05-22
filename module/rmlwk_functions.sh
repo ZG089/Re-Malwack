@@ -34,13 +34,12 @@ rmlwk_banner() {
     printf '\033[0m'
 }
 
-# Sanitize domain input: strip protocol (http/https) and www. prefix
 sanitize_domain() {
     local input="$1"
     if printf '%s' "$input" | grep -qE '^https?://'; then
         input=$(printf '%s' "$input" | awk -F[/:] '{print $4}')
     fi
-    printf '%s' "$input" | sed 's/^www\.//'
+    printf '%s' "$input" | sed 's/^www\.//' | sed 's/\/.*//'
 }
 
 # function to check hosts file reset state
