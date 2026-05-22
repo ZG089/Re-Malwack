@@ -413,7 +413,7 @@ case "$(tolower "$1")" in
                         echo "$domain" >> "$persist_dir/whitelist.txt"
                         added_total="$added_total $raw_input"
                         log_message "Whitelisted (exact): $raw_input - (not found in hosts)"
-                        echo "[✓] Whitelisted (exact): $raw_input"
+                        echo "[*] Whitelisting (exact): $raw_input"
                     else
                         echo "$domain" >> "$persist_dir/whitelist.txt"
                         wl_tmp="$persist_dir/tmp.hosts.$$"
@@ -423,7 +423,7 @@ case "$(tolower "$1")" in
 
                         added_total="$added_total $raw_input"
                         log_message "Whitelisted (exact): $raw_input."
-                        echo "[✓] Whitelisted (exact): $raw_input"
+                        echo "[*] Whitelisting (exact): $raw_input"
                         echo "[i] Removed from hosts and added to whitelist: $domain"
                     fi
                 else
@@ -456,7 +456,7 @@ case "$(tolower "$1")" in
 
                     added_total="$added_total $raw_input"
                     log_message "Whitelisted ($match_type): $raw_input. Domains: $matched_domains"
-                    echo "[✓] Whitelisted ($match_type): $raw_input"
+                    echo "[*] Whitelisting ($match_type): $raw_input"
                     echo "[i] Added the following domain(s) to whitelist and removed from hosts:"
                     printf " - %s\n" $matched_domains
                 fi
@@ -470,8 +470,12 @@ case "$(tolower "$1")" in
             tmpf="$persist_dir/.whitelist.sorted.$$"
             sort -u "$persist_dir/whitelist.txt" > "$tmpf" && mv "$tmpf" "$persist_dir/whitelist.txt"
 
+            # Count added domains
+            added_count=$(echo "$added_total" | wc -w)
+
             # Finalize
             log_message SUCCESS "Whitelisted multiple entries:$added_total"
+            echo "[✓] Whitelisted $added_count domain(s)."
             update_status
             end_time=$(get_current_time)
             log_duration "Adding to whitelist bulk" "$start_time" "$end_time"
@@ -543,8 +547,11 @@ case "$(tolower "$1")" in
                     echo "0.0.0.0 $dom" >> "$hosts_file"
                 fi
             done
+            
+            removed_count=$(echo "$removed_total" | wc -w)
+            
             log_message SUCCESS "Whitelist multi-remove: $removed_total"
-            echo "[✓] Removed the selected domain(s) from whitelist and re-blocked them."
+            echo "[✓] Removed $removed_count domain(s) from whitelist and re-blocked them."
             update_status
             end_time=$(get_current_time)
             log_duration "Removing from whitelist:$removed_total" "$start_time" "$end_time"
@@ -587,7 +594,7 @@ case "$(tolower "$1")" in
                     if ! grep -qxF "$domain" "$persist_dir/blacklist.txt"; then
                         echo "$domain" >> "$persist_dir/blacklist.txt"
                         log_message "Pinned $domain to blacklist for persistence"
-                        echo "[✓] $domain is already blocked (now pinned to blacklist for persistence)."
+                        echo "[*] $domain is already blocked (now pinned to blacklist for persistence)."
                         added_total="$added_total $domain"
                     else
                         log_message "$domain is already blocked and pinned"
@@ -602,7 +609,7 @@ case "$(tolower "$1")" in
                 echo "$domain" >> "$persist_dir/blacklist.txt"
                 # Ensure newline at end before appending
                 [ -s "$hosts_file" ] && tail -c1 "$hosts_file" | grep -qv $'\n' && echo "" >> "$hosts_file"
-                echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[✓] Blacklisted $domain."
+                echo "0.0.0.0 $domain" >> "$hosts_file" && echo "[*] Blacklisted $domain."
                 added_total="$added_total $domain"
             done
 
@@ -610,7 +617,11 @@ case "$(tolower "$1")" in
                 echo "[!] No domains were blacklisted."
                 exit 1
             fi
+            
+            added_count=$(echo "$added_total" | wc -w)
+            
             log_message SUCCESS "Done added$added_total to hosts file and blacklist."
+            echo "[✓] Blacklisted $added_count domain(s)."
             update_status
             end_time=$(get_current_time)
             log_duration "Adding to blacklist bulk" "$start_time" "$end_time"
@@ -635,7 +646,7 @@ case "$(tolower "$1")" in
                     rm -f "$bl_tmp"
 
                     log_message "Removed $domain from blacklist and unblocked."
-                    echo "[✓] $domain has been removed from blacklist and unblocked."
+                    echo "[*] $domain has been removed from blacklist and unblocked."
                     total_removed=$((total_removed + 1))
                 else
                     echo "[!] $domain isn't found in blacklist."
@@ -646,7 +657,7 @@ case "$(tolower "$1")" in
 
             # Summary
             if [ $total_removed -gt 0 ]; then
-                echo "[i] Successfully removed $total_removed domain(s) from blacklist"
+                echo "[✓] Successfully removed $total_removed domain(s) from blacklist."
                 log_message SUCCESS "Successfully removed $total_removed domains from blacklist"
                 update_status
                 end_time=$(get_current_time)
@@ -795,11 +806,11 @@ case "$(tolower "$1")" in
                     if [ "$option" = "enable" ]; then
                         sed -i "s|^# OFF # $domain|$domain|g" "$persist_dir/sources.txt"
                         log_message SUCCESS "Enabled $domain in sources."
-                        echo "[✓] Enabled $domain in sources."
+                        echo "[*] Enabled $domain in sources."
                     else
                         sed -i "s|^$domain|# OFF # $domain|g" "$persist_dir/sources.txt"
                         log_message SUCCESS "Disabled $domain in sources."
-                        echo "[✓] Disabled $domain in sources."
+                        echo "[*] Disabled $domain in sources."
                     fi
                     total_processed=$((total_processed + 1))
                 else
@@ -810,7 +821,11 @@ case "$(tolower "$1")" in
             done
             
             # Summary
-            [ $total_processed -gt 0 ] && echo "[i] Successfully processed $total_processed source(s)"
+            if [ "$option" = "enable" ]; then
+                [ $total_processed -gt 0 ] && echo "[✓] Enabled $total_processed source(s)."
+            else
+                [ $total_processed -gt 0 ] && echo "[✓] Disabled $total_processed source(s)."
+            fi
             [ -n "$failed_process" ] && echo "[i] Failed to process:$failed_process"
             if [ $total_processed -eq 0 ]; then
                 echo "[!] No sources were processed"
@@ -851,7 +866,7 @@ case "$(tolower "$1")" in
                     fi
 
                     log_message SUCCESS "Removed $domain_to_remove from sources."
-                    echo "[✓] Removed $domain_to_remove from sources."
+                    echo "[*] Removed $domain_to_remove from sources."
                     total_removed=$((total_removed + 1))
                 else
                     echo "[!] $domain_to_remove was not found in sources."
@@ -862,7 +877,7 @@ case "$(tolower "$1")" in
             
             # Summary
             if [ $total_removed -gt 0 ]; then
-                echo "[i] Successfully removed $total_removed source(s)"
+                echo "[✓] Successfully removed $total_removed source(s)."
                 log_message SUCCESS "Successfully removed $total_removed sources"
             fi
             
@@ -962,7 +977,7 @@ case "$(tolower "$1")" in
                     rm -f "$tmp_hosts"
 
                     log_message SUCCESS "Removed custom rule for $domain_to_remove."
-                    echo "[✓] Removed custom rule for $domain_to_remove."
+                    echo "[*] Removed custom rule for $domain_to_remove."
                     total_removed=$((total_removed + 1))
                 else
                     echo "[!] $domain_to_remove was not found in custom rules."
@@ -972,7 +987,7 @@ case "$(tolower "$1")" in
             done
 
             if [ $total_removed -gt 0 ]; then
-                echo "[i] Successfully removed $total_removed custom rule(s)"
+                echo "[✓] Successfully removed $total_removed custom rule(s)."
             fi
             if [ -n "$failed_removals" ]; then
                 echo "[i] Failed to remove rules for:$failed_removals"
