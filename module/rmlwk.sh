@@ -474,7 +474,7 @@ case "$(tolower "$1")" in
             added_count=$(echo "$added_total" | wc -w)
 
             # Finalize
-            log_message SUCCESS "Whitelisted multiple entries:$added_total"
+            log_message SUCCESS "Whitelisted $added_count entries:$added_total"
             echo "[✓] Whitelisted $added_count domain(s)."
             update_status
             end_time=$(get_current_time)
@@ -550,7 +550,7 @@ case "$(tolower "$1")" in
             
             removed_count=$(echo "$removed_total" | wc -w)
             
-            log_message SUCCESS "Whitelist multi-remove: $removed_total"
+            log_message SUCCESS "Unwhitelisted $removed_count entries: $removed_total"
             echo "[✓] Removed $removed_count domain(s) from whitelist and re-blocked them."
             update_status
             end_time=$(get_current_time)
@@ -619,8 +619,8 @@ case "$(tolower "$1")" in
             fi
             
             added_count=$(echo "$added_total" | wc -w)
-            
-            log_message SUCCESS "Done added$added_total to hosts file and blacklist."
+
+            log_message SUCCESS "Done added $added_count entries to hosts file and blacklist."
             echo "[✓] Blacklisted $added_count domain(s)."
             update_status
             end_time=$(get_current_time)
