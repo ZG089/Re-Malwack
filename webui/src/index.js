@@ -1631,8 +1631,10 @@ function setupProfile() {
     const profileDialog = document.getElementById('profile-dialog');
     const profileText = document.getElementById('profile-text');
     const profileListContainer = document.getElementById('profile-list-container');
-    const addProfileBtn = document.getElementById('add-profile-btn');
-    const expandableCreateProfile = document.getElementById('expandable-create-profile');
+    const applyProfileBtn = document.getElementById('apply-profile-btn');
+    const openCreateProfileDialogBtn = document.getElementById('open-create-profile-dialog');
+    const createProfileDialog = document.getElementById('create-profile-dialog');
+    const cancelCreateProfileBtn = document.getElementById('cancel-create-profile');
     const cancelProfileDialog = document.getElementById('cancel-profile-dialog');
     const submitNewProfile = document.getElementById('submit-new-profile');
     const createProfileSpinner = document.getElementById('create-profile-spinner');
@@ -1657,11 +1659,40 @@ function setupProfile() {
 
     cancelProfileDialog.onclick = () => {
         profileDialog.close();
-        expandableCreateProfile.style.display = 'none';
     };
 
-    addProfileBtn.onclick = () => {
-        expandableCreateProfile.style.display = expandableCreateProfile.style.display === 'none' ? 'flex' : 'none';
+    openCreateProfileDialogBtn.onclick = () => {
+        profileDialog.close();
+        createProfileDialog.show();
+    };
+
+    cancelCreateProfileBtn.onclick = () => {
+        createProfileDialog.close();
+        profileDialog.show();
+    };
+
+    applyProfileBtn.onclick = () => {
+        const selectedProfileName = profileDialog.dataset.selectedProfile;
+        if (!selectedProfileName) return;
+
+        if (selectedProfileName === currentProfile) {
+            profileDialog.close();
+            return;
+        }
+
+        loadingOverlay.classList.add('show');
+        profileDialog.close();
+        const result = spawn(`sh ${modulePath}/rmlwk.sh --profile ${selectedProfileName}`);
+        result.on('exit', (code) => {
+            loadingOverlay.classList.remove('show');
+            if (code !== 0 && !import.meta.env.DEV) {
+                showPrompt(`Failed to change profile to ${selectedProfileName}`);
+                return;
+            }
+            setActiveProfile(selectedProfileName);
+            showPrompt(`Successfully switched to ${capitalize(selectedProfileName)} profile`);
+            ["custom-source"].forEach(loadFile);
+        });
     };
 
     cancelEditProfile.onclick = () => {
@@ -1783,14 +1814,16 @@ function setupProfile() {
         const profiles = await getProfiles();
         profileListContainer.innerHTML = '';
 
-        baseProfileSelect.innerHTML = '';
+        let currentSelect = document.getElementById('base-profile-select');
+        const newSelect = currentSelect.cloneNode(false);
+        currentSelect.parentNode.replaceChild(newSelect, currentSelect);
 
         profiles.forEach(p => {
             if (p.name !== 'custom') {
                 const opt = document.createElement('md-select-option');
                 opt.value = p.name;
                 opt.innerHTML = `<div slot="headline">${capitalize(p.name)}</div>`;
-                baseProfileSelect.appendChild(opt);
+                newSelect.appendChild(opt);
             }
 
             const item = document.createElement('div');
@@ -1825,7 +1858,7 @@ function setupProfile() {
                             <md-icon style="color: var(--md-sys-color-primary);">edit</md-icon>
                         </md-icon-button>
                         <md-icon-button class="delete-profile-btn" data-name="${p.name}" title="Delete Profile">
-                            <md-icon style="color: var(--md-sys-color-error);">delete</md-icon>
+                            <md-icon style="color: var(--md-sys-color-primary);">delete</md-icon>
                         </md-icon-button>
                     ` : ''}
                 </div>
@@ -1834,21 +1867,14 @@ function setupProfile() {
             const radioContainer = item.querySelector('.profile-radio-container');
             const radio = item.querySelector('md-radio');
 
+            if (isSelected) {
+                profileDialog.dataset.selectedProfile = p.name;
+            }
+
             radioContainer.onclick = () => {
+                profileListContainer.querySelectorAll('md-radio').forEach(r => r.checked = false);
                 radio.checked = true;
-                loadingOverlay.classList.add('show');
-                profileDialog.close();
-                const result = spawn(`sh ${modulePath}/rmlwk.sh --profile ${p.name}`);
-                result.on('exit', (code) => {
-                    loadingOverlay.classList.remove('show');
-                    if (code !== 0 && !import.meta.env.DEV) {
-                        showPrompt(`Failed to change profile to ${p.name}`);
-                        return;
-                    }
-                    setActiveProfile(p.name);
-                    showPrompt(`Successfully switched to ${capitalize(p.name)} profile`);
-                    ["custom-source"].forEach(loadFile);
-                });
+                profileDialog.dataset.selectedProfile = p.name;
             };
 
             const editBtn = item.querySelector('.edit-profile-btn');
@@ -1920,7 +1946,7 @@ function setupProfile() {
     submitNewProfile.onclick = async () => {
         const nameVal = newProfileName.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
         const descVal = newProfileDesc.value.trim();
-        const baseProfile = baseProfileSelect.value;
+        const baseProfile = document.getElementById('base-profile-select').value;
 
         if (!nameVal) {
             showPrompt('Profile name cannot be empty', false);
@@ -1938,6 +1964,10 @@ function setupProfile() {
         }
 
         submitNewProfile.disabled = true;
+        const btnIcon = document.getElementById('submit-new-profile-icon');
+        const btnText = document.getElementById('submit-new-profile-text');
+        if (btnIcon) btnIcon.style.display = 'none';
+        if (btnText) btnText.style.display = 'none';
         createProfileSpinner.style.display = 'block';
 
         const fileContent = descVal ? `# DESC: ${descVal}\n` : '';
@@ -1956,31 +1986,33 @@ function setupProfile() {
         const result = await exec(cmd);
 
         submitNewProfile.disabled = false;
+        const _btnIcon = document.getElementById('submit-new-profile-icon');
+        const _btnText = document.getElementById('submit-new-profile-text');
+        if (_btnIcon) _btnIcon.style.display = '';
+        if (_btnText) _btnText.style.display = '';
         createProfileSpinner.style.display = 'none';
 
         if (result.errno === 0) {
-            showPrompt(`Profile ${capitalize(nameVal)} created`);
+            showPrompt(`Profile ${capitalize(nameVal)} created successfully`);
             newProfileName.value = '';
             newProfileDesc.value = '';
-            expandableCreateProfile.style.display = 'none';
+            createProfileDialog.close();
             renderProfileList();
 
-            // Auto-select the new profile
             loadingOverlay.classList.add('show');
-            profileDialog.close();
             const switchResult = spawn(`sh ${modulePath}/rmlwk.sh --profile ${nameVal}`);
             switchResult.on('exit', (code) => {
                 loadingOverlay.classList.remove('show');
                 if (code !== 0 && !import.meta.env.DEV) {
-                    showPrompt(`Failed to auto-select profile ${nameVal}`);
+                    showPrompt(`Failed to switch to the new profile ${nameVal}`);
                     return;
                 }
                 setActiveProfile(nameVal);
-                toast(`Successfully switched to ${capitalize(nameVal)} profile`);
+                showPrompt(`Successfully applied ${capitalize(nameVal)} profile`);
                 ["custom-source"].forEach(loadFile);
             });
         } else {
-            showPrompt('Failed to create profile', false);
+            showPrompt(`Failed to create profile: ${result.stderr}`, false);
         }
     };
 }
