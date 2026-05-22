@@ -1651,10 +1651,32 @@ function setupProfile() {
 
     let currentProfile = 'default';
 
-    profileBox.onclick = (e) => {
-        e.stopImmediatePropagation();
-        renderProfileList();
+    const restoreProfileDialogScroll = () => {
         profileDialog.show();
+        setTimeout(() => {
+            const selectedItem = document.getElementById('selected-profile-item');
+            if (selectedItem) {
+                selectedItem.scrollIntoView({ behavior: 'auto', block: 'center' });
+            }
+            const selectedProfileName = profileDialog.dataset.selectedProfile;
+            if (selectedProfileName) {
+                document.querySelectorAll('md-radio[name="profile-selection"]').forEach(r => {
+                    r.checked = (r.value === selectedProfileName);
+                });
+            }
+        }, 50);
+    };
+
+    profileBox.onclick = async (e) => {
+        e.stopImmediatePropagation();
+        profileDialog.show();
+        await renderProfileList();
+        setTimeout(() => {
+            const selectedItem = document.getElementById('selected-profile-item');
+            if (selectedItem) {
+                selectedItem.scrollIntoView({ behavior: 'auto', block: 'center' });
+            }
+        }, 50);
     };
 
     cancelProfileDialog.onclick = () => {
@@ -1668,7 +1690,7 @@ function setupProfile() {
 
     cancelCreateProfileBtn.onclick = () => {
         createProfileDialog.close();
-        profileDialog.show();
+        restoreProfileDialogScroll();
     };
 
     applyProfileBtn.onclick = () => {
@@ -1697,7 +1719,7 @@ function setupProfile() {
 
     cancelEditProfile.onclick = () => {
         editProfileDialog.close();
-        profileDialog.show();
+        restoreProfileDialogScroll();
     };
 
     confirmEditProfile.onclick = async () => {
@@ -1742,10 +1764,10 @@ function setupProfile() {
                 setActiveProfile(newName);
             }
             renderProfileList();
-            profileDialog.show();
+            restoreProfileDialogScroll();
         } else {
             showPrompt('Failed to update profile', false);
-            profileDialog.show();
+            restoreProfileDialogScroll();
         }
     };
 
@@ -1781,11 +1803,15 @@ function setupProfile() {
                 name=$(basename "$p" .txt)
                 
                 # Exclude _added.txt and _removed.txt
-                echo "$name" | grep -qE "_(added|removed)$" && continue
+                case "$name" in
+                    *_added | *_removed) continue ;;
+                esac
 
-                desc=$(grep -m 1 "^# DESC: " "$p" | sed 's/^# DESC: //')
+                desc=$( (grep -m 1 "^# DESC: " "$p" 2>/dev/null || true) | sed 's/^# DESC: //' )
                 type="builtin"
-                echo "$p" | grep -q "${basePath}/profiles" && type="user"
+                case "$p" in
+                    *"${basePath}/profiles"*) type="user" ;;
+                esac
                 
                 customized="false"
                 if [ -s "${basePath}/profiles/\${name}_added.txt" ] || [ -s "${basePath}/profiles/\${name}_removed.txt" ]; then
@@ -1811,136 +1837,183 @@ function setupProfile() {
 
     const renderProfileList = async () => {
         profileListContainer.innerHTML = '<div style="display: flex; justify-content: center; padding: 16px;"><md-circular-progress indeterminate></md-circular-progress></div>';
-        const profiles = await getProfiles();
+        let profiles = [];
+        try {
+            profiles = await getProfiles();
+        } catch (err) {
+            console.error(err);
+        }
         profileListContainer.innerHTML = '';
 
         let currentSelect = document.getElementById('base-profile-select');
-        const newSelect = currentSelect.cloneNode(false);
-        currentSelect.parentNode.replaceChild(newSelect, currentSelect);
+        let newSelect = currentSelect;
+        if (currentSelect && currentSelect.parentNode) {
+            newSelect = currentSelect.cloneNode(false);
+            currentSelect.parentNode.replaceChild(newSelect, currentSelect);
+        }
 
-        profiles.forEach(p => {
-            if (p.name !== 'custom') {
-                const opt = document.createElement('md-select-option');
-                opt.value = p.name;
-                opt.innerHTML = `<div slot="headline">${capitalize(p.name)}</div>`;
-                newSelect.appendChild(opt);
-            }
+        const builtinProfiles = profiles.filter(p => p.type === 'builtin');
+        const userProfiles = profiles.filter(p => p.type === 'user');
 
-            const item = document.createElement('div');
-            item.className = 'profile-list-item';
-            item.style.display = 'flex';
-            item.style.alignItems = 'center';
-            item.style.justifyContent = 'space-between';
-            item.style.padding = '8px 0';
-            item.style.borderBottom = '1px solid var(--md-sys-color-outline-variant)';
+        const renderGroup = (groupProfiles, titleText) => {
+            if (groupProfiles.length === 0) return;
+            const title = document.createElement('div');
+            title.className = 'list-title';
+            title.textContent = titleText;
+            title.style.marginTop = '4px';
+            title.style.marginBottom = '-2px';
+            profileListContainer.appendChild(title);
 
-            const isSelected = p.name === currentProfile;
+            groupProfiles.forEach(p => {
+                if (p.name !== 'custom' && newSelect) {
+                    const opt = document.createElement('md-select-option');
+                    opt.value = p.name;
+                    opt.innerHTML = `<div slot="headline">${capitalize(p.name)}</div>`;
+                    newSelect.appendChild(opt);
+                }
 
-            item.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="profile-radio-container">
-                    <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''} style="flex-shrink: 0;"></md-radio>
-                    <div style="display: flex; flex-direction: column;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-weight: 500; font-size: 1rem; color: var(--md-sys-color-on-surface);">${capitalize(p.name)}</span>
-                            ${p.customized ? '<span class="badge" style="display:flex; padding: 2px 6px; font-size: 0.75rem; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container);">Customized</span>' : ''}
+                const item = document.createElement('div');
+                item.className = 'profile-list-item';
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+                item.style.justifyContent = 'space-between';
+                item.style.padding = '8px 0';
+                item.style.borderBottom = '1px solid var(--md-sys-color-outline-variant)';
+
+                const isSelected = p.name === currentProfile;
+                if (isSelected) item.id = 'selected-profile-item';
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; cursor: pointer;" class="profile-radio-container">
+                        <md-radio name="profile-selection" value="${p.name}" ${isSelected ? 'checked' : ''} style="flex-shrink: 0;"></md-radio>
+                        <div style="display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 500; font-size: 1rem; color: var(--md-sys-color-on-surface);">${capitalize(p.name)}</span>
+                                ${p.customized ? '<span class="badge" style="display:flex; padding: 2px 6px; font-size: 0.75rem; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container);">Customized</span>' : ''}
+                            </div>
+                            ${p.desc ? `<span style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${p.desc}</span>` : ''}
                         </div>
-                        ${p.desc ? `<span style="font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant);">${p.desc}</span>` : ''}
                     </div>
-                </div>
-                <div style="display: flex;">
-                    ${p.customized ? `
-                        <md-icon-button class="reset-profile-btn" data-name="${p.name}" title="Reset Customizations">
-                            <md-icon style="color: var(--md-sys-color-primary);">settings_backup_restore</md-icon>
-                        </md-icon-button>
-                    ` : ''}
-                    ${p.type === 'user' ? `
-                        <md-icon-button class="edit-profile-btn" data-name="${p.name}" data-desc="${p.desc || ''}" title="Edit Profile">
-                            <md-icon style="color: var(--md-sys-color-primary);">edit</md-icon>
-                        </md-icon-button>
-                        <md-icon-button class="delete-profile-btn" data-name="${p.name}" title="Delete Profile">
-                            <md-icon style="color: var(--md-sys-color-primary);">delete</md-icon>
-                        </md-icon-button>
-                    ` : ''}
-                </div>
-            `;
+                    <div style="display: flex;">
+                        ${p.customized ? `
+                            <md-icon-button class="reset-profile-btn" data-name="${p.name}" title="Reset Customizations">
+                                <md-icon style="color: var(--md-sys-color-primary);">settings_backup_restore</md-icon>
+                            </md-icon-button>
+                        ` : ''}
+                        ${p.type === 'user' ? `
+                            <md-icon-button class="edit-profile-btn" data-name="${p.name}" data-desc="${p.desc || ''}" title="Edit Profile">
+                                <md-icon style="color: var(--md-sys-color-primary); font-variation-settings: 'FILL' 1;">edit</md-icon>
+                            </md-icon-button>
+                            <md-icon-button class="delete-profile-btn" data-name="${p.name}" title="Delete Profile">
+                                <md-icon style="color: var(--md-sys-color-primary); font-variation-settings: 'FILL' 1;">delete</md-icon>
+                            </md-icon-button>
+                        ` : ''}
+                    </div>
+                `;
 
-            const radioContainer = item.querySelector('.profile-radio-container');
-            const radio = item.querySelector('md-radio');
+                const radioContainer = item.querySelector('.profile-radio-container');
+                const radio = item.querySelector('md-radio');
 
-            if (isSelected) {
-                profileDialog.dataset.selectedProfile = p.name;
-            }
+                if (isSelected) {
+                    profileDialog.dataset.selectedProfile = p.name;
+                }
 
-            radioContainer.onclick = () => {
-                profileListContainer.querySelectorAll('md-radio').forEach(r => r.checked = false);
-                radio.checked = true;
-                profileDialog.dataset.selectedProfile = p.name;
-            };
-
-            const editBtn = item.querySelector('.edit-profile-btn');
-            if (editBtn) {
-                editBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    const name = editBtn.getAttribute('data-name');
-                    const desc = editBtn.getAttribute('data-desc');
-                    editProfileName.value = name;
-                    editProfileDesc.value = desc;
-                    editProfileName.setAttribute('data-original', name);
-                    profileDialog.close();
-                    editProfileDialog.show();
+                radioContainer.onclick = () => {
+                    profileListContainer.querySelectorAll('md-radio').forEach(r => r.checked = false);
+                    radio.checked = true;
+                    profileDialog.dataset.selectedProfile = p.name;
                 };
-            }
 
-            const deleteBtn = item.querySelector('.delete-profile-btn');
-            if (deleteBtn) {
-                deleteBtn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const name = deleteBtn.getAttribute('data-name');
-                    await exec(`rm -f ${basePath}/profiles/${name}.txt ${basePath}/profiles/${name}_added.txt ${basePath}/profiles/${name}_removed.txt`);
-                    showPrompt(`Profile ${capitalize(name)} deleted`);
-                    if (currentProfile === name) {
-                        currentProfile = 'default';
-                        setActiveProfile('default');
-                        spawn(`sh ${modulePath}/rmlwk.sh --profile default`).on('exit', () => {
-                            ["custom-source"].forEach(loadFile);
-                        });
-                    }
-                    renderProfileList();
-                };
-            }
+                const editBtn = item.querySelector('.edit-profile-btn');
+                if (editBtn) {
+                    editBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const name = editBtn.getAttribute('data-name');
+                        const desc = editBtn.getAttribute('data-desc');
+                        editProfileName.value = name;
+                        editProfileDesc.value = desc;
+                        editProfileName.setAttribute('data-original', name);
+                        profileDialog.close();
+                        editProfileDialog.show();
+                    };
+                }
 
-            const resetBtn = item.querySelector('.reset-profile-btn');
-            if (resetBtn) {
-                resetBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    const name = resetBtn.getAttribute('data-name');
-                    profileDialog.close();
-                    window.showResetProfileConfirm(capitalize(name), () => {
-                        loadingOverlay.classList.add('show');
-                        const result = spawn(`sh ${modulePath}/rmlwk.sh --reset-profile ${name}`);
-                        result.on('exit', (code) => {
+                const deleteBtn = item.querySelector('.delete-profile-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = async (e) => {
+                        e.stopPropagation();
+                        const name = deleteBtn.getAttribute('data-name');
+                        const deleteDialog = document.getElementById('delete-profile-dialog');
+                        const deleteContent = document.getElementById('delete-profile-content');
+                        if (currentProfile === name) {
+                            deleteContent.innerHTML = `Are you sure you want to permanently delete the profile <b>${capitalize(name)}</b>?<br><br><span style="color: var(--md-sys-color-error);">Note: This profile is currently selected. Deleting it will automatically switch your protection back to the Default profile.</span>`;
+                        } else {
+                            deleteContent.innerHTML = `Are you sure you want to permanently delete the profile <b>${capitalize(name)}</b>?`;
+                        }
+                        
+                        profileDialog.close();
+                        deleteDialog.show();
+                        
+                        document.getElementById('cancel-delete-profile').onclick = () => {
+                            deleteDialog.close();
+                            restoreProfileDialogScroll();
+                        };
+                        
+                        document.getElementById('confirm-delete-profile').onclick = async () => {
+                            deleteDialog.close();
+                            loadingOverlay.classList.add('show');
+                            await exec(`rm -f ${basePath}/profiles/${name}.txt ${basePath}/profiles/${name}_added.txt ${basePath}/profiles/${name}_removed.txt`);
                             loadingOverlay.classList.remove('show');
-                            if (code !== 0 && !import.meta.env.DEV) {
-                                showPrompt(`Failed to reset profile ${name}`);
-                                profileDialog.show();
-                                return;
-                            }
-                            showPrompt(`Profile ${capitalize(name)} reset to defaults`);
+                            showPrompt(`Profile ${capitalize(name)} deleted`);
                             if (currentProfile === name) {
-                                setActiveProfile(name);
-                                spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`).on('exit', () => {
+                                currentProfile = 'default';
+                                setActiveProfile('default');
+                                spawn(`sh ${modulePath}/rmlwk.sh --profile default`).on('exit', () => {
                                     ["custom-source"].forEach(loadFile);
                                 });
                             }
                             renderProfileList();
-                            profileDialog.show();
-                        });
-                    });
-                };
-            }
+                            restoreProfileDialogScroll();
+                        };
+                    };
+                }
 
-            profileListContainer.appendChild(item);
-        });
+                const resetBtn = item.querySelector('.reset-profile-btn');
+                if (resetBtn) {
+                    resetBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const name = resetBtn.getAttribute('data-name');
+                        profileDialog.close();
+                        window.showResetProfileConfirm(capitalize(name), () => {
+                            loadingOverlay.classList.add('show');
+                            const result = spawn(`sh ${modulePath}/rmlwk.sh --reset-profile ${name}`);
+                            result.on('exit', (code) => {
+                                loadingOverlay.classList.remove('show');
+                                if (code !== 0 && !import.meta.env.DEV) {
+                                    showPrompt(`Failed to reset profile ${name}`);
+                                    restoreProfileDialogScroll();
+                                    return;
+                                }
+                                showPrompt(`Profile ${capitalize(name)} reset to defaults`);
+                                if (currentProfile === name) {
+                                    setActiveProfile(name);
+                                    spawn(`sh ${modulePath}/rmlwk.sh --profile ${name}`).on('exit', () => {
+                                        ["custom-source"].forEach(loadFile);
+                                    });
+                                }
+                                renderProfileList();
+                                restoreProfileDialogScroll();
+                            });
+                        });
+                    };
+                }
+
+                profileListContainer.appendChild(item);
+            });
+        };
+
+        renderGroup(builtinProfiles, "Built-in Profiles");
+        renderGroup(userProfiles, "User Profiles");
     };
 
     submitNewProfile.onclick = async () => {
@@ -1963,11 +2036,7 @@ function setupProfile() {
             return;
         }
 
-        submitNewProfile.disabled = true;
-        const btnIcon = document.getElementById('submit-new-profile-icon');
-        const btnText = document.getElementById('submit-new-profile-text');
-        if (btnIcon) btnIcon.style.display = 'none';
-        if (btnText) btnText.style.display = 'none';
+        submitNewProfile.style.display = 'none';
         createProfileSpinner.style.display = 'block';
 
         const fileContent = descVal ? `# DESC: ${descVal}\n` : '';
@@ -1985,11 +2054,7 @@ function setupProfile() {
 
         const result = await exec(cmd);
 
-        submitNewProfile.disabled = false;
-        const _btnIcon = document.getElementById('submit-new-profile-icon');
-        const _btnText = document.getElementById('submit-new-profile-text');
-        if (_btnIcon) _btnIcon.style.display = '';
-        if (_btnText) _btnText.style.display = '';
+        submitNewProfile.style.display = '';
         createProfileSpinner.style.display = 'none';
 
         if (result.errno === 0) {
@@ -2164,7 +2229,12 @@ function setupEventListener() {
     // Adblock switch
     document.getElementById('adblock-switch').addEventListener("click", async () => {
         const result = await performAction('--adblock-switch', false);
-        showPrompt(result ? "Success" : "Failed", result);
+        if (result) {
+            const paused = await isPaused();
+            showPrompt(paused ? "Protection has been paused." : "Protection has been resumed.");
+        } else {
+            showPrompt("Failed to toggle protection", false);
+        }
     });
 
     // Add button
