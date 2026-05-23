@@ -173,6 +173,31 @@
             </label>
         </div>
 
+        <!-- Misc -->
+        <div class="list-title">Misc</div>
+        <div class="list-container">
+            <!-- import settings -->
+            <div class="list-item" id="import-settings">
+                <md-icon>upload</md-icon>
+                <div class="toggle-text">Import settings</div>
+                <md-ripple></md-ripple>
+            </div>
+
+            <!-- export settings -->
+            <div class="list-item" id="export-settings">
+                <md-icon>download</md-icon>
+                <div class="toggle-text">Export settings</div>
+                <md-ripple></md-ripple>
+            </div>
+
+            <!-- export logs -->
+            <div class="list-item" id="export-logs">
+                <md-icon>bug_report</md-icon>
+                <div class="toggle-text">Export logs</div>
+                <md-ripple></md-ripple>
+            </div>
+        </div>
+
         <!-- Custom block -->
         <div class="list-title">Preset Blocking Sources</div>
         <div class="list-container custom-block">
@@ -360,30 +385,6 @@
                         slot="icon">delete_sweep</md-icon>Clear logs</md-filled-button>
             </div>
             <div id="logged-dns-list" class="custom-rule-list-container"></div>
-        </div>
-
-        <!-- Export logs -->
-        <div class="list-container">
-            <div class="list-item" id="export-logs">
-                <md-icon>bug_report</md-icon>
-                <div class="toggle-text">Export logs</div>
-                <md-ripple></md-ripple>
-            </div>
-        </div>
-
-        <!-- Import / Export Settings -->
-        <div class="list-container">
-            <div class="list-item settings-transfer-item" id="settings-transfer">
-                <md-outlined-button id="import-settings">
-                    <md-icon slot="icon">upload</md-icon>
-                    Import
-                </md-outlined-button>
-                <div class="settings-transfer-label">Settings</div>
-                <md-outlined-button id="export-settings">
-                    <md-icon slot="icon">download</md-icon>
-                    Export
-                </md-outlined-button>
-            </div>
         </div>
 
         <!-- File Explorer -->
