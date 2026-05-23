@@ -187,11 +187,15 @@ body.input-focused {
   transform: scale(0.8);
   transition: all 0.3s ease;
   z-index: 4;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .float-container.show {
   opacity: 1;
   transform: scale(1);
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .float-icon {
