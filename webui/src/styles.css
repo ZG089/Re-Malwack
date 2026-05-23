@@ -477,6 +477,7 @@ md-dialog.input-dialog {
 .custom-rule-list-container {
   max-height: 350px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .list-item {
@@ -1003,8 +1004,6 @@ md-switch {
 }
 
 .profile-list-container {
-  max-height: 50vh;
-  overflow-y: auto;
   padding-right: 8px;
 }
 
@@ -1278,6 +1277,7 @@ md-switch {
 .xv-file-explorer {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -1335,6 +1335,7 @@ md-switch {
 .query-table-container {
   max-height: 250px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   width: 100%;
   margin-top: 10px;
   border-radius: 8px;

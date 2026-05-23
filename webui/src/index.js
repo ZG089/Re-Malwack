@@ -1656,7 +1656,7 @@ function setupProfile() {
         setTimeout(() => {
             const selectedItem = document.getElementById('selected-profile-item');
             if (selectedItem) {
-                selectedItem.scrollIntoView({ behavior: 'auto', block: 'center' });
+                selectedItem.scrollIntoView({ behavior: 'instant', block: 'center' });
             }
             const selectedProfileName = profileDialog.dataset.selectedProfile;
             if (selectedProfileName) {
@@ -1674,7 +1674,7 @@ function setupProfile() {
         setTimeout(() => {
             const selectedItem = document.getElementById('selected-profile-item');
             if (selectedItem) {
-                selectedItem.scrollIntoView({ behavior: 'auto', block: 'center' });
+                selectedItem.scrollIntoView({ behavior: 'instant', block: 'center' });
             }
         }, 50);
     };
