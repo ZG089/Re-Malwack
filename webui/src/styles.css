@@ -189,6 +189,7 @@ body.input-focused {
   z-index: 4;
   pointer-events: none;
   visibility: hidden;
+  will-change: transform, opacity;
 }
 
 .float-container.show {
