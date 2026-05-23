@@ -1195,23 +1195,29 @@ md-switch {
 
 /* Import / Export Settings */
 .settings-transfer-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
   gap: 12px;
-  flex-wrap: wrap;
-  text-align: center;
+  padding: 12px 16px !important;
+}
+
+.settings-transfer-item md-outlined-button:first-child {
+  justify-self: start;
+}
+
+.settings-transfer-item md-outlined-button:last-child {
+  justify-self: end;
 }
 
 .settings-transfer-label {
-  font-weight: 600;
+  text-align: center;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: var(--md-sys-color-on-surface-variant);
+  user-select: none;
   white-space: nowrap;
-  flex-shrink: 0;
 }
-
-.settings-transfer-item md-outlined-button {
-  min-width: 120px;
-  }
 
 /* File Explorer */
 .xv-modal-backdrop {
