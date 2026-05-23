@@ -1193,36 +1193,7 @@ md-switch {
   color: var(--md-sys-color-on-primary);
 }
 
-/* Import / Export Settings */
-.settings-transfer-item {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 12px !important;
-}
 
-.settings-transfer-item md-outlined-button {
-  --md-outlined-button-leading-space: 12px;
-  --md-outlined-button-trailing-space: 12px;
-}
-
-.settings-transfer-item md-outlined-button:first-child {
-  justify-self: start;
-}
-
-.settings-transfer-item md-outlined-button:last-child {
-  justify-self: end;
-}
-
-.settings-transfer-label {
-  text-align: center;
-  font-size: 0.9em;
-  font-weight: bold;
-  color: var(--md-sys-color-on-surface-variant);
-  user-select: none;
-  white-space: nowrap;
-}
 
 /* File Explorer */
 .xv-modal-backdrop {
