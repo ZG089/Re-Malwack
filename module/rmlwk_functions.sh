@@ -782,8 +782,8 @@ update_status() {
         # Set success message if not set to error
         if [ -z "$status_msg" ]; then
             if [ "$(date +%m%d)" = "0401" ]; then
-                blocking_info="Allowing $blocked_mod ads"
-                [ "$blacklist_count" -gt 0 ] && blocking_info="Allowing $((blocked_mod - blacklist_count)) ads + $blacklist_count (blacklist)"
+                blocking_info="Loaded $blocked_mod malware"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Loaded $((blocked_mod - blacklist_count)) malware + $blacklist_count (blacklist)"
                 status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
@@ -791,8 +791,8 @@ update_status() {
                 setConfigProperty "name" "Re-Malware | Not just a normal malware module ✨" "$MODDIR/module.prop"
                 setConfigProperty "banner" "banner=banner_alt.png" "$MODDIR/module.prop"
             else
-                blocking_info="Blocking $blocked_mod domains"
-                [ "$blacklist_count" -gt 0 ] && blocking_info="Blocking $((blocked_mod - blacklist_count)) domains + $blacklist_count (blacklist)"
+                blocking_info="Loaded $blocked_mod blocking rules"
+                [ "$blacklist_count" -gt 0 ] && blocking_info="Loaded $((blocked_mod - blacklist_count)) blocking rules + $blacklist_count (blacklist)"
                 status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
