@@ -4,6 +4,9 @@
 # AliExpress
 alicdn.com
 
+# Airtel
+digianalytics.airtel.in
+
 # Adobe
 sstats.adobe.com
 assets.adobedtm.com
@@ -69,6 +72,9 @@ cm.everesttech.net
 weather-server.allawnos.com
 api.visicom.ua
 egoimmerce.e-goi.com
+bell-cdn.branch.io
+sdk-03.moengage.com
+
 
 # Google
 googleapis.com
