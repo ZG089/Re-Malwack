@@ -132,8 +132,9 @@ body.input-focused {
 }
 
 .dashboard {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   width: calc(100% - 32px);
   max-width: 800px;
   background-color: var(--md-sys-color-surface-container-highest);
@@ -144,13 +145,17 @@ body.input-focused {
   text-align: center;
   overflow: hidden;
   user-select: none;
+  padding: 10px 0;
 }
 
 .dashboard-item {
-  height: 100%;
+  flex: 1 1 25%;
+  min-width: 90px;
+  max-width: 33.333%;
   display: flex;
   flex-direction: column;
-  padding: 15px 5px;
+  padding: 10px 5px;
+  box-sizing: border-box;
 }
 
 .dashboard-item-title {
@@ -1125,48 +1130,29 @@ md-switch {
 }
 
 /* DNS view segment slider */
-.dns-view-toggle-row {
-  padding: 12px 16px 4px;
-}
-
 .dns-segment-control {
   position: relative;
   display: flex;
-  gap: 4px;
-  width: 100%;
+  width: 220px;
+  height: 32px;
   box-sizing: border-box;
-}
-
-.dns-segment-bg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: calc(50% - 2px);
-  background: var(--md-sys-color-surface-container-high);
-  z-index: 0;
-}
-
-.dns-segment-bg.left {
-  left: 0;
-  border-radius: 24px 8px 8px 24px;
-}
-
-.dns-segment-bg.right {
-  right: 0;
-  border-radius: 8px 24px 24px 8px;
+  background-color: var(--md-sys-color-surface-container-high);
+  border-radius: 24px;
+  align-items: center;
+  overflow: hidden;
 }
 
 .dns-segment-slider {
   position: absolute;
   top: 0;
   left: 0;
-  width: calc(50% - 2px);
+  width: 50%;
   height: 100%;
   background: var(--md-sys-color-primary);
   border-radius: 24px 8px 8px 24px;
   transition:
-    transform 0.5s cubic-bezier(0.3, 0, 0, 1),
-    border-radius 0.5s cubic-bezier(0.3, 0, 0, 1);
+    transform 0.4s cubic-bezier(0.3, 0, 0, 1),
+    border-radius 0.4s cubic-bezier(0.3, 0, 0, 1);
   pointer-events: none;
   z-index: 1;
 }
@@ -1176,9 +1162,9 @@ md-switch {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 12px 16px;
+  padding: 0;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-family: inherit;
   font-weight: 500;
   color: var(--md-sys-color-on-surface);
@@ -1187,6 +1173,10 @@ md-switch {
   transition: color 0.25s ease;
   z-index: 2;
   user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .dns-segment-btn--active {
@@ -1438,28 +1428,29 @@ md-switch {
 #global-bottom-toolbar md-filled-button[disabled] {
   opacity: 0.38;
 }
-/* Segmented Control */
-.segmented-control {
-  display: flex;
-  background-color: var(--md-sys-color-surface-container-highest);
-  border-radius: 24px;
-  padding: 4px;
-  gap: 2px;
-  align-items: center;
+/* DNS sub-menu adjustments */
+#dns-logging-submenu {
+  padding: 0 16px;
+  flex-direction: column;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition:
+    max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-bottom 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.segment {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.9em;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--md-sys-color-on-surface-variant);
-  transition: all 0.2s ease;
-  user-select: none;
+#dns-logging-submenu.show {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  max-height: 120px;
 }
 
-.segment.active {
-  background-color: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+#dns-logging-arrow {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#dns-logging-arrow.rotated {
+  transform: rotate(180deg);
 }

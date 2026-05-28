@@ -2302,11 +2302,15 @@ function setupEventListener() {
     });
 
     // DNS Logging Submenu
-    const dnsOptionsBtn = document.getElementById('dns-logging-options-btn');
+    const dnsTrigger = document.getElementById('dns-logging-trigger');
     const dnsSubmenu = document.getElementById('dns-logging-submenu');
-    if (dnsOptionsBtn && dnsSubmenu) {
-        dnsOptionsBtn.addEventListener('click', () => {
+    const dnsArrow = document.getElementById('dns-logging-arrow');
+    if (dnsTrigger && dnsSubmenu) {
+        dnsTrigger.addEventListener('click', () => {
             dnsSubmenu.classList.toggle('show');
+            if (dnsArrow) {
+                dnsArrow.classList.toggle('rotated', dnsSubmenu.classList.contains('show'));
+            }
         });
     }
 
@@ -2320,17 +2324,25 @@ function setupEventListener() {
         });
     }
 
-    // Segmented Control
-    const segmentApp = document.getElementById('segment-per-app');
-    const segmentDomain = document.getElementById('segment-per-domain');
-    if (segmentApp && segmentDomain) {
-        segmentApp.addEventListener('click', () => {
-            segmentApp.classList.add('active');
-            segmentDomain.classList.remove('active');
+    // Segmented Control (Tabs)
+    const dnsBtnDomain = document.getElementById('dns-btn-domain');
+    const dnsBtnApp = document.getElementById('dns-btn-app');
+    if (dnsBtnDomain && dnsBtnApp) {
+        dnsBtnDomain.addEventListener('click', () => {
+            if (dnsViewMode === 'domain') return;
+            const tbBack = document.getElementById('dns-tb-back');
+            if (tbBack) tbBack.click();
+            dnsViewMode = 'domain';
+            dnsUpdateToggle();
+            renderDnsView(document.getElementById('logged-dns-list'));
         });
-        segmentDomain.addEventListener('click', () => {
-            segmentDomain.classList.add('active');
-            segmentApp.classList.remove('active');
+        dnsBtnApp.addEventListener('click', () => {
+            if (dnsViewMode === 'app') return;
+            const tbBack = document.getElementById('dns-tb-back');
+            if (tbBack) tbBack.click();
+            dnsViewMode = 'app';
+            dnsUpdateToggle();
+            renderDnsView(document.getElementById('logged-dns-list'));
         });
     }
 
@@ -2514,47 +2526,11 @@ async function loadDnsLogs() {
             _appMap[pkg][domain] = (_appMap[pkg][domain] || 0) + 1;
         });
 
-        // inject toggle once
-        if (!document.getElementById('dns-view-toggle')) {
-            const toggleRow = document.createElement('div');
-            toggleRow.id = 'dns-view-toggle';
-            toggleRow.className = 'dns-view-toggle-row';
-            toggleRow.innerHTML = `
-                <div class="dns-segment-control">
-                    <div class="dns-segment-bg left"></div>
-                    <div class="dns-segment-bg right"></div>
-                    <div class="dns-segment-slider" id="dns-segment-slider"></div>
-                    <button id="dns-btn-domain" class="dns-segment-btn"><span>Per Domain</span></button>
-                    <button id="dns-btn-app" class="dns-segment-btn"><span>Per App</span></button>
-                </div>
-            `;
-            listElement.parentElement.insertBefore(toggleRow, listElement);
-
-            document.getElementById('dns-btn-domain').addEventListener('click', () => {
-                if (dnsViewMode === 'domain') return;
-                const tbBack = document.getElementById('dns-tb-back');
-                if (tbBack) tbBack.click();
-                dnsViewMode = 'domain';
-                dnsUpdateToggle();
-                renderDnsView(document.getElementById('logged-dns-list'));
-            });
-            document.getElementById('dns-btn-app').addEventListener('click', () => {
-                if (dnsViewMode === 'app') return;
-                const tbBack = document.getElementById('dns-tb-back');
-                if (tbBack) tbBack.click();
-                dnsViewMode = 'app';
-                dnsUpdateToggle();
-                renderDnsView(document.getElementById('logged-dns-list'));
-            });
-        }
-
         dnsUpdateToggle();
         renderDnsView(listElement);
 
     } catch (e) {
         listElement.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.5;">No logs recorded yet.</div>`;
-        const toggle = document.getElementById('dns-view-toggle');
-        if (toggle) toggle.remove();
     }
 }
 
@@ -2570,7 +2546,7 @@ function dnsUpdateToggle() {
         slider.style.transform = 'translateX(0)';
         slider.style.borderRadius = '24px 8px 8px 24px';
     } else {
-        slider.style.transform = 'translateX(calc(100% + 4px))';
+        slider.style.transform = 'translateX(100%)';
         slider.style.borderRadius = '8px 24px 24px 8px';
     }
 }
@@ -2588,48 +2564,70 @@ function renderPerDomain(listElement) {
     const sorted = Object.entries(_domainCounts).sort((a, b) => b[1] - a[1]);
     let first = true;
 
-    sorted.forEach(([domain, hits]) => {
-        const item = document.createElement('div');
-        item.innerHTML = `
-            <div class="host-item">
-                <div class="favicon-wrapper">
-                    <md-circular-progress indeterminate></md-circular-progress>
-                    <img class="favicon-img favicon" style="display:none;" src="https://twenty-icons.com/${domain}" />
+    const initial = sorted.slice(0, 100);
+    const remaining = sorted.slice(100);
+
+    const appendItems = (items) => {
+        const fragment = document.createDocumentFragment();
+        items.forEach(([domain, hits]) => {
+            const item = document.createElement('div');
+            item.innerHTML = `
+                <div class="host-item">
+                    <div class="favicon-wrapper">
+                        <md-circular-progress indeterminate></md-circular-progress>
+                        <img class="favicon-img favicon" style="display:none;" src="https://twenty-icons.com/${domain}" />
+                    </div>
+                    <div class="host-item-content">
+                        <div class="host-item-name">${domain}</div>
+                        <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
+                    </div>
+                    <div class="spacer"></div>
+                    <md-checkbox value="${domain}"></md-checkbox>
                 </div>
-                <div class="host-item-content">
-                    <div class="host-item-name">${domain}</div>
-                    <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
-                </div>
-                <div class="spacer"></div>
-                <md-checkbox value="${domain}"></md-checkbox>
-            </div>
-        `;
+            `;
 
-        const img = item.querySelector('.favicon-img');
-        const wrapper = item.querySelector('.favicon-wrapper');
-        const loader = item.querySelector('md-circular-progress');
-        const cb = item.querySelector('md-checkbox');
+            const img = item.querySelector('.favicon-img');
+            const wrapper = item.querySelector('.favicon-wrapper');
+            const loader = item.querySelector('md-circular-progress');
+            const cb = item.querySelector('md-checkbox');
 
-        img.onload = () => { loader.style.display = 'none'; img.style.display = 'block'; };
-        img.onerror = () => { loader.style.display = 'none'; wrapper.innerHTML = '<md-icon>domain</md-icon>'; };
+            img.onload = () => { loader.style.display = 'none'; img.style.display = 'block'; };
+            img.onerror = () => { loader.style.display = 'none'; wrapper.innerHTML = '<md-icon>domain</md-icon>'; };
 
-        item.addEventListener('click', () => {
-            if (!cb.classList.contains('show')) return;
-            cb.checked = !cb.checked;
-            document.dispatchEvent(new CustomEvent('dns-count-update'));
+            item.addEventListener('click', () => {
+                if (!cb.classList.contains('show')) return;
+                cb.checked = !cb.checked;
+                document.dispatchEvent(new CustomEvent('dns-count-update'));
+            });
+
+            dnsAttachLongPress(item, () => {
+                const allCbs = Array.from(listElement.querySelectorAll('md-checkbox'));
+                allCbs.forEach(c => c.classList.add('show'));
+                cb.checked = true;
+                dnsShowToolbox(allCbs, null);
+            });
+
+            if (!first) fragment.appendChild(document.createElement('md-divider'));
+            first = false;
+            fragment.appendChild(item);
         });
+        listElement.appendChild(fragment);
+    };
 
-        dnsAttachLongPress(item, () => {
-            const allCbs = Array.from(listElement.querySelectorAll('md-checkbox'));
-            allCbs.forEach(c => c.classList.add('show'));
-            cb.checked = true;
-            dnsShowToolbox(allCbs, null);
-        });
+    appendItems(initial);
 
-        if (!first) listElement.appendChild(document.createElement('md-divider'));
-        first = false;
-        listElement.appendChild(item);
-    });
+    if (remaining.length > 0) {
+        let index = 0;
+        const chunkSize = 150;
+        const renderNextChunk = () => {
+            if (index >= remaining.length) return;
+            const chunk = remaining.slice(index, index + chunkSize);
+            appendItems(chunk);
+            index += chunkSize;
+            setTimeout(renderNextChunk, 16);
+        };
+        setTimeout(renderNextChunk, 32);
+    }
 }
 
 async function getAppsInfo(pkgs) {
@@ -2655,122 +2653,8 @@ async function renderPerApp(listElement) {
     const labels = await getAppsInfo(sortedApps.map(a => a.pkg));
     let first = true;
 
-    sortedApps.forEach(({ pkg, domains, total }) => {
-        const label = labels[pkg] || pkg;
-        const sortedDomains = Object.entries(domains).sort((a, b) => b[1] - a[1]);
-
-        const card = document.createElement('div');
-        card.dataset.pkg = pkg;
-        card.innerHTML = `
-            <div class="host-item app-card-header" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
-                <div class="favicon-wrapper">
-                    <div class="loader" data-package="${pkg}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><md-circular-progress indeterminate></md-circular-progress></div>
-                    <img class="app-icon" data-package="${pkg}" style="display:none;width:100%;height:100%;border-radius:8px;object-fit:cover;" />
-                </div>
-                <div class="host-item-content">
-                    <div class="host-item-name" style="font-weight:500;">${label}</div>
-                    <span class="badge blocklist-badge" style="display:inline-flex;">${total} ${total === 1 ? 'hit' : 'hits'}</span>
-                </div>
-                <div class="spacer"></div>
-                <md-checkbox class="app-cb" value="${pkg}" style="display:none;"></md-checkbox>
-                <md-icon class="expand-icon" style="transition:transform 0.2s;">expand_more</md-icon>
-            </div>
-            <div class="app-domains" style="display:none;padding-left:56px;"></div>
-        `;
-
-        const header = card.querySelector('.app-card-header');
-        const domainsEl = card.querySelector('.app-domains');
-        const expandIcon = card.querySelector('.expand-icon');
-        const appCb = card.querySelector('.app-cb');
-        let expanded = false;
-
-        // build domain rows
-        const domCbs = [];
-        sortedDomains.forEach(([domain, hits], i) => {
-            if (i > 0) domainsEl.appendChild(document.createElement('md-divider'));
-            const row = document.createElement('div');
-            row.className = 'host-item';
-            row.style.cssText = 'padding-left:0;-webkit-tap-highlight-color:transparent;';
-            row.innerHTML = `
-                <div class="favicon-wrapper" style="width:28px;height:28px;">
-                    <md-circular-progress indeterminate></md-circular-progress>
-                    <img class="favicon-img" style="display:none;width:100%;height:100%;border-radius:4px;" src="https://twenty-icons.com/${domain}" />
-                </div>
-                <div class="host-item-content">
-                    <div class="host-item-name" style="font-size:0.85em;">${domain}</div>
-                    <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
-                </div>
-                <div class="spacer"></div>
-                <md-checkbox value="${domain}"></md-checkbox>
-            `;
-            const dImg = row.querySelector('.favicon-img');
-            const dLdr = row.querySelector('md-circular-progress');
-            dImg.onload = () => { dLdr.style.display = 'none'; dImg.style.display = 'block'; };
-            dImg.onerror = () => { dLdr.style.display = 'none'; row.querySelector('.favicon-wrapper').innerHTML = '<md-icon>domain</md-icon>'; };
-
-            const domCb = row.querySelector('md-checkbox');
-            domCbs.push(domCb);
-
-            row.addEventListener('click', () => {
-                if (!domCb.classList.contains('show')) return;
-                domCb.checked = !domCb.checked;
-                // update toolbox count
-                document.dispatchEvent(new CustomEvent('dns-count-update'));
-            });
-
-            domainsEl.appendChild(row);
-        });
-
-        expandIcon.addEventListener('click', (e) => {
-            e.stopPropagation();
-            expanded = !expanded;
-            domainsEl.style.display = expanded ? 'block' : 'none';
-            expandIcon.style.transform = expanded ? 'rotate(180deg)' : '';
-            if (appCb.style.display !== 'none') {
-                domCbs.forEach(cb => {
-                    if (expanded) cb.classList.add('show');
-                    else cb.classList.remove('show');
-                    cb.checked = expanded ? appCb.checked : cb.checked;
-                });
-            }
-        });
-
-        header.addEventListener('click', (e) => {
-            if (e.target === expandIcon || expandIcon.contains(e.target)) return;
-            if (appCb.style.display === 'none') return;
-            appCb.checked = !appCb.checked;
-            domCbs.forEach(cb => { cb.checked = appCb.checked; });
-            document.dispatchEvent(new CustomEvent('dns-count-update'));
-        });
-
-        dnsAttachLongPress(header, () => {
-            const allAppCbs = Array.from(listElement.querySelectorAll('.app-cb'));
-            allAppCbs.forEach(c => {
-                c.style.display = 'inline-flex';
-                requestAnimationFrame(() => c.classList.add('show'));
-            });
-            appCb.checked = true;
-            domCbs.forEach(cb => { cb.checked = true; });
-            listElement.querySelectorAll('.app-domains').forEach(domList => {
-                if (domList.style.display !== 'none') {
-                    domList.querySelectorAll('md-checkbox').forEach(c => c.classList.add('show'));
-                }
-            });
-            dnsShowToolbox(allAppCbs, listElement);
-        });
-
-        if (!first) listElement.appendChild(document.createElement('md-divider'));
-        first = false;
-        listElement.appendChild(card);
-    });
-
     const useKsu = typeof globalThis.ksu?.getPackagesInfo === 'function';
     const usePm = typeof $packageManager !== 'undefined';
-
-    if (!useKsu && !usePm) {
-        listElement.querySelectorAll('.loader').forEach(l => { l.parentElement.innerHTML = '<md-icon>android</md-icon>'; });
-        return;
-    }
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -2796,9 +2680,143 @@ async function renderPerApp(listElement) {
         });
     }, { rootMargin: '100px', threshold: 0.1 });
 
-    listElement.querySelectorAll('.favicon-wrapper').forEach(w => {
-        if (w.querySelector('.app-icon')) observer.observe(w);
-    });
+    const appendApps = (apps) => {
+        const fragment = document.createDocumentFragment();
+        apps.forEach(({ pkg, domains, total }) => {
+            const label = labels[pkg] || pkg;
+            const sortedDomains = Object.entries(domains).sort((a, b) => b[1] - a[1]);
+
+            const card = document.createElement('div');
+            card.dataset.pkg = pkg;
+            card.innerHTML = `
+                <div class="host-item app-card-header" style="cursor:pointer;-webkit-tap-highlight-color:transparent;">
+                    <div class="favicon-wrapper">
+                        <div class="loader" data-package="${pkg}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><md-circular-progress indeterminate></md-circular-progress></div>
+                        <img class="app-icon" data-package="${pkg}" style="display:none;width:100%;height:100%;border-radius:8px;object-fit:cover;" />
+                    </div>
+                    <div class="host-item-content">
+                        <div class="host-item-name" style="font-weight:500;">${label}</div>
+                        <span class="badge blocklist-badge" style="display:inline-flex;">${total} ${total === 1 ? 'hit' : 'hits'}</span>
+                    </div>
+                    <div class="spacer"></div>
+                    <md-checkbox class="app-cb" value="${pkg}" style="display:none;"></md-checkbox>
+                    <md-icon class="expand-icon" style="transition:transform 0.2s;">expand_more</md-icon>
+                </div>
+                <div class="app-domains" style="display:none;padding-left:56px;"></div>
+            `;
+
+            const header = card.querySelector('.app-card-header');
+            const domainsEl = card.querySelector('.app-domains');
+            const expandIcon = card.querySelector('.expand-icon');
+            const appCb = card.querySelector('.app-cb');
+            let expanded = false;
+
+            const domCbs = [];
+            sortedDomains.forEach(([domain, hits], i) => {
+                if (i > 0) domainsEl.appendChild(document.createElement('md-divider'));
+                const row = document.createElement('div');
+                row.className = 'host-item';
+                row.style.cssText = 'padding-left:0;-webkit-tap-highlight-color:transparent;';
+                row.innerHTML = `
+                    <div class="favicon-wrapper" style="width:28px;height:28px;">
+                        <md-circular-progress indeterminate></md-circular-progress>
+                        <img class="favicon-img" style="display:none;width:100%;height:100%;border-radius:4px;" src="https://twenty-icons.com/${domain}" />
+                    </div>
+                    <div class="host-item-content">
+                        <div class="host-item-name" style="font-size:0.85em;">${domain}</div>
+                        <span class="badge blocklist-badge" style="display:inline-flex;">${hits} ${hits === 1 ? 'hit' : 'hits'}</span>
+                    </div>
+                    <div class="spacer"></div>
+                    <md-checkbox value="${domain}"></md-checkbox>
+                `;
+                const dImg = row.querySelector('.favicon-img');
+                const dLdr = row.querySelector('md-circular-progress');
+                dImg.onload = () => { dLdr.style.display = 'none'; dImg.style.display = 'block'; };
+                dImg.onerror = () => { dLdr.style.display = 'none'; row.querySelector('.favicon-wrapper').innerHTML = '<md-icon>domain</md-icon>'; };
+
+                const domCb = row.querySelector('md-checkbox');
+                domCbs.push(domCb);
+
+                row.addEventListener('click', () => {
+                    if (!domCb.classList.contains('show')) return;
+                    domCb.checked = !domCb.checked;
+                    document.dispatchEvent(new CustomEvent('dns-count-update'));
+                });
+
+                domainsEl.appendChild(row);
+            });
+
+            expandIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                expanded = !expanded;
+                domainsEl.style.display = expanded ? 'block' : 'none';
+                expandIcon.style.transform = expanded ? 'rotate(180deg)' : '';
+                if (appCb.style.display !== 'none') {
+                    domCbs.forEach(cb => {
+                        if (expanded) cb.classList.add('show');
+                        else cb.classList.remove('show');
+                        cb.checked = expanded ? appCb.checked : cb.checked;
+                    });
+                }
+            });
+
+            header.addEventListener('click', (e) => {
+                if (e.target === expandIcon || expandIcon.contains(e.target)) return;
+                if (appCb.style.display === 'none') return;
+                appCb.checked = !appCb.checked;
+                domCbs.forEach(cb => { cb.checked = appCb.checked; });
+                document.dispatchEvent(new CustomEvent('dns-count-update'));
+            });
+
+            dnsAttachLongPress(header, () => {
+                const allAppCbs = Array.from(listElement.querySelectorAll('.app-cb'));
+                allAppCbs.forEach(c => {
+                    c.style.display = 'inline-flex';
+                    requestAnimationFrame(() => c.classList.add('show'));
+                });
+                appCb.checked = true;
+                domCbs.forEach(cb => { cb.checked = true; });
+                listElement.querySelectorAll('.app-domains').forEach(domList => {
+                    if (domList.style.display !== 'none') {
+                        domList.querySelectorAll('md-checkbox').forEach(c => c.classList.add('show'));
+                    }
+                });
+                dnsShowToolbox(allAppCbs, listElement);
+            });
+
+            if (!first) fragment.appendChild(document.createElement('md-divider'));
+            first = false;
+            fragment.appendChild(card);
+        });
+        listElement.appendChild(fragment);
+
+        listElement.querySelectorAll('.favicon-wrapper').forEach(w => {
+            if (w.querySelector('.app-icon')) observer.observe(w);
+        });
+    };
+
+    if (!useKsu && !usePm) {
+        listElement.querySelectorAll('.loader').forEach(l => { l.parentElement.innerHTML = '<md-icon>android</md-icon>'; });
+        return;
+    }
+
+    const initial = sortedApps.slice(0, 30);
+    const remaining = sortedApps.slice(30);
+
+    appendApps(initial);
+
+    if (remaining.length > 0) {
+        let index = 0;
+        const chunkSize = 30;
+        const renderNextChunk = () => {
+            if (index >= remaining.length) return;
+            const chunk = remaining.slice(index, index + chunkSize);
+            appendApps(chunk);
+            index += chunkSize;
+            setTimeout(renderNextChunk, 16);
+        };
+        setTimeout(renderNextChunk, 32);
+    }
 }
 
 function dnsAttachLongPress(el, cb) {

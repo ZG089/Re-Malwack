@@ -169,22 +169,21 @@
 
             <!-- dns logging -->
             <div style="display: flex; flex-direction: column;">
-                <div class="list-item" id="dns-logging" style="padding-right: 8px;">
-                    <div style="display: flex; align-items: center; flex: 1;">
-                        <md-icon style="margin-right: 8px;">monitor_heart</md-icon>
+                <div class="list-item" id="dns-logging" style="padding-top: 0; padding-bottom: 0; padding-left: 0; padding-right: 8px;">
+                    <div id="dns-logging-trigger" style="display: flex; align-items: center; flex: 1; cursor: pointer; min-height: 64px; padding-left: 20px; position: relative; -webkit-tap-highlight-color: transparent; user-select: none;">
+                        <md-icon style="margin-left: 0; margin-right: 12px;">monitor_heart</md-icon>
                         <div class="list-item-content" style="flex-direction: row; align-items: center;">
-                            <div class="toggle-text">Enable DNS logging</div>
+                            <div class="toggle-text">DNS logging</div>
                             <span class="badge" style="background:var(--md-sys-color-tertiary); color:var(--md-sys-color-on-tertiary); font-size:0.7em; padding:2px 6px; display:inline-block; margin-left: 8px;">BETA</span>
                         </div>
-                    </div>
-                    <div style="display: flex; align-items: center; z-index: 2;">
-                        <md-icon-button id="dns-logging-options-btn"><md-icon>arrow_drop_down</md-icon></md-icon-button>
+                        <div class="spacer"></div>
+                        <md-icon id="dns-logging-arrow" style="margin-right: 8px; transition: transform 0.25s ease;">arrow_drop_down</md-icon>
+                        <md-ripple></md-ripple>
                     </div>
                     <div style="width: 1px; height: 24px; background: var(--md-sys-color-outline-variant); margin: 0 8px; z-index: 2;"></div>
                     <md-switch icons id="dns-logging-toggle" style="z-index: 2; margin-right: 8px;"></md-switch>
-                    <md-ripple></md-ripple>
                 </div>
-                <div class="control-list" id="dns-logging-submenu" style="padding: 0 16px; flex-direction: column;">
+                <div class="control-list" id="dns-logging-submenu" style="flex-direction: column;">
                     <label class="host-item" style="cursor: pointer; padding: 4px 0;">
                         <span style="font-size: 1em;">Show live count in Dashboard</span>
                         <div class="spacer"></div>
@@ -376,9 +375,10 @@
         <!-- Logged Domains -->
         <div class="list-title" id="logged-dns-title" style="display:none; justify-content: space-between; align-items: center; padding-right: 0;">
             <span>Logged Domains</span>
-            <div class="segmented-control">
-                <div class="segment active" id="segment-per-app">Per App</div>
-                <div class="segment" id="segment-per-domain">Per Domain</div>
+            <div class="dns-segment-control">
+                <div class="dns-segment-slider" id="dns-segment-slider"></div>
+                <button id="dns-btn-domain" class="dns-segment-btn"><span>Per Domain</span></button>
+                <button id="dns-btn-app" class="dns-segment-btn"><span>Per App</span></button>
             </div>
         </div>
         <div class="box" id="logged-dns" style="display:none">
