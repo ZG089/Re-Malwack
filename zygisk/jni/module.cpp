@@ -125,31 +125,6 @@ static int my_getaddrinfofornetcontext(const char *node, const char *service,
     return r;
 }
 
-static void* my_dlopen(const char* filename, int flags) {
-    if (!orig_dlopen) {
-        return dlopen(filename, flags);
-    }
-    void* handle = orig_dlopen(filename, flags);
-    if (handle) {
-        xhook_refresh(0);
-    }
-    return handle;
-}
-
-static void* my_android_dlopen_ext(const char* filename, int flags, const void* extinfo) {
-    if (!orig_android_dlopen_ext) {
-        typedef void* (*fn_t)(const char*, int, const void*);
-        static fn_t fn = (fn_t)dlsym(RTLD_DEFAULT, "android_dlopen_ext");
-        if (fn) return fn(filename, flags, extinfo);
-        return nullptr;
-    }
-    void* handle = orig_android_dlopen_ext(filename, flags, extinfo);
-    if (handle) {
-        xhook_refresh(0);
-    }
-    return handle;
-}
-
 static bool install_hooks() {
     xhook_enable_debug(0);
 
@@ -168,13 +143,6 @@ static bool install_hooks() {
     xhook_register(all, "android_getaddrinfofornetcontext",
                    reinterpret_cast<void *>(my_getaddrinfofornetcontext),
                    reinterpret_cast<void **>(&orig_getaddrinfofornetcontext));
-
-    xhook_register(all, "dlopen",
-                   reinterpret_cast<void *>(my_dlopen),
-                   reinterpret_cast<void **>(&orig_dlopen));
-    xhook_register(all, "android_dlopen_ext",
-                   reinterpret_cast<void *>(my_android_dlopen_ext),
-                   reinterpret_cast<void **>(&orig_android_dlopen_ext));
 
     if (xhook_refresh(0) != 0) {
         LOGE("xhook_refresh failed");
@@ -263,11 +231,14 @@ public:
             }
         }
 
+    }
+
+    void postAppSpecialize(const zygisk::AppSpecializeArgs *args) override {
+        if (s_log_fd < 0) return;
         if (!install_hooks()) {
-            LOGE("hook install failed for [%s] uid=%u", s_pkg[0] ? s_pkg : "?", uid);
+            LOGE("hook install failed in postAppSpecialize for [%s]", s_pkg[0] ? s_pkg : "?");
             close(s_log_fd);
             s_log_fd = -1;
-            return unload();
         }
     }
 
