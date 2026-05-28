@@ -116,6 +116,13 @@
                 <div class="dashboard-item-title">Version</div>
                 <div class="dashboard-item-content" id="version-text">-</div>
             </div>
+            <div class="dashboard-item" id="live-blocks-dashboard" style="display:none; position:relative;">
+                <div class="dashboard-item-title">Real-time block</div>
+                <div class="dashboard-item-content" id="live-blocks-count">-</div>
+                <md-icon-button id="reset-dns-count" style="position:absolute; top:-4px; right:-4px; --md-icon-button-icon-size: 16px; width:24px; height:24px; opacity: 0.7;">
+                    <md-icon>restart_alt</md-icon>
+                </md-icon-button>
+            </div>
             <div class="dashboard-item">
                 <div class="dashboard-item-title" id="status-title">Blocked Entries</div>
                 <div class="dashboard-item-content" id="status-text">-</div>
@@ -166,7 +173,10 @@
             <!-- dns logging -->
             <label class="list-item" id="dns-logging">
                 <md-icon>monitor_heart</md-icon>
-                <div class="toggle-text">Enable DNS logging</div>
+                <div class="list-item-content">
+                    <div class="toggle-text">Enable DNS logging</div>
+                    <span class="badge" style="background:var(--md-sys-color-tertiary); color:var(--md-sys-color-on-tertiary); font-size:0.7em; padding:2px 6px; display:inline-block;">BETA</span>
+                </div>
                 <div class="spacer"></div>
                 <md-switch icons id="dns-logging-toggle"></md-switch>
                 <md-ripple></md-ripple>
@@ -372,7 +382,7 @@
         </div>
 
         <!-- Logged Domains -->
-        <div class="list-title" id="logged-dns-title" style="display:none">Logged Domains</div>
+        <div class="list-title" id="logged-dns-title" style="display:none; align-items:center;">Logged Domains <span class="badge" style="background:var(--md-sys-color-tertiary); color:var(--md-sys-color-on-tertiary); margin-left:8px; font-size:0.7em; padding:2px 6px;">BETA</span></div>
         <div class="box" id="logged-dns" style="display:none">
             <div class="category-container">
                 <div class="toggle-text"
@@ -551,6 +561,19 @@
             <div slot="actions">
                 <md-outlined-button id="cancel-reset">Cancel</md-outlined-button>
                 <md-filled-button id="confirm-reset">Reset</md-filled-button>
+            </div>
+        </md-dialog>
+
+        <!-- Reset DNS Count dialog -->
+        <md-dialog id="reset-dns-count-dialog">
+            <div slot="headline" style="display: flex; align-items: center; gap: 8px;">
+                <md-icon style="color: var(--md-sys-color-error);">restart_alt</md-icon>
+                Reset Live Blocks?
+            </div>
+            <div slot="content" style="color: var(--md-sys-color-on-surface-variant);">Are you sure you want to reset the real-time blocks count to zero?</div>
+            <div slot="actions">
+                <md-outlined-button id="cancel-reset-dns-count">Cancel</md-outlined-button>
+                <md-filled-button id="confirm-reset-dns-count" style="--md-sys-color-primary: var(--md-sys-color-error); --md-sys-color-on-primary: var(--md-sys-color-on-error);">Reset</md-filled-button>
             </div>
         </md-dialog>
 
