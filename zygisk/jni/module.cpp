@@ -12,6 +12,7 @@
 #include <android/log.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <dlfcn.h>
 #include "zygisk.hpp"
 #include "xhook/xhook.h"
 
@@ -42,6 +43,9 @@ static int (*orig_getaddrinfofornet)(
 static int (*orig_getaddrinfofornetcontext)(
         const char *, const char *, const struct addrinfo *,
         const struct android_net_context *, struct addrinfo **) = nullptr;
+
+static void* (*orig_dlopen)(const char* filename, int flags) = nullptr;
+static void* (*orig_android_dlopen_ext)(const char* filename, int flags, const void* extinfo) = nullptr;
 
 static bool skip_node(const char *node) {
     if (!node || !node[0]) return true;
@@ -121,6 +125,31 @@ static int my_getaddrinfofornetcontext(const char *node, const char *service,
     return r;
 }
 
+static void* my_dlopen(const char* filename, int flags) {
+    if (!orig_dlopen) {
+        return dlopen(filename, flags);
+    }
+    void* handle = orig_dlopen(filename, flags);
+    if (handle) {
+        xhook_refresh(0);
+    }
+    return handle;
+}
+
+static void* my_android_dlopen_ext(const char* filename, int flags, const void* extinfo) {
+    if (!orig_android_dlopen_ext) {
+        typedef void* (*fn_t)(const char*, int, const void*);
+        static fn_t fn = (fn_t)dlsym(RTLD_DEFAULT, "android_dlopen_ext");
+        if (fn) return fn(filename, flags, extinfo);
+        return nullptr;
+    }
+    void* handle = orig_android_dlopen_ext(filename, flags, extinfo);
+    if (handle) {
+        xhook_refresh(0);
+    }
+    return handle;
+}
+
 static bool install_hooks() {
     xhook_enable_debug(0);
 
@@ -139,6 +168,13 @@ static bool install_hooks() {
     xhook_register(all, "android_getaddrinfofornetcontext",
                    reinterpret_cast<void *>(my_getaddrinfofornetcontext),
                    reinterpret_cast<void **>(&orig_getaddrinfofornetcontext));
+
+    xhook_register(all, "dlopen",
+                   reinterpret_cast<void *>(my_dlopen),
+                   reinterpret_cast<void **>(&orig_dlopen));
+    xhook_register(all, "android_dlopen_ext",
+                   reinterpret_cast<void *>(my_android_dlopen_ext),
+                   reinterpret_cast<void **>(&orig_android_dlopen_ext));
 
     if (xhook_refresh(0) != 0) {
         LOGE("xhook_refresh failed");
