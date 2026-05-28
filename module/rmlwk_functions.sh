@@ -745,7 +745,17 @@ update_status() {
 
     [ -z "$profile" ] && profile="default"
     capitalized_profile="$(echo "$profile" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
-    [ "$dns_logging" = "1" ] && dns_status=" | 🔍 DNS Logging: ON" || dns_status=""
+    if [ "$dns_logging" = "1" ]; then
+        if [ -f "$persist_dir/counts/dns.count" ]; then
+            dns_count=$(cat "$persist_dir/counts/dns.count" 2>/dev/null)
+            [ -z "$dns_count" ] && dns_count="0"
+            dns_status=" | 🔍 DNS Logging: ON ($dns_count blocked)"
+        else
+            dns_status=" | 🔍 DNS Logging: ON"
+        fi
+    else
+        dns_status=""
+    fi
 
     if [ -f "$persist_dir/reboot_required" ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (DNS Logging) | ⚙️ Profile: $capitalized_profile${dns_status}"
