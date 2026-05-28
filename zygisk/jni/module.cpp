@@ -44,9 +44,6 @@ static int (*orig_getaddrinfofornetcontext)(
         const char *, const char *, const struct addrinfo *,
         const struct android_net_context *, struct addrinfo **) = nullptr;
 
-static void* (*orig_dlopen)(const char* filename, int flags) = nullptr;
-static void* (*orig_android_dlopen_ext)(const char* filename, int flags, const void* extinfo) = nullptr;
-
 static bool skip_node(const char *node) {
     if (!node || !node[0]) return true;
     if (strncmp(node, "127.", 4) == 0) return true;
