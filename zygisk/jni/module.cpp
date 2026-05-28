@@ -13,11 +13,16 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <dlfcn.h>
+#include <time.h>
 #include "zygisk.hpp"
 #include "xhook/xhook.h"
 
 #define TAG  "Zygisk-RmlwkDnsLogger"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+#ifndef F_SETPIPE_SZ
+#define F_SETPIPE_SZ 1031
+#endif
 
 struct android_net_context {
     unsigned app_netid;
@@ -288,6 +293,9 @@ static void *relay_worker(void *arg) {
 
     char buf[4097];
     ssize_t n;
+    unsigned long long accumulated_blocked = 0;
+    time_t last_write_time = 0;
+
     while ((n = read(rfd, buf, sizeof(buf) - 1)) > 0) {
         buf[n] = '\0';
         
@@ -312,21 +320,27 @@ static void *relay_worker(void *arg) {
         }
 
         if (num_blocked > 0) {
-            mkdir("/data/adb/Re-Malwack/counts", 0755);
-            FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
-            unsigned long long current_count = 0;
-            if (f) {
-                if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
-                rewind(f);
-            } else {
-                f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
-            }
-            if (f) {
-                current_count += num_blocked;
-                fprintf(f, "%llu\n", current_count);
-                fflush(f);
-                ftruncate(fileno(f), ftell(f));
-                fclose(f);
+            accumulated_blocked += num_blocked;
+            time_t now = time(nullptr);
+            if (now - last_write_time >= 10) {
+                mkdir("/data/adb/Re-Malwack/counts", 0755);
+                FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
+                unsigned long long current_count = 0;
+                if (f) {
+                    if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
+                    rewind(f);
+                } else {
+                    f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
+                }
+                if (f) {
+                    current_count += accumulated_blocked;
+                    fprintf(f, "%llu\n", current_count);
+                    fflush(f);
+                    ftruncate(fileno(f), ftell(f));
+                    fclose(f);
+                    accumulated_blocked = 0;
+                    last_write_time = now;
+                }
             }
         }
 
@@ -337,6 +351,25 @@ static void *relay_worker(void *arg) {
             if (w <= 0) break;
             p   += w;
             rem -= w;
+        }
+    }
+
+    if (accumulated_blocked > 0) {
+        mkdir("/data/adb/Re-Malwack/counts", 0755);
+        FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
+        unsigned long long current_count = 0;
+        if (f) {
+            if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
+            rewind(f);
+        } else {
+            f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
+        }
+        if (f) {
+            current_count += accumulated_blocked;
+            fprintf(f, "%llu\n", current_count);
+            fflush(f);
+            ftruncate(fileno(f), ftell(f));
+            fclose(f);
         }
     }
 
@@ -379,6 +412,9 @@ static int ensure_relay() {
         pthread_mutex_unlock(&g_relay_mtx);
         return -1;
     }
+
+    // Set pipe capacity to 1MB to prevent drops/blocking during heavy DNS request bursts
+    fcntl(pfd[0], F_SETPIPE_SZ, 1024 * 1024);
 
     int *args = static_cast<int *>(malloc(2 * sizeof(int)));
     args[0] = pfd[0];   // read-end  → relay thread
