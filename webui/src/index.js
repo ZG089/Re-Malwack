@@ -593,12 +593,48 @@ async function toggleDnsLogging() {
     }
 }
 
+let liveCountInterval = null;
+
+async function fetchLiveCount() {
+    try {
+        const result = await exec(`
+            hist=$(cat ${basePath}/counts/dns.count 2>/dev/null || echo "0")
+            curr=$(grep -c . ${basePath}/logs/dns.log 2>/dev/null || echo "0")
+            echo "$hist $curr"
+        `);
+        if (result.errno === 0) {
+            const parts = result.stdout.trim().split(/\s+/);
+            const hist = parseInt(parts[0], 10) || 0;
+            const curr = parseInt(parts[1], 10) || 0;
+            document.getElementById('live-blocks-count').innerText = hist + curr;
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
 function updateLoggedDnsVisibility(enabled) {
     const title = document.getElementById('logged-dns-title');
     const box = document.getElementById('logged-dns');
+    const liveDashboard = document.getElementById('live-blocks-dashboard');
     const display = enabled ? '' : 'none';
-    if (title) title.style.display = display;
+    if (title) title.style.display = enabled ? 'flex' : 'none';
     if (box) box.style.display = display;
+
+    if (liveDashboard) {
+        liveDashboard.style.display = display;
+        if (enabled) {
+            if (!liveCountInterval) {
+                fetchLiveCount();
+                liveCountInterval = setInterval(fetchLiveCount, 2000);
+            }
+        } else {
+            if (liveCountInterval) {
+                clearInterval(liveCountInterval);
+                liveCountInterval = null;
+            }
+        }
+    }
 }
 
 // Function to export logs
@@ -966,11 +1002,11 @@ function updateQueryMultiSelectToolbar() {
                     onClick: () => {
                         const wlBtn = getBottomToolbarButton(1);
                         if (querySelectedRows.size === 0 || wlBtn.disabled) return;
-                        
+
                         const domains = Array.from(querySelectedRows.values()).map(d => d.domain).join(' ');
                         const whitelistInput = document.getElementById("whitelist-input");
                         if (whitelistInput) whitelistInput.value = domains;
-                        
+
                         document.getElementById("whitelist-add")?.click();
 
                         queryMultiSelectMode = false;
@@ -994,7 +1030,7 @@ function updateQueryMultiSelectToolbar() {
     }
 
     if (copyBtn) copyBtn.disabled = false;
-    
+
     let hasInvalid = false;
     querySelectedRows.forEach(data => {
         if (data.ip !== '0.0.0.0' && data.ip !== '127.0.0.1') hasInvalid = true; // Redirected
@@ -2341,9 +2377,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('clear-dns-logs').addEventListener('click', async () => {
         const tbBack = document.getElementById('dns-tb-back');
         if (tbBack) tbBack.click();
-        await exec(`echo "" > ${basePath}/logs/dns.log`);
+        await exec(`
+            if [ -s ${basePath}/logs/dns.log ]; then
+                hist=$(cat ${basePath}/counts/dns.count 2>/dev/null || echo "0")
+                curr=$(grep -c . ${basePath}/logs/dns.log 2>/dev/null || echo "0")
+                total=$((hist + curr))
+                echo "$total" > ${basePath}/counts/dns.count
+                > ${basePath}/logs/dns.log
+            fi
+        `);
         showPrompt("DNS Logs cleared", true);
         loadDnsLogs();
+        if (liveCountInterval) fetchLiveCount();
+    });
+    document.getElementById('reset-dns-count')?.addEventListener('click', () => {
+        const dialog = document.getElementById('reset-dns-count-dialog');
+        dialog.show();
+        document.getElementById('cancel-reset-dns-count').onclick = () => dialog.close();
+        document.getElementById('confirm-reset-dns-count').onclick = async () => {
+            dialog.close();
+            await exec(`echo "0" > ${basePath}/counts/dns.count`);
+            showPrompt("Live blocks count reset", true);
+            if (liveCountInterval) fetchLiveCount();
+        };
     });
     document.getElementById('reboot-card-click')?.addEventListener('click', () => {
         const rebootDialog = document.getElementById('reboot-dialog');
