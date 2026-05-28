@@ -759,7 +759,7 @@ update_status() {
         if [ "$blacklist_count" -gt 0 ]; then
             plural="entries are active"
             [ "$blacklist_count" -eq 1 ] && plural="entry is active"
-            status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status} | $blacklist_count blacklist $plural"
+            status_msg="Status: Protection is disabled due to reset ❌ | $blacklist_count blacklist $plural | ⚙️ Profile: $capitalized_profile${dns_status}"
         else
             status_msg="Status: Protection is disabled due to reset ❌ | ⚙️ Profile: $capitalized_profile${dns_status}"
         fi
@@ -784,7 +784,7 @@ update_status() {
             if [ "$(date +%m%d)" = "0401" ]; then
                 blocking_info="Loaded $blocked_mod malware"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Loaded $((blocked_mod - blacklist_count)) malware + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is Vulnerable ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
+                status_msg="Status: Protection is Vulnerable ✅ | $blocking_info | ⚙️ Profile: $capitalized_profile${dns_status}"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Allowlists:$enabled_blocklists"
@@ -793,7 +793,7 @@ update_status() {
             else
                 blocking_info="Loaded $blocked_mod blocking rules"
                 [ "$blacklist_count" -gt 0 ] && blocking_info="Loaded $((blocked_mod - blacklist_count)) blocking rules + $blacklist_count (blacklist)"
-                status_msg="Status: Protection is enabled ✅ | ⚙️ Profile: $capitalized_profile${dns_status} | $blocking_info"
+                status_msg="Status: Protection is enabled ✅ | $blocking_info | ⚙️ Profile: $capitalized_profile${dns_status}"
                 [ "$whitelist_count" -gt 0 ] && status_msg="$status_msg | Whitelist: $whitelist_count"
                 [ "$custom_entries" -gt 0 ] && status_msg="$status_msg | Custom rules: $custom_entries"
                 [ -n "$enabled_blocklists" ] && status_msg="$status_msg | Enabled Blocklists:$enabled_blocklists"
