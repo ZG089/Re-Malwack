@@ -292,6 +292,7 @@ static void *relay_worker(void *arg) {
         memcpy(log_buf, buf, n + 1);
         char *saveptr = nullptr;
         char *line = strtok_r(log_buf, "\n", &saveptr);
+        int num_blocked = 0;
         while (line) {
             char *pipe_pos = strchr(line, '|');
             if (pipe_pos) {
@@ -302,7 +303,27 @@ static void *relay_worker(void *arg) {
             } else {
                 __android_log_print(ANDROID_LOG_INFO, TAG, "%s", line);
             }
+            num_blocked++;
             line = strtok_r(nullptr, "\n", &saveptr);
+        }
+
+        if (num_blocked > 0) {
+            mkdir("/data/adb/Re-Malwack/counts", 0755);
+            FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
+            unsigned long long current_count = 0;
+            if (f) {
+                if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
+                rewind(f);
+            } else {
+                f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
+            }
+            if (f) {
+                current_count += num_blocked;
+                fprintf(f, "%llu\n", current_count);
+                fflush(f);
+                ftruncate(fileno(f), ftell(f));
+                fclose(f);
+            }
         }
 
         const char *p = buf;

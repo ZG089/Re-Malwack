@@ -1438,3 +1438,28 @@ md-switch {
 #global-bottom-toolbar md-filled-button[disabled] {
   opacity: 0.38;
 }
+/* Segmented Control */
+.segmented-control {
+  display: flex;
+  background-color: var(--md-sys-color-surface-container-highest);
+  border-radius: 24px;
+  padding: 4px;
+  gap: 2px;
+  align-items: center;
+}
+
+.segment {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.segment.active {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}

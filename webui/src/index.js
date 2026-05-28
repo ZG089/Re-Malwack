@@ -597,16 +597,10 @@ let liveCountInterval = null;
 
 async function fetchLiveCount() {
     try {
-        const result = await exec(`
-            hist=$(cat ${basePath}/counts/dns.count 2>/dev/null || echo "0")
-            curr=$(grep -c . ${basePath}/logs/dns.log 2>/dev/null || echo "0")
-            echo "$hist $curr"
-        `);
+        const result = await exec(`cat ${basePath}/counts/dns.count 2>/dev/null || echo "0"`);
         if (result.errno === 0) {
-            const parts = result.stdout.trim().split(/\s+/);
-            const hist = parseInt(parts[0], 10) || 0;
-            const curr = parseInt(parts[1], 10) || 0;
-            document.getElementById('live-blocks-count').innerText = hist + curr;
+            const count = parseInt(result.stdout.trim(), 10) || 0;
+            document.getElementById('live-blocks-count').innerText = count;
         }
     } catch (e) {
         // ignore
@@ -622,7 +616,8 @@ function updateLoggedDnsVisibility(enabled) {
     if (box) box.style.display = display;
 
     if (liveDashboard) {
-        liveDashboard.style.display = display;
+        const liveCountSetting = localStorage.getItem('showLiveCount') !== 'false';
+        liveDashboard.style.display = (enabled && liveCountSetting) ? 'flex' : 'none';
         if (enabled) {
             if (!liveCountInterval) {
                 fetchLiveCount();
@@ -2306,6 +2301,40 @@ function setupEventListener() {
         }
     });
 
+    // DNS Logging Submenu
+    const dnsOptionsBtn = document.getElementById('dns-logging-options-btn');
+    const dnsSubmenu = document.getElementById('dns-logging-submenu');
+    if (dnsOptionsBtn && dnsSubmenu) {
+        dnsOptionsBtn.addEventListener('click', () => {
+            dnsSubmenu.classList.toggle('show');
+        });
+    }
+
+    const liveCountToggle = document.getElementById('live-count-toggle');
+    if (liveCountToggle) {
+        liveCountToggle.selected = localStorage.getItem('showLiveCount') !== 'false';
+        liveCountToggle.addEventListener('change', (e) => {
+            localStorage.setItem('showLiveCount', e.target.selected);
+            const isDnsLoggingEnabled = document.getElementById('dns-logging-toggle').selected;
+            updateLoggedDnsVisibility(isDnsLoggingEnabled);
+        });
+    }
+
+    // Segmented Control
+    const segmentApp = document.getElementById('segment-per-app');
+    const segmentDomain = document.getElementById('segment-per-domain');
+    if (segmentApp && segmentDomain) {
+        segmentApp.addEventListener('click', () => {
+            segmentApp.classList.add('active');
+            segmentDomain.classList.remove('active');
+        });
+        segmentDomain.addEventListener('click', () => {
+            segmentDomain.classList.add('active');
+            segmentApp.classList.remove('active');
+        });
+    }
+
+
 
 }
 
@@ -2377,18 +2406,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('clear-dns-logs').addEventListener('click', async () => {
         const tbBack = document.getElementById('dns-tb-back');
         if (tbBack) tbBack.click();
-        await exec(`
-            if [ -s ${basePath}/logs/dns.log ]; then
-                hist=$(cat ${basePath}/counts/dns.count 2>/dev/null || echo "0")
-                curr=$(grep -c . ${basePath}/logs/dns.log 2>/dev/null || echo "0")
-                total=$((hist + curr))
-                echo "$total" > ${basePath}/counts/dns.count
-                > ${basePath}/logs/dns.log
-            fi
-        `);
+        await exec(`> ${basePath}/logs/dns.log`);
         showPrompt("DNS Logs cleared", true);
         loadDnsLogs();
-        if (liveCountInterval) fetchLiveCount();
     });
     document.getElementById('reset-dns-count')?.addEventListener('click', () => {
         const dialog = document.getElementById('reset-dns-count-dialog');
