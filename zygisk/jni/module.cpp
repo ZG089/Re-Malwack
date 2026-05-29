@@ -244,6 +244,12 @@ public:
         }
     }
 
+    void preServerSpecialize(zygisk::ServerSpecializeArgs *) override {
+        // This module only targets app processes; unload from system_server
+        // to avoid unnecessary memory residency.
+        api->setOption(zygisk::DLCLOSE_MODULE_LIBRARY);
+    }
+
 private:
     zygisk::Api *api = nullptr;
     JNIEnv      *env = nullptr;
@@ -286,6 +292,29 @@ static pthread_mutex_t g_relay_mtx = PTHREAD_MUTEX_INITIALIZER;
 static int  g_relay_wfd = -1;   // write-end, sent to apps via send_fd
 static bool g_relay_up  = false;
 
+/* Opens (or creates) dns.count, reads the existing cumulative total,
+ * adds `delta` to it, and writes it back.  Safe to call with delta=0
+ * (no-op).  Called periodically and once on relay shutdown. */
+static void flush_count_to_disk(unsigned long long delta) {
+    if (delta == 0) return;
+    mkdir("/data/adb/Re-Malwack/counts", 0755);
+    FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
+    unsigned long long current_count = 0;
+    if (f) {
+        if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
+        rewind(f);
+    } else {
+        f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
+    }
+    if (f) {
+        current_count += delta;
+        fprintf(f, "%llu\n", current_count);
+        fflush(f);
+        ftruncate(fileno(f), ftell(f));
+        fclose(f);
+    }
+}
+
 static void *relay_worker(void *arg) {
     int rfd   = static_cast<int *>(arg)[0];
     int logfd = static_cast<int *>(arg)[1];
@@ -312,10 +341,12 @@ static void *relay_worker(void *arg) {
                 const char *pkg = line;
                 const char *domain = pipe_pos + 1;
                 __android_log_print(ANDROID_LOG_INFO, TAG, "Domain blocked: %s | Requester Package ID: %s", domain, pkg);
-            } else {
-                __android_log_print(ANDROID_LOG_INFO, TAG, "%s", line);
+                num_blocked++;
+            } else if (line[0] != '\0') {
+                // check_dns always writes "pkg|domain\n"; a line missing '|'
+                // should never occur — log it so we can diagnose if it does.
+                LOGE("relay: unexpected malformed line (missing '|'): %s", line);
             }
-            num_blocked++;
             line = strtok_r(nullptr, "\n", &saveptr);
         }
 
@@ -323,24 +354,9 @@ static void *relay_worker(void *arg) {
             accumulated_blocked += num_blocked;
             time_t now = time(nullptr);
             if (now - last_write_time >= 10) {
-                mkdir("/data/adb/Re-Malwack/counts", 0755);
-                FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
-                unsigned long long current_count = 0;
-                if (f) {
-                    if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
-                    rewind(f);
-                } else {
-                    f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
-                }
-                if (f) {
-                    current_count += accumulated_blocked;
-                    fprintf(f, "%llu\n", current_count);
-                    fflush(f);
-                    ftruncate(fileno(f), ftell(f));
-                    fclose(f);
-                    accumulated_blocked = 0;
-                    last_write_time = now;
-                }
+                flush_count_to_disk(accumulated_blocked);
+                accumulated_blocked = 0;
+                last_write_time = now;
             }
         }
 
@@ -354,24 +370,7 @@ static void *relay_worker(void *arg) {
         }
     }
 
-    if (accumulated_blocked > 0) {
-        mkdir("/data/adb/Re-Malwack/counts", 0755);
-        FILE *f = fopen("/data/adb/Re-Malwack/counts/dns.count", "r+");
-        unsigned long long current_count = 0;
-        if (f) {
-            if (fscanf(f, "%llu", &current_count) != 1) current_count = 0;
-            rewind(f);
-        } else {
-            f = fopen("/data/adb/Re-Malwack/counts/dns.count", "w");
-        }
-        if (f) {
-            current_count += accumulated_blocked;
-            fprintf(f, "%llu\n", current_count);
-            fflush(f);
-            ftruncate(fileno(f), ftell(f));
-            fclose(f);
-        }
-    }
+    flush_count_to_disk(accumulated_blocked);
 
     close(rfd);
     close(logfd);
