@@ -757,14 +757,14 @@ update_status() {
         dns_status=""
     fi
 
-    if [ -f "$persist_dir/reboot_required" ]; then
+    if [ -f "$persist_dir/first_install_flag" ]; then
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $capitalized_profile${dns_status}"
+    elif [ -f "$persist_dir/reboot_required" ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (DNS Logging) | ⚙️ Profile: $capitalized_profile${dns_status}"
 	elif [ -f "$persist_dir/mode_ready" ]; then
         status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_protection_paused; then
         status_msg="Status: Protection is paused ⏸️ | ⚙️ Profile: $capitalized_profile${dns_status}"
-    elif [ -d /data/adb/modules_update/Re-Malwack ] && [ ! -d /data/adb/modules/Re-Malwack ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $capitalized_profile${dns_status}"
     elif is_default_hosts; then
         if [ "$blacklist_count" -gt 0 ]; then
             plural="entries are active"
