@@ -295,7 +295,7 @@ else
     # Check internet connection
     if ping -c 1 -w 5 8.8.8.8 &>/dev/null; then
         ui_print "[i] Initializing hosts for first time installation 🏰"
-        if ! sh $MODPATH/rmlwk.sh --update-hosts --quiet; then
+        if ! sh $MODPATH/rmlwk.sh --quiet --update-hosts; then
             ui_print "[✗] Failed to initialize script"
             # Extract version from module.prop
             module_version=$(grep_prop version $MODPATH/module.prop)
