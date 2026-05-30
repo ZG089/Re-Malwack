@@ -85,10 +85,13 @@ jobs:
             echo "Seems like the commit message is empty or whatever, skipping this call..."
             exit 0;
           fi
-          # Escape newlines and quotes properly by using jq to construct JSON
-          PAYLOAD=$(jq -n \
-            --arg content "**New push** to ${GITHUB_REF#refs/heads/}\nRepository: ${GITHUB_REPOSITORY}\nPusher: ${GITHUB_ACTOR}\nCommits:\n$COMMITS" \
-            '{content: $content}')
+          # Build content string with real newlines, then pass to jq for safe JSON encoding
+          DISCORD_CONTENT=$(printf '**New push** to %s\nRepository: %s\nPusher: %s\nCommits:\n%s' \
+            "${GITHUB_REF#refs/heads/}" \
+            "${GITHUB_REPOSITORY}" \
+            "${GITHUB_ACTOR}" \
+            "$COMMITS")
+          PAYLOAD=$(jq -n --arg content "$DISCORD_CONTENT" '{content: $content}')
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "$PAYLOAD" \
