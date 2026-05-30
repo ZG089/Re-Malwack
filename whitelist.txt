@@ -6,6 +6,11 @@ alicdn.com
 
 # Airtel
 digianalytics.airtel.in
+myairtelapp.bsbportal.com
+appsecurity.airtel.in
+upi.airtelpayments.bank.in
+app.airtelpayments.bank.in
+assets.airtel.in
 
 # Adobe
 sstats.adobe.com
