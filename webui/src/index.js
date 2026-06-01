@@ -408,6 +408,7 @@ async function checkBlockStatus() {
             dnsLoggingToggle.selected = false;
         }
         updateLoggedDnsVisibility(dnsLoggingToggle.selected);
+        await updateDnsSubmenuState();
     } catch (error) {
         if (error.message === 'Config file not found') {
             const success = await linkFile();
@@ -582,6 +583,7 @@ async function toggleDnsLogging() {
     if (result) {
         updateLoggedDnsVisibility(toggle.selected);
         await checkRebootRequired();
+        await updateDnsSubmenuState();
         showPrompt(
             toggle.selected ? "DNS Logging enabled, Reboot to apply changes." : "DNS Logging disabled, Reboot to apply changes.",
             true,
@@ -630,6 +632,32 @@ function updateLoggedDnsVisibility(enabled) {
                 liveCountInterval = null;
             }
         }
+    }
+}
+
+async function updateDnsSubmenuState() {
+    const toggle = document.getElementById('dns-logging-toggle');
+    const isEnabled = toggle && toggle.selected;
+    const rebootRequiredResult = await exec(`[ -f "${basePath}/reboot_required" ]`);
+    const rebootRequired = rebootRequiredResult.errno === 0;
+
+    const liveCountToggle = document.getElementById('live-count-toggle');
+    const resetDnsBtn = document.getElementById('reset-dns-count');
+    const submenuLive = document.getElementById('dns-submenu-live-count');
+    const submenuReset = document.getElementById('dns-submenu-reset-count');
+
+    const shouldEnable = isEnabled && !rebootRequired;
+
+    if (liveCountToggle) liveCountToggle.disabled = !shouldEnable;
+    if (resetDnsBtn) resetDnsBtn.disabled = !shouldEnable;
+
+    if (submenuLive) {
+        submenuLive.style.opacity = shouldEnable ? '1' : '0.5';
+        submenuLive.style.pointerEvents = shouldEnable ? '' : 'none';
+    }
+    if (submenuReset) {
+        submenuReset.style.opacity = shouldEnable ? '1' : '0.5';
+        submenuReset.style.pointerEvents = shouldEnable ? '' : 'none';
     }
 }
 
@@ -2386,6 +2414,7 @@ async function checkRebootRequired() {
     if (result.stdout.trim() === "true") {
         document.getElementById('reboot-required-box').classList.add('display-flex');
     }
+    await updateDnsSubmenuState();
 }
 
 // Initial load

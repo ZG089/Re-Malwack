@@ -184,12 +184,12 @@
                     <md-switch icons id="dns-logging-toggle" style="z-index: 2; margin-right: 8px;"></md-switch>
                 </div>
                 <div class="control-list" id="dns-logging-submenu" style="flex-direction: column;">
-                    <label class="host-item" style="cursor: pointer; padding: 4px 0;">
+                    <label class="host-item" id="dns-submenu-live-count" style="cursor: pointer; padding: 4px 0;">
                         <span style="font-size: 1em;">Show live count in Dashboard</span>
                         <div class="spacer"></div>
                         <md-switch class="small-switch" id="live-count-toggle" selected></md-switch>
                     </label>
-                    <div class="host-item" style="padding: 4px 0;">
+                    <div class="host-item" id="dns-submenu-reset-count" style="padding: 4px 0;">
                         <span style="font-size: 1em;">Reset live count</span>
                         <div class="spacer"></div>
                         <md-icon-button id="reset-dns-count"><md-icon>restart_alt</md-icon></md-icon-button>
