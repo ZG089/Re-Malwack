@@ -316,6 +316,8 @@ else
             rm -rf /data/adb/Re-Malwack 2>/dev/null
             abort "[i] Logs are saved in ${tarFileName}"
         fi
+        status_msg="Status: Reboot required to apply changes 🔃 (First time install)"
+        sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
     else
         ui_print "[i] No internet connection, skipping hosts initialization."
         ui_print "[i] It is recommended to initialize hosts update after reboot."

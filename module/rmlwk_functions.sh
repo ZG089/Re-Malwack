@@ -757,9 +757,7 @@ update_status() {
         dns_status=""
     fi
 
-    if [ -f "$persist_dir/first_install_flag" ]; then
-        status_msg="Status: Reboot required to apply changes 🔃 (First time install) | ⚙️ Profile: $capitalized_profile${dns_status}"
-    elif [ -f "$persist_dir/reboot_required" ]; then
+    if [ -f "$persist_dir/reboot_required" ]; then
         status_msg="Status: Reboot required to apply changes 🔃 (DNS Logging) | ⚙️ Profile: $capitalized_profile${dns_status}"
 	elif [ -f "$persist_dir/mode_ready" ]; then
         status_msg="Status: Protection is idle 💤 | ⚙️ Profile: $capitalized_profile${dns_status}"
