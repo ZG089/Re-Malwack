@@ -102,6 +102,12 @@ fi
 # 1 - Sourcing config file
 . $persist_dir/config.sh
 
+# 1.1 - Handle first install flag
+if [ -f "$persist_dir/first_install_flag" ]; then
+    rm -f "$persist_dir/first_install_flag"
+    touch "$persist_dir/webui_first_launch"
+fi
+
 # 2 - creating logs dir in case if not created
 mkdir -p "$persist_dir/logs"
 # 3 - Remove previous logs (preserve dns.log, Zygisk companion may already have it open)

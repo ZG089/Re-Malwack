@@ -213,12 +213,13 @@ async function getStatus() {
 
     const welcomeBox = document.getElementById('welcome-box');
     if (welcomeBox) {
-        if (localStorage.getItem('firstLaunch') !== 'false') {
-            const firstInstallCheck = await exec(`[ -f "${basePath}/first_install_flag" ]`);
-            if (firstInstallCheck.errno === 0) {
-                welcomeBox.classList.add('display-flex');
-                exec(`rm -f "${basePath}/first_install_flag"`);
-            }
+        const firstInstallCheck = await exec(`[ -f "${basePath}/webui_first_launch" ]`);
+        if (firstInstallCheck.errno === 0) {
+            welcomeBox.classList.add('display-flex');
+            exec(`rm -f "${basePath}/webui_first_launch"`);
+            localStorage.setItem('firstLaunch', 'false');
+        } else if (localStorage.getItem('firstLaunch') !== 'false') {
+            welcomeBox.classList.add('display-flex');
             localStorage.setItem('firstLaunch', 'false');
         } else {
             welcomeBox.classList.remove('display-flex');
