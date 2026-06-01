@@ -62,10 +62,10 @@ if [ ! -d "$persistent_dir" ]; then # if persistent directory not created (first
 fi
 mkdir -p "$persistent_dir/profiles"
 touch "$config_file"
+touch "$persistent_dir/blacklist.txt"
+touch "$persistent_dir/whitelist.txt"
 for type in block_porn block_gambling block_fakenews block_social block_trackers block_safebrowsing daily_update adblock_switch action_mode dns_logging; do
     grep -q "^$type=" "$config_file" || echo "$type=0" >> "$config_file"
-    touch "$persistent_dir/blacklist.txt"
-    touch "$persistent_dir/whitelist.txt"
 done
 
 detect_key_press() {
