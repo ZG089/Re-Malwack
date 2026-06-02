@@ -685,6 +685,26 @@ fetch() {
     log_duration "Fetching process" "$start_time" "$end_time"
 }
 
+# Identify enabled blocklists
+identify_enabled_blocklists() {
+    enabled_blocklists=""
+    for bl in porn gambling fakenews social trackers safebrowsing; do
+        eval enabled=\$block_${bl}
+        if [ "$enabled" = "1" ]; then
+            if [ -z "$enabled_blocklists" ]; then
+                enabled_blocklists="$bl"
+            else
+                enabled_blocklists="$enabled_blocklists, $bl"
+            fi
+        fi
+    done
+    if [ -n "$enabled_blocklists" ]; then
+        log_message INFO "Enabled blocklists:$enabled_blocklists"
+    else
+        log_message INFO "No blocklists enabled"
+    fi
+}
+
 # Updates module status, modifying module description in module.prop
 update_status() {
     local start_time
@@ -722,19 +742,7 @@ update_status() {
     [ "$is_zn_detected" -ne 1 ] && mode="hosts mount mode: Standard mount"
 
     # Log enabled blocklists
-    enabled_blocklists=""
-    for bl in porn gambling fakenews social trackers safebrowsing; do
-        eval enabled=\$block_${bl}
-        if [ "$enabled" = "1" ]; then
-            if [ -z "$enabled_blocklists" ]; then
-                enabled_blocklists="$bl"
-            else
-                enabled_blocklists="$enabled_blocklists, $bl"
-            fi
-        fi
-    done
-    [ -n "$enabled_blocklists" ] && log_message INFO "Enabled blocklists:$enabled_blocklists" || \
-        log_message INFO "No blocklists enabled"
+    identify_enabled_blocklists
 
     # Here goes the part where we actually determine module status
     if [ -f "$persist_dir/mode_ready" ] && [ "$blocked_mod" -gt 0 ]; then

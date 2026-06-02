@@ -273,21 +273,24 @@ mv -f "$persistent_dir/sources.txt.tmp" "$persistent_dir/sources.txt"
 
 # Initialize
 . $config_file
-[ "$adblock_switch" -eq 1 ] && {
+
+# Check if adblock was paused (only if module was previously installed)
+[ -f "$persistent_dir/hosts.bak" ] && {
     ui_print "[i] Detected adblock pause, auto resuming before updating hosts..."
     mv -f "$persistent_dir/hosts.bak" "$MODPATH/system/etc/hosts"
     sed -i "s/^adblock_switch=1/adblock_switch=0/" $persistent_dir/config.sh
 }
 
-# Determine if hosts file already exists in new module path (e.g. from resume above)
-if [ -s $MODPATH/system/etc/hosts ]; then
-    ui_print "[*] Hosts file already initialized in module path."
-    status_msg="Status: Reboot required to apply changes 🔃"
-    sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
-# If not, check if we can migrate it from an existing installation
-elif [ -s /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
+# Check if hosts file exists so that we can migrate it
+if [ -s /data/adb/modules/Re-Malwack/system/etc/hosts ]; then
     ui_print "[*] migrating existing hosts file to module directory"
-    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/
+    ui_print " "
+    ui_print "################## NOTE ##################"
+    ui_print "[i] If you are using a built-in profile and the profile got updated after reboot"
+    ui_print "[i] Please update hosts manually to apply the new profile updates."
+    ui_print "############################################"
+    ui_print " "
+    mv -f /data/adb/modules/Re-Malwack/system/etc/hosts $MODPATH/system/etc/hosts
     status_msg="Status: Reboot required to apply module updates 🔃"
     sed -i "s/^description=.*/description=$status_msg/" "$MODPATH/module.prop"
 # Otherwise, initialize hosts (first-time installation or missing hosts file)
@@ -329,6 +332,7 @@ else
     fi
 fi
 
+# set hosts file permissions for all cases
 chmod 0644 $MODPATH/system/etc/hosts
 
 # Create symlink on install for ksu/ap
