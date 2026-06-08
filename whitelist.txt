@@ -130,6 +130,16 @@ com-service-us-05.allwnos.com
 com-service-us-07.allwnos.com
 com-service-us-08.allwnos.com
 
+# Pinterest
+pinterest.com
+accounts.pinterest.com
+api.pinterest.com
+i.pinimg.com
+log.pinterest.com
+pinimg.com
+s.pinimg.com
+trk.pinterest.com
+
 # Samsung Apps
 samsungrs.com
 samsungosp.com
