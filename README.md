@@ -52,7 +52,7 @@
 - 📝 Supports adding custom hosts rules
 - ✨ Easy to use, Just set and forget!
 - 💉 Supports [zn-hostsredirect](https://github.com/aviraxp/ZN-hostsredirect/)
-- 🧲 Ability to import your adblock setup from AdAway, bindhosts, and Cubic-Adblock [@]
+- 🧲 Ability to import your adblock setup from AdAway and bindhosts (Check out [2nd section in FAQ](#how-does-it-work---frequently-asked-questions-faq) to know how to)
 - 📝 A detailed logging system to debug module behavior and to detect bugs
 - 🛠 Supports Magisk, APatch and KernelSU (and their variants)
 - 👀 Also can protect [non-root devices](https://github.com/ZG089/Re-Malwack/tree/main?tab=readme-ov-file#3-local-vpn-no-root)
@@ -141,6 +141,12 @@
 > [!TIP]
 > **How does this module block ads?**
 > - It uses your system's `hosts` file systemlessly to block ads and malware by denying access for your phone to connect to them completely.
+
+
+> [!TIP]
+> **How to import my adblock setup from Bindhosts/AdAway?**
+> - **If you're coming from Bindhosts:** simply keep the module turned on, flash Re-Malwack and it will auto detect the module during install and ask you if you would like to import or no.
+> - **If you're coming from AdAway:** Export an AdAway backup file and place it in your `Downloads` folder inside your internal storage, the module will auto detect the file on installation and ask you if you would like to import or no.
 
 
 > [!TIP]
