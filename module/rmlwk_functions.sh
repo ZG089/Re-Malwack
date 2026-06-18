@@ -619,7 +619,7 @@ fetch_blocklist() {
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"
             ;;
         safebrowsing)
-            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/Re-Malwack/hosts/refs/heads/main/safebrowsing.txt"
+            fetch "${cache_hosts}1" "https://raw.githubusercontent.com/Re-Malwack/hosts/refs/heads/main/blocklists/safebrowsing.txt"
             ;;
     esac
     wait
