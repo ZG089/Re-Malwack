@@ -84,10 +84,14 @@ sdk-03.moengage.com
 # Google
 googleapis.com
 play-fe.googleapis.com
+youtubei.googleapis.com
 smartlock.google.com
 googleadservices.com
 s.youtube.com
 s2.youtube.com
+i.ytimg.com
+i1.ytimg.com
+i4.ytimg.com
 ssl.google-analytics.com
 oauth.googleusercontent.com
 mtalk.google.com
@@ -97,6 +101,7 @@ clients5.google.com
 firebaselogging-pa.googleapis.com
 optimizationguide-pa.googleapis.com
 android.clients.google.com
+redirector.googlevideo.com
 
 # Captcha
 www.google.com/recaptcha
