@@ -84,8 +84,8 @@ body.input-focused {
 }
 
 .info-card {
-  background-color: var(--md-sys-color-outline-variant) !important;
-  color: var(--md-sys-color-on-surface-variant) !important;
+  background-color: var(--md-sys-color-secondary) !important;
+  color: var(--md-sys-color-on-secondary) !important;
   font-size: 0.9em !important;
   padding: 12px 16px !important;
   min-height: unset !important;

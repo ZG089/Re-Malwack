@@ -1,6 +1,7 @@
 import { spawn, exec, toast, getPackagesInfo } from 'kernelsu-alt';
 import '@material/web/all.js';
 import ReMalwareIcon from './assets/Re-Malware.svg?raw';
+import { loadThemeData } from './theme';
 
 const basePath = "/data/adb/Re-Malwack";
 const modulePath = "/data/adb/modules/Re-Malwack";
@@ -1595,10 +1596,7 @@ let cachedThemeData = null;
  */
 async function loadTheme(themeName) {
     try {
-        if (!cachedThemeData) {
-            const response = await fetch('theme.json');
-            cachedThemeData = await response.json();
-        }
+        cachedThemeData = await loadThemeData();
 
         let schemeName = themeName;
         if (themeName === 'system') {
@@ -1636,10 +1634,7 @@ async function setupTheme() {
         themeSelect.open = !themeSelect.open
     }
     try {
-        if (!cachedThemeData) {
-            const response = await fetch('theme.json');
-            cachedThemeData = await response.json();
-        }
+        cachedThemeData = await loadThemeData();
 
         // Clear and populate theme-select
         themeSelect.innerHTML = '';
