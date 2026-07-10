@@ -119,11 +119,7 @@
 
 ### Option 3 - Local VPN (no root)
 
-- You can still protect your device without needing for root access, just copy paste this url into [DNSnet](https://play.google.com/store/apps/details?id=dev.clombardo.dnsnet), or [AdAway](https://f-droid.org/packages/org.adaway/), or any other app of your choice :
-
-  ```plaintext
-  https://raw.githubusercontent.com/ZG089/Re-Malwack/refs/heads/hosts-update/hosts
-  ```
+- You can still protect your device without needing for root access, visit our [repo](https://github.com/Re-Malwack/hosts) for our ready-to-use hosts sources! These can be also used on apps such as [DNSnet](https://play.google.com/store/apps/details?id=dev.clombardo.dnsnet), or [AdAway](https://f-droid.org/packages/org.adaway/), or any other app of your choice.
 
 > [!NOTE]
 > Default hosts sources used for non-root hosts can be found [here](https://github.com/ZG089/Re-Malwack/blob/main/.github/workflows/update-hosts.yml#L24)
