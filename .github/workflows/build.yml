@@ -228,9 +228,9 @@ jobs:
           COMMIT_AUTHOR="$COMMIT_USERNAME"
           
           # Escape for Telegram HTML
-          COMMIT_MSG_TG="${COMMIT_MSG_RAW//&/&amp;}"
-          COMMIT_MSG_TG="${COMMIT_MSG_TG//</&lt;}"
-          COMMIT_MSG_TG="${COMMIT_MSG_TG//>/&gt;}"
+          COMMIT_MSG_TG="${COMMIT_MSG_RAW//&/\&amp;}"
+          COMMIT_MSG_TG="${COMMIT_MSG_TG//</\&lt;}"
+          COMMIT_MSG_TG="${COMMIT_MSG_TG//>/\&gt;}"
           
           # Generate Discord payload using jq to safely handle quotes and newlines
           PAYLOAD=$(jq -n \
