@@ -168,7 +168,7 @@
 - [@KOWX712](https://github.com/KOWX712)
 - [@ikuyo-kita07](https://github.com/ikuyo-kita07/)
 - [@GalaxyA14user](https://github.com/GalaxyA14user)
-- [@myst-25](https://github.com/myst-25) (Testing & feedback)
+- [@myzanori](https://github.com/myzanori) (Testing & feedback)
 - [@dnascorpionofficial](https://github.com/dnascorpionofficial) (Testing & feedback)
 
 ### 2 - Hosts Sources Providers
