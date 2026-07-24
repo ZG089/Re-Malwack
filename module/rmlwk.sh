@@ -1035,6 +1035,10 @@ case "$(tolower "$1")" in
         is_protection_paused && abort "Ad-block is paused. Please resume before running this command."
 
         [ -d /data/adb/modules/Re-Malwack ] && echo "[*] Upgrading Anti-Ads fortress 🏰" && log_message "Updating protections..."
+        if [ "$profile" = "aggressive" ]; then
+            log_message HINT "Aggressive profile downloads large lists; on slow/mobile data prefer lite or balanced if updates fail."
+            echo "[i] Aggressive profile: large downloads — use Wi-Fi or lite/balanced on slow mobile data."
+        fi
         check_internet
         combined_file="${tmp_hosts}_all"
         > "$combined_file"
@@ -1050,42 +1054,91 @@ case "$(tolower "$1")" in
         counter=0
         download_limit=3
         download_count=0
+        batch_start=1
         for host in $hosts_list; do
             counter=$((counter + 1))
             # Save the url mapping for this counter for later counting
             echo "$host" > "${tmp_hosts}${counter}.url"
             fetch "${tmp_hosts}${counter}" "$host" &
             download_count=$((download_count + 1))
-            # Limit concurrent downloads
-            [ "$download_count" -ge "$download_limit" ] && { wait; download_count=0; sleep 0.5; }
+            # Limit concurrent downloads; drop to serial after a failed batch (slow/flaky links)
+            if [ "$download_count" -ge "$download_limit" ]; then
+                wait
+                i=$batch_start
+                while [ "$i" -le "$counter" ]; do
+                    if [ ! -s "${tmp_hosts}${i}" ]; then
+                        download_limit=1
+                        log_message WARN "Download batch had failures; reducing parallelism to 1 for remaining sources"
+                        break
+                    fi
+                    i=$((i + 1))
+                done
+                download_count=0
+                batch_start=$((counter + 1))
+                sleep 0.5
+            fi
         done
         wait
-        log_message SUCCESS "Completed download hosts from $counter source(s)"
+        log_message INFO "Finished fetching from $counter source(s)"
 
-        # 1.1 - Process in parallel with conservative limits
+        # 1.1 - Process with honest success/failure accounting
         job_limit=3
         job_count=0
+        ok_count=0
+        fail_count=0
         mkdir -p "$persist_dir/counts"
         > "$persist_dir/counts/sources.counts"
         for i in $(seq 1 $counter); do
+            if [ ! -f "${tmp_hosts}${i}.url" ]; then
+                continue
+            fi
+            host_url=$(cat "${tmp_hosts}${i}.url")
+            if [ ! -s "${tmp_hosts}${i}" ]; then
+                fail_count=$((fail_count + 1))
+                echo "${host_url}|0" >> "$persist_dir/counts/sources.counts"
+                log_message WARN "Source failed; 0 entries kept for $host_url (not counted as success)"
+                echo "[!] Source failed: $host_url"
+                continue
+            fi
             (
-                if [ -f "${tmp_hosts}${i}" ]; then
-                    host_process "${tmp_hosts}${i}"
-                    # Count block entries and save it
-                    if [ -f "${tmp_hosts}${i}.url" ]; then
-                        host_url=$(cat "${tmp_hosts}${i}.url")
-                        entries_count=$(wc -l < "${tmp_hosts}${i}")
-                        echo "${host_url}|${entries_count}" >> "$persist_dir/counts/sources.counts"
-                        log_message SUCCESS "Downloaded $entries_count entries from $host_url"
-                    fi
+                host_process "${tmp_hosts}${i}"
+                entries_count=$(wc -l < "${tmp_hosts}${i}")
+                echo "${host_url}|${entries_count}" >> "$persist_dir/counts/sources.counts"
+                if [ "$entries_count" -gt 0 ]; then
+                    log_message SUCCESS "Downloaded $entries_count entries from $host_url"
                     cat "${tmp_hosts}${i}" >> "$combined_file"
+                else
+                    log_message WARN "Source produced 0 entries after filtering: $host_url"
                 fi
             ) &
             job_count=$((job_count + 1))
             [ "$job_count" -ge "$job_limit" ] && { wait; job_count=0; sleep 0.25; }
         done
         wait
+
+        # Recount ok after parallel process (files that still have entries and were candidates)
+        ok_count=0
+        fail_count=0
+        for i in $(seq 1 $counter); do
+            [ -f "${tmp_hosts}${i}.url" ] || continue
+            if [ -s "${tmp_hosts}${i}" ] && [ "$(wc -l < "${tmp_hosts}${i}")" -gt 0 ]; then
+                ok_count=$((ok_count + 1))
+            else
+                fail_count=$((fail_count + 1))
+            fi
+        done
+
         log_message "Completed processing of all base source files"
+        if [ "$fail_count" -gt 0 ]; then
+            log_message WARN "$fail_count/$counter sources failed; $ok_count succeeded"
+            echo "[!] $fail_count/$counter sources failed; $ok_count succeeded"
+        fi
+
+        if [ "$ok_count" -eq 0 ]; then
+            log_message ERROR "All host sources failed to download. Keeping the previous hosts file."
+            log_message HINT "Check DNS/network (especially on mobile data) or try the lite profile."
+            abort "All host sources failed. Previous hosts file was kept."
+        fi
 
         # 2 - Download & process blocklists with small delays to prevent resource starvation
         > "$persist_dir/counts/blocklists.counts"
@@ -1116,11 +1169,11 @@ case "$(tolower "$1")" in
             echo "${bl}|${bl_count}" >> "$persist_dir/counts/blocklists.counts"
 
             # 2.5 - Append to combined file
-            cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file"
+            cat "$persist_dir/cache/$bl/hosts"* >> "$combined_file" 2>/dev/null || true
             log_message "Added $bl ($bl_count) hosts entries to combined hosts"
         done
 
-        # 3 - Install hosts
+        # 3 - Install hosts (only after at least one source succeeded)
         echo "[*] Installing hosts"
         log_message "Writing new hosts file"
 		printf "127.0.0.1 localhost\n::1 localhost" > "$hosts_file"
@@ -1129,8 +1182,13 @@ case "$(tolower "$1")" in
         # 4 - Done
         refresh_blocked_counts
         update_status
-        log_message SUCCESS "Successfully updated all hosts."
-        [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
+        if [ "$fail_count" -gt 0 ]; then
+            log_message SUCCESS "Updated hosts with partial source success ($ok_count/$counter)."
+            echo "[✓] Updated with warnings: $ok_count/$counter sources OK"
+        else
+            log_message SUCCESS "Successfully updated all hosts."
+            [ ! "$MODDIR" = "/data/adb/modules_update/Re-Malwack" ] && echo "[✓] Everything is now Good!"
+        fi
         end_time=$(get_current_time)
         log_duration "Updating hosts" "$start_time" "$end_time"
         ;;

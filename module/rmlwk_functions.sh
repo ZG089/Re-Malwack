@@ -194,7 +194,7 @@ resume_protections() {
 log_message() {
     # Handle optional log level (default: INFO)
     case "$1" in
-        INFO|WARN|ERROR|SUCCESS)
+        INFO|WARN|ERROR|SUCCESS|HINT)
             level="$1"
             shift
             ;;
@@ -204,6 +204,33 @@ log_message() {
     esac
     msg="$*"
     echo "[$(date +"%Y-%m-%d %I:%M:%S %p")] - [$level] - $msg" >> "$LOGFILE"
+}
+
+# Shared PATH for Magisk / KernelSU / APatch / Termux + optional $MODDIR/bin/<abi>
+setup_download_path() {
+    local abi
+    abi=$(getprop ro.product.cpu.abi 2>/dev/null)
+    PATH="${MODDIR}/bin/${abi}:${MODDIR}/bin:/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH"
+    export PATH
+}
+
+# Classify downloader stderr into DNS|timeout|http|empty|no-tool|download
+classify_download_error() {
+    local err="$1"
+    local empty_flag="$2"
+    if [ "$empty_flag" = "1" ]; then
+        echo "empty"
+        return
+    fi
+    printf '%s' "$err" | grep -qiE 'bad address|could not resolve|name or service not known|nodename nor servname|temporary failure in name resolution|no address associated' && { echo "DNS"; return; }
+    printf '%s' "$err" | grep -qiE 'timed out|timeout|connection timed out|gateway time-out' && { echo "timeout"; return; }
+    printf '%s' "$err" | grep -qiE 'HTTP/|404|403|401|500|SSL|certificate|handshake' && { echo "http"; return; }
+    printf '%s' "$err" | grep -qiE 'not found|applet not found|no such file' && { echo "no-tool"; return; }
+    echo "download"
+}
+
+url_host() {
+    printf '%s' "$1" | sed -E 's#^[a-zA-Z]+://##' | cut -d/ -f1 | cut -d: -f1
 }
 
 # function to get current time in milliseconds
@@ -342,10 +369,16 @@ install_hosts() {
     local start_time
     start_time=$(get_current_time)
     log_message "Fetching module's repo whitelist files"
-    # Update hosts for global whitelist
+    # Soft-fail: remote fetch, else keep existing cache (no bundled / no force-whitelist)
     mkdir -p "$persist_dir/cache/whitelist"
-    fetch "$persist_dir/cache/whitelist/whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt
-    fetch "$persist_dir/cache/whitelist/social_whitelist.txt" https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt
+    ensure_whitelist_file \
+        "$persist_dir/cache/whitelist/whitelist.txt" \
+        "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt" \
+        "whitelist"
+    ensure_whitelist_file \
+        "$persist_dir/cache/whitelist/social_whitelist.txt" \
+        "https://raw.githubusercontent.com/ZG089/Re-Malwack/main/social_whitelist.txt" \
+        "social_whitelist"
     log_message "Starting to install $type hosts."
     # Prepare original hosts
     cp -f $hosts_file "${tmp_hosts}0"
@@ -367,7 +400,7 @@ install_hosts() {
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
 
     # Merge whitelist files into one
-    cat $whitelist_file | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
+    cat $whitelist_file 2>/dev/null | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -638,17 +671,53 @@ abort() {
     exit 1
 }
 
-# Bruh It's clear already what this function does ._.
+# Connectivity: IP ping is soft; HTTPS/DNS probe is required.
 check_internet() {
-    retry_count=0
-    max_retries=6
-    while ! ping -c 1 8.8.8.8 &>/dev/null; do
+    local retry_count=0
+    local max_retries=6
+    local probe_url="https://raw.githubusercontent.com/ZG089/Re-Malwack/main/whitelist.txt"
+    local probe_file="/data/local/tmp/rmlwk_net_probe"
+    local probe_err="/data/local/tmp/rmlwk_net_probe.err"
+    local host
+
+    setup_download_path
+    host=$(url_host "$probe_url")
+
+    while ! ping -c 1 -W 2 8.8.8.8 &>/dev/null; do
         retry_count=$((retry_count + 1))
-        [ "$retry_count" -ge "$max_retries" ] && abort "No internet connection detected after $max_retries attempts, aborting..."
-        log_message WARN "No internet connection detected, retrying... (Attempt $retry_count/$max_retries)"
+        [ "$retry_count" -ge "$max_retries" ] && abort "No IP connectivity (ping 8.8.8.8 failed after $max_retries attempts)."
+        log_message WARN "No IP connectivity detected, retrying... (Attempt $retry_count/$max_retries)"
         echo "[i] No internet connection detected, attempting to reconnect... (Attempt $retry_count/$max_retries)"
         sleep 1.5
     done
+
+    retry_count=0
+    while [ "$retry_count" -lt "$max_retries" ]; do
+        retry_count=$((retry_count + 1))
+        rm -f "$probe_file" "$probe_err"
+        if command -v curl >/dev/null 2>&1; then
+            if curl -LfsS --connect-timeout 15 --max-time 45 "$probe_url" -o "$probe_file" 2>"$probe_err" \
+                && [ -s "$probe_file" ]; then
+                rm -f "$probe_file" "$probe_err"
+                return 0
+            fi
+        elif command -v busybox >/dev/null 2>&1; then
+            if busybox wget --no-check-certificate -T 30 -qO - "$probe_url" >"$probe_file" 2>"$probe_err" \
+                && [ -s "$probe_file" ]; then
+                rm -f "$probe_file" "$probe_err"
+                return 0
+            fi
+        else
+            abort "No downloader available (curl or busybox wget). Install curl on PATH or use Magisk/KSU/APatch busybox."
+        fi
+        log_message WARN "HTTPS/DNS probe failed for $host (attempt $retry_count/$max_retries): $(tr '\n' ' ' <"$probe_err" 2>/dev/null)"
+        echo "[i] Network DNS/HTTPS check failed for $host, retrying... ($retry_count/$max_retries)"
+        sleep 1.5
+    done
+
+    log_message ERROR "HTTPS/DNS probe failed for $host after $max_retries attempts (IP ping may still work)."
+    log_message HINT "Check mobile data/Wi-Fi DNS, try a stronger connection, or switch to the lite profile."
+    abort "Internet DNS/HTTPS check failed for $host. Downloads would fail. Fix DNS/network and retry."
 }
 
 # Fetches hosts from sources.txt
@@ -659,30 +728,109 @@ fetch() {
     start_time=$(get_current_time)
     local output_file="$1"
     local url="$2"
-    PATH=/data/adb/ap/bin:/data/adb/ksu/bin:/data/adb/magisk:/data/data/com.termux/files/usr/bin:$PATH
-    # Curly hairyyy- *ahem*
-    # So uhh, we check for curl existence, if it exists then we gotta use it to fetch hosts
+    local max_attempts=3
+    local attempt=0
+    local dl_tool=""
+    local err_file
+    local host
+    local stderr_txt=""
+    local class=""
+    local backoff=1
+
+    setup_download_path
+    host=$(url_host "$url")
+    err_file="${output_file}.fetch.err"
+    : > "$output_file"
+    rm -f "$err_file"
+
     if command -v curl >/dev/null 2>&1; then
         dl_tool=curl
-        if ! curl -LfsS "$url" > "$output_file"; then
-            log_message ERROR "Failed to download from $url with curl"
-            echo "[!] Failed to download from $url"
-            echo "" > "$output_file"
-            return 1
-        fi
-    else # Else we gotta just fallback to windows ge- my bad I mean winget- BRUH it's wget :sob:
-        dl_tool=wget
-        if ! busybox wget --no-check-certificate -qO - "$url" > "$output_file"; then
-            log_message ERROR "Failed to download from $url with wget"
-            echo "[!] Failed to download from $url"
-            echo "" > "$output_file"
-            return 1
-        fi
+    elif command -v busybox >/dev/null 2>&1; then
+        dl_tool=busybox-wget
+    else
+        log_message ERROR "No downloader available for $url (need curl or busybox wget)"
+        echo "[!] No downloader available (curl/busybox wget)"
+        echo "" > "$output_file"
+        return 1
     fi
-    log_message SUCCESS "Downloaded from $url using $dl_tool, stored in $output_file"
-    local end_time
-    end_time=$(get_current_time)
-    log_duration "Fetching process" "$start_time" "$end_time"
+
+    while [ "$attempt" -lt "$max_attempts" ]; do
+        attempt=$((attempt + 1))
+        : > "$output_file"
+        : > "$err_file"
+
+        if [ "$dl_tool" = "curl" ]; then
+            if curl -LfsS --connect-timeout 20 --max-time 300 --retry 2 --retry-delay 2 \
+                "$url" -o "$output_file" 2>"$err_file"; then
+                if [ -s "$output_file" ]; then
+                    log_message SUCCESS "Downloaded from $url using curl, stored in $output_file"
+                    log_duration "Fetching process" "$start_time" "$(get_current_time)"
+                    rm -f "$err_file"
+                    return 0
+                fi
+                class="empty"
+            fi
+        else
+            if busybox wget --no-check-certificate -T 60 -qO - "$url" >"$output_file" 2>"$err_file"; then
+                if [ -s "$output_file" ]; then
+                    log_message SUCCESS "Downloaded from $url using busybox-wget, stored in $output_file"
+                    log_duration "Fetching process" "$start_time" "$(get_current_time)"
+                    rm -f "$err_file"
+                    return 0
+                fi
+                class="empty"
+            fi
+        fi
+
+        stderr_txt=$(tr '\n' ' ' <"$err_file" 2>/dev/null)
+        if [ "$class" != "empty" ]; then
+            class=$(classify_download_error "$stderr_txt" 0)
+        fi
+        [ -z "$class" ] && class="download"
+
+        log_message ERROR "$class failure for $host (tool=$dl_tool, attempt=$attempt/$max_attempts)${stderr_txt:+: $stderr_txt}"
+        echo "[!] Failed to download from $url ($class, attempt $attempt/$max_attempts)"
+
+        if [ "$attempt" -lt "$max_attempts" ]; then
+            sleep "$backoff"
+            backoff=$((backoff * 2))
+            class=""
+        fi
+    done
+
+    log_message ERROR "Could not fetch source: $url"
+    log_message HINT "Check mobile data/Wi-Fi DNS, try again on a stronger connection, or switch to the lite profile"
+    echo "" > "$output_file"
+    rm -f "$err_file"
+    return 1
+}
+
+# Resolve whitelist: remote fetch → existing cache (no bundled module copy)
+ensure_whitelist_file() {
+    local dest="$1"
+    local url="$2"
+    local label="$3"
+    local tmp
+
+    mkdir -p "$(dirname "$dest")"
+    tmp="${dest}.tmp.$$"
+    rm -f "$tmp"
+
+    if fetch "$tmp" "$url" && [ -s "$tmp" ]; then
+        mv -f "$tmp" "$dest"
+        return 0
+    fi
+    rm -f "$tmp"
+
+    if [ -s "$dest" ]; then
+        log_message WARN "$label download failed; using cached file $dest"
+        echo "[i] Using cached $label"
+        return 0
+    fi
+
+    log_message WARN "$label unavailable (remote failed and no cache); continuing with empty $label"
+    : > "$dest"
+    return 0
 }
 
 # Identify enabled blocklists

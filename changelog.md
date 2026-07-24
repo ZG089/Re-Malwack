@@ -5,6 +5,10 @@
 **Core**
 - Fixed idle protection status handling (the stage after un-idling)
 - Fixed emoji placement behind "Profile" text
+- Hardened host-source downloads for slow/flaky networks (retries, timeouts, clearer DNS/timeout errors)
+- Stopped treating failed downloads as `Downloaded 0 entries` success; abort update if all sources fail (previous hosts kept)
+- Soft-fail remote whitelist fetch with cache fallback (no bundled module copy; no forced CDN whitelist)
+- Strengthened connectivity check with HTTPS/DNS probe (not only ping to 8.8.8.8)
 
 **WebUI**
 - Fixed logo rendering faliure issue that caused WebUI failing to load
@@ -13,6 +17,7 @@
 
 **Code Quality & Maintenance**
 - Create counts directory for storing blocked entries counts when running service.sh
+- Adaptive download parallelism (drops to 1 after a failed batch)
 
 
 ## v8.1
