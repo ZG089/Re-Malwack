@@ -367,7 +367,7 @@ install_hosts() {
     [ -s "$persist_dir/whitelist.txt" ] && whitelist_file="$whitelist_file $persist_dir/whitelist.txt"
 
     # Merge whitelist files into one
-    cat $whitelist_file | sed '/#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
+    cat $whitelist_file | sed 's/\r$//; /#/d; /^$/d' | awk '{print "0.0.0.0", $0}' > "${tmp_hosts}w"
 
     # If whitelist is empty, log and skip filtering
     if [ ! -s "${tmp_hosts}w" ]; then
@@ -609,11 +609,11 @@ fetch_blocklist() {
             # Device-specific tracker hosts
             brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
             case "$brand" in
-                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.xiaomi.txt" ;;
-                samsung)           url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.samsung.txt" ;;
-                oppo|realme)       url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.oppo-realme.txt" ;;
-                vivo)              url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.vivo.txt" ;;
-                huawei)            url="https://raw.githubusercontent.com/hagezi/dns-blocklists/main/hosts/native.huawei.txt" ;;
+                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.xiaomi.txt" ;;
+                samsung)           url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.samsung.txt" ;;
+                oppo|realme)       url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.oppo-realme.txt" ;;
+                vivo)              url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.vivo.txt" ;;
+                huawei)            url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.huawei.txt" ;;
                 *) url="" ;;
             esac
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"
