@@ -11,7 +11,8 @@
 [![Telegram Support group](https://img.shields.io/badge/Re--Malwack_Community-252850?style=for-the-badge&color=d51200&logo=telegram&logoColor=white)](https://t.me/Re_Malwack)
 [![XDA Support thread](https://img.shields.io/badge/XDA_Support_thread-252850?style=for-the-badge&color=d51200&logo=xdadevelopers&logoColor=white)](https://xdaforums.com/t/re-malwack-revival-of-malwack-module.4690049/)
 [![Discord Server](https://img.shields.io/discord/1463971306054881302?style=for-the-badge&logo=discord&label=Re-Malwack%20Community&color=d51200&logoColor=d51200)](https://discord.gg/6fgQCJWY2F)
-[![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_via-XDA-252850?style=for-the-badge&color=d51200&logo=xdadevelopers&logoColor=d51200)](https://xdaforums.com/m/ZG089.11432109/)
+[![Personal acc on XDA](https://img.shields.io/badge/Contact_Developer_on-XDA-252850?style=for-the-badge&color=d51200&logo=xdadevelopers&logoColor=d51200)](https://xdaforums.com/m/ZG089.11432109/)
+[![Personal acc on Discord](https://img.shields.io/badge/Contact_Developer_on-Discord-7289da?style=for-the-badge&color=d51200&logo=discord&logoColor=d51200)](https://discord.com/users/594080319007883264)
 [![Donation](https://img.shields.io/badge/Support%20Development-black?style=for-the-badge&logo=buymeacoffee&logoColor=white&logoSize=auto&color=d51200&cacheSeconds=2&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089&link=https%3A%2F%2Fbuymeacoffee.com%2Fzg089)](https://buymeacoffee.com/zg089)
 ![Built with](https://img.shields.io/badge/Made_with-Love_❤-d51200?style=for-the-badge)
 </div>
