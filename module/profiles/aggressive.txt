@@ -1,7 +1,7 @@
 # Aggressive Profile Hosts Sources
 # DESC: Hardcore Fortress-level protection, may block some legitimate services.
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
-https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/pro.plus.txt # Hagezi Pro
+https://hagezi-mirror.dnsbunker.org/hosts/pro.plus.txt # Hagezi Pro
 https://badmojr.github.io/1Hosts/Lite/hosts.txt # 1Hosts Lite
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt # Adguard DNS
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt # Adguard Mobile Ads

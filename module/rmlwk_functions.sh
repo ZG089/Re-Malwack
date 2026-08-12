@@ -609,11 +609,11 @@ fetch_blocklist() {
             # Device-specific tracker hosts
             brand=$(getprop ro.product.brand | tr '[:upper:]' '[:lower:]')
             case "$brand" in
-                xiaomi|redmi|poco) url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.xiaomi.txt" ;;
-                samsung)           url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.samsung.txt" ;;
-                oppo|realme)       url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.oppo-realme.txt" ;;
-                vivo)              url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.vivo.txt" ;;
-                huawei)            url="https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.huawei.txt" ;;
+                xiaomi|redmi|poco) url="https://hagezi-mirror.dnsbunker.org/hosts/native.xiaomi.txt" ;;
+                samsung)           url="https://hagezi-mirror.dnsbunker.org/hosts/native.samsung.txt" ;;
+                oppo|realme)       url="https://hagezi-mirror.dnsbunker.org/hosts/native.oppo-realme.txt" ;;
+                vivo)              url="https://hagezi-mirror.dnsbunker.org/hosts/native.vivo.txt" ;;
+                huawei)            url="https://hagezi-mirror.dnsbunker.org/hosts/native.huawei.txt" ;;
                 *) url="" ;;
             esac
             [ -n "$url" ] && fetch "${cache_hosts}3" "$url"

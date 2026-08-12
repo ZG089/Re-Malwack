@@ -1,12 +1,11 @@
 # Default Profile Hosts Sources
 # DESC: Re-Malwack's OG Default hosts sources list
 https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts # StevenBlack Unified hosts
-https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/pro.txt # Hagezi Pro
+https://hagezi-mirror.dnsbunker.org/hosts/pro.txt # Hagezi Pro
 https://badmojr.github.io/1Hosts/Lite/hosts.txt # 1Hosts Lite
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/master/AdguardDNS.txt # Adguard DNS
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileAds.txt # Adguard Mobile Ads
 https://raw.githubusercontent.com/r-a-y/mobile-hosts/refs/heads/master/AdguardMobileSpyware.txt # Adguard Mobile Spyware
 https://hosts.rem01gaming.dev/adblock # Rem01Gaming AdBlock
-https://raw.githubusercontent.com/hagezi/dns-blocklists-legacy/main/hosts/native.tiktok.txt # Hagezi TikTok Native
 https://blocklistproject.github.io/Lists/ads.txt # BlocklistProject - Ads
 
