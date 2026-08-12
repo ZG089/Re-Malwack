@@ -151,6 +151,14 @@ samsungosp.com
 samsungcloud.com
 samsungapps.com
 samsung-gamelauncher.com
+devicelog.samsungcloudsolution.net
+lcprd1.samsungcloudsolution.net
+lcprd2.samsungcloudsolution.net
+oempprd.samsungcloudsolution.net
+diagmon-serviceapi.samsungdm.com
+diagmon-policy.samsungdm.com
+report.gras.samsungdm.com
+vdterms.samsungcloudsolution.com
 
 # Supercell
 supercell.com
