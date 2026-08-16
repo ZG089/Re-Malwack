@@ -39,7 +39,7 @@ sanitize_domain() {
     if printf '%s' "$input" | grep -qE '^https?://'; then
         input=$(printf '%s' "$input" | awk -F[/:] '{print $4}')
     fi
-    printf '%s' "$input" | sed 's/^www\.//' | sed 's/\/.*//'
+    printf '%s' "$input" | sed 's/\/.*//'
 }
 
 # function to check hosts file reset state
