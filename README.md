@@ -81,7 +81,7 @@
 
 > [!CAUTION]
 > - **Do not use this module with any other ad blocker module/app, such as AdAway and Magisk's built-in systemless hosts module.**
-> - **In case module is active but ads are not blocked in browsers such as chrome/chromium-based browsers, Please enable superuser mode in KSU manager app for target browser app then try again*** 
+> - **In case module is active but ads are not blocked in browsers such as chrome/chromium-based browsers, Please disable "Umount modules" in KSU manager app for target browser app then try again*** 
 
 
 ## How to use Re-Malwack
