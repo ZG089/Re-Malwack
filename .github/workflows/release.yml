@@ -197,7 +197,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
-          CHANNEL_ID="-1002453262614"
+          CHANNEL_ID="-1004444533072"
           VERSION="${{ github.event.inputs.releaseName || github.event.inputs.tag }}"
           CHANGELOG="$(cat CHANGELOG_TG.md)"
           TRUNCATED_MSG=""
@@ -213,7 +213,6 @@ jobs:
           ${CHANGELOG} ${TRUNCATED_MSG}
           \`\`\`
           🔗 Download: [Github](https://github.com/${{ github.repository }}/releases/latest) | [MMRL](https://mmrl.dev/repository/zguectZGR/Re-Malwack)
-          🌐 @zgx\_projects x @Re\_Malwack
           ☕ [Support Development](https://buymeacoffee.com/zg089)"
           curl -sS "https://api.telegram.org/bot$BOT_TOKEN/sendPhoto" \
             -F chat_id="$CHANNEL_ID" \
